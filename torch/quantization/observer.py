@@ -898,6 +898,44 @@ class NoopObserver(ObserverBase):
     def get_qparams(self):
         return self.calculate_qparams()
 
+# Added by Flab (Y. Tamiya)
+class FlexFpObserver(ObserverBase):
+    r"""
+    The module is mainly for Flexible Floating Point Train & Test.
+
+    Args:
+        dtype: Quantized data type
+        fpfmt = (ebits, mbits, ebias)
+         : Tuple of (exponent_bits, manttissa_bits, exponent_bias)
+    *Note*
+    + {ebits, mbits, ebias} must be 8-bit integer.
+    + FlexFpObserver.calc_qparams() returns scale=0.0, and zero_point, where
+      zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
+    """
+
+    def __init__(self, dtype, fpfmt):
+        super(FlexFpObserver, self).__init__(dtype)
+        self.qscheme = torch.per_tensor_symmetric  # Work-Around for qat
+        self.ebits, self.mbits, self.ebias = fpfmt
+        assert self.ebits <= 8 and self.mbits <= 23 \
+            and -126 <= self.ebias <= 127, (
+                "FP Format must be comatible with FP32: "
+                "ebits<=8, mbits<=23, -126<=ebias<=127")
+
+    def forward(self, x):
+        # do nothing
+        return x
+
+    @torch.jit.export
+    def calculate_qparams(self):
+        scale = 0.0  # 0 means "Flexible Floating Point"
+        zero_point = (self.ebias & 0xff)<<16 |(self.ebits & 0xff)<< 8 \
+                     |(self.mbits & 0xff)<< 0
+        return torch.tensor([scale]), torch.tensor([zero_point])
+
+    @torch.jit.export
+    def get_qparams(self):
+        return self.calculate_qparams()
 
 # Restrict activations to be in the range (0,127)
 default_observer = MinMaxObserver.with_args(reduce_range=True)

@@ -84,21 +84,42 @@ def get_default_qconfig(backend='fbgemm'):
         raise ValueError("Unknown backend, please specify qconfig manually")
     return qconfig
 
-def get_default_qat_qconfig(backend='fbgemm'):
+# Flab by Y. Tamiya
+#def get_default_qat_qconfig(backend='fbgemm'):
+def get_default_qat_qconfig(backend='fbgemm', grad_observe=False):
     # Histogram observer is too slow for quantization aware training
     if backend == 'fbgemm':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
+                                                            grad_observe=grad_observe, #Flab by Y.Tamiya
                                                             reduce_range=True),
-                          weight=default_per_channel_weight_fake_quant)
+                          # Flab by Y. Tamiya
+                          #weight=default_per_channel_weight_fake_quant)
+                          weight=default_per_channel_weight_fake_quant.with_args(grad_observe=grad_observe))
     elif backend == 'qnnpack':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
+                                                            grad_observe=grad_observe, #Flab by Y.Tamiya
                                                             reduce_range=False),
-                          weight=default_weight_fake_quant)
+                          # Flab by Y. Tamiya
+                          #weight=default_weight_fake_quant)
+                          weight=default_weight_fake_quant.with_args(grad_observe=grad_observe))
     else:
         raise ValueError("Unknown backend, please specify qconfig manually")
 
     return qconfig
+
+# Added by Flab (Y. Tamiya) #
+def get_default_flex_fp_qat_qconfig(fpfmt, grad_fpfmt=None):
+    return QConfig(activation=FakeQuantize.with_args(observer=FlexFpObserver,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
+                   weight=FakeQuantize.with_args(observer=FlexFpObserver,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))

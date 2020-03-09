@@ -1080,6 +1080,58 @@ void q_batch_norm_kernel(
 
 }
 
+#if 1 //Added by Flab (Y. Tamiya)
+static inline
+float fake_convert_fp(float x, int ebits, int mbits, int ebias)
+{
+  if (x == 0.0f || std::isinf(x) || std::isnan(x)) {
+    return x;
+  } else {
+    // Round to Nearest Even Algorithm
+    const int FP32_EBITS = 8;
+    const int FP32_MBITS = 23;
+#   define BIAS(ebits)     ((1 << ((ebits) -1)) -1)
+    uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) - ebias;
+    uint32_t e_max = e_min + (1 << ebits) -1;
+    //printf("[DEBUG] e_min/max = %d/%d\n", e_min, e_max);
+    union {
+      uint32_t i;
+      float    f;
+    } t;
+    t.f = x;
+    //printf("[DEBUG] x = 0x%08x\n", t.i);
+
+    uint32_t s = (t.i & (1<< (FP32_EBITS+FP32_MBITS))) != 0;
+    uint32_t e = (t.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
+    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits)); 
+    uint32_t r0 = t.i &  (1 << (FP32_MBITS - mbits -1));
+    uint32_t r1 = t.i & ((1 << (FP32_MBITS - mbits -1)) -1);
+
+    if (FP32_MBITS - mbits <= 0
+	|| r0 == 0
+	|| (FP32_MBITS - mbits >= 2 && r1 == 0
+	    && (m & (1 << (FP32_MBITS - mbits))) == 0)) {
+      ; //floor: nop
+    } else {
+      // ceil
+      if (m == (((1 << mbits) -1) << (FP32_MBITS - mbits))) {
+	m = 0;
+	e += 1;
+      } else {
+	m += (1 << (FP32_MBITS - mbits));
+      }
+    }
+
+    if (e > e_max) { e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits); }
+    else if (e < e_min) { e = 0; m = 0; }
+
+    t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m; 
+    //printf("[DEBUG] y = 0x%08x\n", y.i);
+    return t.f;
+  }
+}
+#endif //Added by Flab (Y. Tamiya)
+
 void fake_quantize_tensor_kernel(
     Tensor& output,
     const Tensor& input,
@@ -1087,8 +1139,20 @@ void fake_quantize_tensor_kernel(
     int64_t z_point,
     int64_t quant_min,
     int64_t quant_max) {
-  float inv_scale = 1.0f / sc;
+//Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / sc;
   auto iter = TensorIterator::unary_op(output, input);
+#if 1 //Added by Flab (Y. Tamiya)
+  if (sc == 0.0f) {
+  //DEBUG*/std::cout << "fake_quantize_tensor: z_point=" << std::hex << z_point << std::endl;
+  cpu_kernel(iter, [&](float self) -> float {
+    return fake_convert_fp(self, (z_point>>8) & 0xff,
+			   z_point & 0xff,
+			   (signed char)((z_point>>16) & 0xff));
+    });
+  } else {
+  //DEBUG*/std::cout << "fake_quantize_tensor: qint: scale=" << sc << std::endl;
+  float inv_scale = 1.0f / sc;
+#endif //Added by Flab (Y. Tamiya)
   cpu_kernel(iter, [&](float self) -> float {
     return (std::fmin(
                 std::fmax(
@@ -1099,6 +1163,9 @@ void fake_quantize_tensor_kernel(
             z_point) *
         sc;
   });
+#if 1 //Added by Flab (Y. Tamiya)
+  }
+#endif //Added by Flab (Y. Tamiya)
 }
 
 void fake_quantize_grad_tensor_kernel(
@@ -1109,17 +1176,39 @@ void fake_quantize_grad_tensor_kernel(
     int64_t z_point,
     int64_t quant_min,
     int64_t quant_max) {
-  float inv_scale = 1.0f / sc;
+//Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / sc;
   auto iter = TensorIterator::binary_op(input_grad, input, output_grad);
+#if 1 //Added by Flab (Y. Tamiya)
+  if (sc == 0.0f) {
+  //DEBUG*/std::cout << "fake_quantize_grad_tensor: z_point=" << std::hex << z_point << std::endl;
+  cpu_kernel(iter, [&](float x, float dy) -> float {
+    return fake_convert_fp(dy, (z_point>>8) & 0xff,
+			   z_point & 0xff,
+			   (signed char)((z_point>>16) & 0xff));
+    });
+  } else {
+  //DEBUG*/std::cout << "fake_quantize_grad_tensor: qint: scale=" << sc << std::endl;
+  float inv_scale = 1.0f / sc;
+#endif //Added by Flab (Y. Tamiya)
   cpu_kernel(iter, [&](float x, float dy) -> float {
     int64_t xq = static_cast<int64_t>(std::nearbyint(x * inv_scale + z_point));
     return dy * (xq >= quant_min && xq <= quant_max);
   });
+#if 1 //Added by Flab (Y. Tamiya)
+  }
+#endif //Added by Flab (Y. Tamiya)
 }
 
 void fake_quant_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   cpu_kernel(iter,
     [=](float self, float scale, int64_t zero_point) -> float {
+#if 1 //Added by Flab (Y. Tamiya)
+    if (scale == 0.0f) {
+      return fake_convert_fp(self, (zero_point>>8) & 0xff,
+			     zero_point & 0xff,
+			     (signed char)((zero_point>>16) & 0xff));
+    } else {
+#endif //Added by Flab (Y. Tamiya)
       float inv_scale = 1.0f / scale;
       return (std::fmin(
                 std::fmax(
@@ -1129,15 +1218,28 @@ void fake_quant_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t
                 quant_max) -
             zero_point) *
         scale;
+#if 1 //Added by Flab (Y. Tamiya)
+    }
+#endif //Added by Flab (Y. Tamiya)
     });
 }
 
 void fake_quant_grad_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   cpu_kernel(iter,
     [=](float x, float dy, float scale, int64_t zero_point) -> float {
+#if 1 //Added by Flab (Y. Tamiya)
+    if (scale == 0.0f) {
+      return fake_convert_fp(dy, (zero_point>>8) & 0xff,
+			     zero_point & 0xff,
+			     (signed char)((zero_point>>16) & 0xff));
+    } else {
+#endif //Added by Flab (Y. Tamiya)
       float inv_scale = 1.0f / scale;
       int64_t xq = static_cast<int64_t>(std::nearbyint(x * inv_scale + zero_point));
       return dy * (xq >= quant_min && xq <= quant_max);
+#if 1 //Added by Flab (Y. Tamiya)
+    }
+#endif //Added by Flab (Y. Tamiya)
     });
 }
 

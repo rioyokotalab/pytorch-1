@@ -41,7 +41,9 @@ class FakeQuantize(Module):
                            provides a method to calculate scale and zero-point.
 
     """
-    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, **observer_kwargs):
+    # Flab by Y. Tamiya
+    #def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, **observer_kwargs):
+    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, grad_observe=False, **observer_kwargs):
         super(FakeQuantize, self).__init__()
         assert quant_min <= quant_max, \
             'quant_min must be less than or equal to quant_max'
@@ -49,6 +51,15 @@ class FakeQuantize(Module):
         self.quant_max = quant_max
         self.fake_quant_enabled = True
         self.observer_enabled = True
+        # Flab by Y. Tamiya
+        grad_fpfmt = observer_kwargs.pop('grad_fpfmt', None)
+        if grad_observe or grad_fpfmt:
+            grad_obs_kwargs = observer_kwargs
+            if grad_fpfmt:
+                grad_obs_kwargs = grad_obs_kwargs.copy()
+                grad_obs_kwargs['fpfmt'] = grad_fpfmt
+            self.grad_quant = observer(**grad_obs_kwargs)
+            self.register_backward_hook(FakeQuantize.backward_hook)
         self.activation_post_process = observer(**observer_kwargs)
         assert torch.iinfo(self.activation_post_process.dtype).min <= quant_min, 'quant_min out of bound'
         assert quant_max <= torch.iinfo(self.activation_post_process.dtype).max, 'quant_max out of bound'
@@ -89,6 +100,30 @@ class FakeQuantize(Module):
                                                           int(self.zero_point), self.quant_min,
                                                           self.quant_max)
         return X
+
+    # Flab by Y. Tamiya
+    @staticmethod
+    def backward_hook(self, dX, dY):
+        assert len(dY)==1, \
+            'FakeQuantize with more than one inputs: {}'.format(len(dY))
+        if self.observer_enabled:
+            self.grad_quant(dY[0])
+            _scale, _zero_point = self.grad_quant.calculate_qparams()
+            self.scale = _scale.to(self.scale.device)
+            self.zero_point = _zero_point.to(self.zero_point.device)
+            #print('fake_quantize.grad_hook: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
+        if self.fake_quant_enabled:
+            X = dY  #dummy Tensor
+            if self.qscheme == torch.per_channel_symmetric \
+               or self.qscheme == torch.per_channel_affine:
+                dy = torch.fake_quantize_per_channel_affine_backward(dY[0],X[0],
+                                self.scale, self.zero_point,
+                                self.ch_axis, self.quant_min, self.quant_max)
+            else:
+                dy = torch.fake_quantize_per_tensor_affine_backward(dY[0], X[0],
+                                float(self.scale), int(self.zero_point),
+                                self.quant_min, self.quant_max)
+            return (dy,)
 
     with_args = classmethod(_with_args)
 
