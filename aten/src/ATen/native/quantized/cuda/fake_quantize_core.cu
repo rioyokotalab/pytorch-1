@@ -27,10 +27,11 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
     return x;
   } else {
     // Round to Nearest Even Algorithm
+    //printf("[DEBUG] ebits=%d,mbits=%d,ebias=%d,x=%f\n",ebits,mbits,ebias,x);
     const int FP32_EBITS = 8;
     const int FP32_MBITS = 23;
 #   define BIAS(ebits)     ((1 << ((ebits) -1)) -1)
-    uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) - ebias;
+    uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) + ebias;
     uint32_t e_max = e_min + (1 << ebits) -1;
     //printf("[DEBUG] e_min/max = %d/%d\n", e_min, e_max);
     union {
@@ -60,12 +61,12 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
 	m += (1 << (FP32_MBITS - mbits));
       }
     }
-
+    //printf("[DEBUG] s=%d, e=%d, m=%d (before clip)\n", s, e, m);
     if (e > e_max) { e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits); }
     else if (e < e_min) { e = 0; m = 0; }
 
     t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m; 
-    //printf("[DEBUG] y = 0x%08x\n", y.i);
+    //printf("[DEBUG] y = 0x%08x\n", t.i);
     return t.f;
   }
 }

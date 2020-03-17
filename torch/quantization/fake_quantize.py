@@ -103,6 +103,7 @@ class FakeQuantize(Module):
 
     # Flab by Y. Tamiya
     @staticmethod
+    @torch.jit.export
     def backward_hook(self, dX, dY):
         assert len(dY)==1, \
             'FakeQuantize with more than one inputs: {}'.format(len(dY))

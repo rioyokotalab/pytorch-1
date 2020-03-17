@@ -123,3 +123,16 @@ def get_default_flex_fp_qat_qconfig(fpfmt, grad_fpfmt=None):
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
+
+# Added by Flab (Y. Tamiya) #
+def get_default_flex_fp_dyn_bias_qat_qconfig(fpfmt, grad_fpfmt=None):
+    return QConfig(activation=FakeQuantize.with_args(observer=FlexFpDynBiasObserver,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
+                   weight=FakeQuantize.with_args(observer=FlexFpDynBiasObserver,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))

@@ -937,6 +937,40 @@ class FlexFpObserver(ObserverBase):
     def get_qparams(self):
         return self.calculate_qparams()
 
+# Added by Flab (Y. Tamiya)
+import struct
+class FlexFpDynBiasObserver(FlexFpObserver):
+    r"""
+    The module is mainly for Flexible Floating Point w/ the dynamic ebias.
+
+    Args:
+        dtype: Quantized data type
+        fpfmt = (ebits, mbits)
+         : Tuple of (exponent_bits, manttissa_bits)
+    *Note*
+    + {ebits, mbits} must be 8-bit integer.
+    + ebias (exponent bias) is calculated with forward input Tensor.
+    + FlexFpObserver.calc_qparams() returns scale=0.0, and zero_point, where
+      zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
+    """
+
+    def __init__(self, dtype, fpfmt):
+        super(FlexFpDynBiasObserver,self).__init__(dtype,(fpfmt[0],fpfmt[1],0))
+
+    def forward(self, x_orig):
+        x = x_orig.detach()
+        a = torch.max(abs(x)).item()
+        if a != 0.0 and math.isfinite(a):
+            ## CAUTION: This code assumes dtype==IEEE754 float32 ##
+            e = (struct.unpack('I', struct.pack('f', a))[0] & 0x7f800000)>>23
+            self.ebias = e - 127 - 2**(self.ebits-1)
+        # Below code runs too SLOW #
+        #    e = torch.log2(a).ceil().int().item()
+        #    self.ebias = e- 2**(self.ebits-1)
+        else:
+            self.ebias = 0
+        return x_orig
+
 # Restrict activations to be in the range (0,127)
 default_observer = MinMaxObserver.with_args(reduce_range=True)
 default_debug_observer = RecordingObserver
