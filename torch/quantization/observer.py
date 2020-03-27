@@ -913,7 +913,7 @@ class FlexFpObserver(ObserverBase):
       zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
     """
 
-    def __init__(self, dtype, fpfmt):
+    def __init__(self, fpfmt, dtype=torch.int32):
         super(FlexFpObserver, self).__init__(dtype)
         self.qscheme = torch.per_tensor_symmetric  # Work-Around for qat
         self.ebits, self.mbits, self.ebias = fpfmt
@@ -954,8 +954,9 @@ class FlexFpDynBiasObserver(FlexFpObserver):
       zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
     """
 
-    def __init__(self, dtype, fpfmt):
-        super(FlexFpDynBiasObserver,self).__init__(dtype,(fpfmt[0],fpfmt[1],0))
+    def __init__(self, fpfmt, dtype=torch.int32):
+        super(FlexFpDynBiasObserver,self).__init__(dtype=dtype,
+                                                   fpfmt=(fpfmt[0],fpfmt[1],0))
 
     def forward(self, x_orig):
         x = x_orig.detach()

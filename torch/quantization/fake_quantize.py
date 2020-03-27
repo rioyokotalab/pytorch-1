@@ -43,7 +43,7 @@ class FakeQuantize(Module):
     """
     # Flab by Y. Tamiya
     #def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, **observer_kwargs):
-    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, grad_observe=False, **observer_kwargs):
+    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, grad_observer=None, **observer_kwargs):
         super(FakeQuantize, self).__init__()
         assert quant_min <= quant_max, \
             'quant_min must be less than or equal to quant_max'
@@ -53,12 +53,15 @@ class FakeQuantize(Module):
         self.observer_enabled = True
         # Flab by Y. Tamiya
         grad_fpfmt = observer_kwargs.pop('grad_fpfmt', None)
-        if grad_observe or grad_fpfmt:
+        if grad_observer or grad_fpfmt:
             grad_obs_kwargs = observer_kwargs
             if grad_fpfmt:
                 grad_obs_kwargs = grad_obs_kwargs.copy()
                 grad_obs_kwargs['fpfmt'] = grad_fpfmt
-            self.grad_quant = observer(**grad_obs_kwargs)
+            if grad_observer:
+                self.grad_quant = grad_observer(**grad_obs_kwargs)
+            else:
+                self.grad_quant = observer(**grad_obs_kwargs)
             self.register_backward_hook(FakeQuantize.backward_hook)
         self.activation_post_process = observer(**observer_kwargs)
         assert torch.iinfo(self.activation_post_process.dtype).min <= quant_min, 'quant_min out of bound'

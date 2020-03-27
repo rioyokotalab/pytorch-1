@@ -44,6 +44,7 @@ Tensor fake_quantize_per_channel_affine(
       scale.numel() == self.size(axis),
       "dimensions of scale and zero-point are not consistent with input tensor")
 
+  if (*scale.data_ptr<float>()) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
       quant_min <= quant_max,
       "`quant_min` should be less than or \
@@ -53,6 +54,7 @@ Tensor fake_quantize_per_channel_affine(
       at::min(zero_point).item().toLong() >= quant_min &&
           at::max(zero_point).item().toLong() <= quant_max,
       "`zero_point` must be between `quant_min` and `quant_max`.");
+  } /* Added by Flab (Y.Tamiya) */
 
   TORCH_CHECK(
       axis >= 0 && axis <= self.dim(),
@@ -103,10 +105,12 @@ Tensor fake_quantize_per_channel_affine_backward(
   TORCH_CHECK(X.scalar_type() == ScalarType::Float);
 
   TORCH_CHECK(X.sizes() == dY.sizes(), "`X` and `dY` are not the same size");
+  if (*scale.data_ptr<float>()) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
       quant_min <= quant_max,
       "`quant_min` should be less than or \
         equal to `quant_max`.");
+  } /* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(scale.dim() == 1, "scale should be a 1-D tensor");
   TORCH_CHECK(zero_point.dim() == 1, "zero point should be a 1-D tensor");
   TORCH_CHECK(
@@ -116,10 +120,12 @@ Tensor fake_quantize_per_channel_affine_backward(
       scale.numel() == X.size(axis),
       "dimensions of scale and zero-point are not consistent with input tensor")
 
+  if (*scale.data_ptr<float>()) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
       quant_min <= quant_max,
       "`quant_min` should be less than or \
         equal to `quant_max`.");
+  } /* Added by Flab (Y.Tamiya) */
 
   TORCH_CHECK(
       at::min(zero_point).item().toLong() >= quant_min &&

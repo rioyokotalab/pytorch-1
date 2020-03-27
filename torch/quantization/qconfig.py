@@ -86,33 +86,33 @@ def get_default_qconfig(backend='fbgemm'):
 
 # Flab by Y. Tamiya
 #def get_default_qat_qconfig(backend='fbgemm'):
-def get_default_qat_qconfig(backend='fbgemm', grad_observe=False):
+def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
     # Histogram observer is too slow for quantization aware training
     if backend == 'fbgemm':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
-                                                            grad_observe=grad_observe, #Flab by Y.Tamiya
+                                                            grad_observer=grad_observer, #Flab by Y.Tamiya
                                                             reduce_range=True),
                           # Flab by Y. Tamiya
                           #weight=default_per_channel_weight_fake_quant)
-                          weight=default_per_channel_weight_fake_quant.with_args(grad_observe=grad_observe))
+                          weight=default_per_channel_weight_fake_quant.with_args(grad_observer=grad_observer))
     elif backend == 'qnnpack':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
-                                                            grad_observe=grad_observe, #Flab by Y.Tamiya
+                                                            grad_observer=grad_observer, #Flab by Y.Tamiya
                                                             reduce_range=False),
                           # Flab by Y. Tamiya
                           #weight=default_weight_fake_quant)
-                          weight=default_weight_fake_quant.with_args(grad_observe=grad_observe))
+                          weight=default_weight_fake_quant.with_args(grad_observer=grad_observer))
     else:
         raise ValueError("Unknown backend, please specify qconfig manually")
 
     return qconfig
 
 # Added by Flab (Y. Tamiya) #
-def get_default_flex_fp_qat_qconfig(fpfmt, grad_fpfmt=None):
+def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
     return QConfig(activation=FakeQuantize.with_args(observer=FlexFpObserver,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
@@ -125,7 +125,7 @@ def get_default_flex_fp_qat_qconfig(fpfmt, grad_fpfmt=None):
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
 
 # Added by Flab (Y. Tamiya) #
-def get_default_flex_fp_dyn_bias_qat_qconfig(fpfmt, grad_fpfmt=None):
+def get_flexfp_dynbias_qat_qconfig(fpfmt, grad_fpfmt=None):
     return QConfig(activation=FakeQuantize.with_args(observer=FlexFpDynBiasObserver,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
@@ -136,3 +136,20 @@ def get_default_flex_fp_dyn_bias_qat_qconfig(fpfmt, grad_fpfmt=None):
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
+
+# Added by Flab (Y. Tamiya) #
+def get_qint_grad_flexfp_qat_qconfig(grad_fpfmt):
+    return QConfig(activation=FakeQuantize.with_args(
+                       observer=MovingAverageMinMaxObserver,
+                       quant_min=0,
+                       quant_max=255,
+                       dtype=torch.quint8,
+                       grad_observer=FlexFpObserver,
+                       grad_fpfmt=grad_fpfmt),
+                   weight=FakeQuantize.with_args(
+                       observer=MovingAverageMinMaxObserver,
+                       quant_min=-128,
+                       quant_max= 127,
+                       dtype=torch.qint8,
+                       grad_observer=FlexFpObserver,
+                       grad_fpfmt=grad_fpfmt))
