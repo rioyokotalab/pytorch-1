@@ -117,17 +117,16 @@ class FakeQuantize(Module):
             self.zero_point = _zero_point.to(self.zero_point.device)
             #print('fake_quantize.grad_hook: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
         if self.fake_quant_enabled:
-            X = dY  #dummy Tensor
             if self.qscheme == torch.per_channel_symmetric \
                or self.qscheme == torch.per_channel_affine:
-                dy = torch.fake_quantize_per_channel_affine_backward(dY[0],X[0],
+                dx = torch.fake_quantize_per_channel_affine(dY[0],
                                 self.scale, self.zero_point,
                                 self.ch_axis, self.quant_min, self.quant_max)
             else:
-                dy = torch.fake_quantize_per_tensor_affine_backward(dY[0], X[0],
+                dx = torch.fake_quantize_per_tensor_affine(dY[0],
                                 float(self.scale), int(self.zero_point),
                                 self.quant_min, self.quant_max)
-            return (dy,)
+            return (dx,)
 
     with_args = classmethod(_with_args)
 
