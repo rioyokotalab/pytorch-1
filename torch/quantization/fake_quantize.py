@@ -108,7 +108,7 @@ class FakeQuantize(Module):
     @staticmethod
     @torch.jit.export
     def backward_hook(self, dX, dY):
-        assert len(dY)==1, \
+        assert not self.fake_quant_enabled or len(dY)==1, \
             'FakeQuantize with more than one inputs: {}'.format(len(dY))
         if self.observer_enabled:
             self.grad_quant(dY[0])
