@@ -95,6 +95,7 @@ class FakeQuantize(Module):
             _scale, _zero_point = self.calculate_qparams()
             self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device)
         if self.fake_quant_enabled:
+            #print('fake_quantize.forward: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
             if self.qscheme == torch.per_channel_symmetric or self.qscheme == torch.per_channel_affine:
                 X = torch.fake_quantize_per_channel_affine(X, self.scale, self.zero_point,
                                                            self.ch_axis, self.quant_min, self.quant_max)
@@ -113,18 +114,18 @@ class FakeQuantize(Module):
         if self.observer_enabled:
             self.grad_quant(dY[0])
             _scale, _zero_point = self.grad_quant.calculate_qparams()
-            self.scale = _scale.to(self.scale.device)
-            self.zero_point = _zero_point.to(self.zero_point.device)
+            scale = _scale.to(self.scale.device)
+            zero_point = _zero_point.to(self.zero_point.device)
             #print('fake_quantize.grad_hook: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
         if self.fake_quant_enabled:
             if self.qscheme == torch.per_channel_symmetric \
                or self.qscheme == torch.per_channel_affine:
                 dx = torch.fake_quantize_per_channel_affine(dY[0],
-                                self.scale, self.zero_point,
+                                scale, zero_point,
                                 self.ch_axis, self.quant_min, self.quant_max)
             else:
                 dx = torch.fake_quantize_per_tensor_affine(dY[0],
-                                float(self.scale), int(self.zero_point),
+                                float(scale), int(zero_point),
                                 self.quant_min, self.quant_max)
             return (dx,)
 

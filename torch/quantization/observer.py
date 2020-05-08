@@ -964,7 +964,10 @@ class FlexFpDynBiasObserver(FlexFpObserver):
         if a != 0.0 and math.isfinite(a):
             ## CAUTION: This code assumes dtype==IEEE754 float32 ##
             e = (struct.unpack('I', struct.pack('f', a))[0] & 0x7f800000)>>23
-            self.ebias = e - 127 - 2**(self.ebits-1)
+            if self.ebits > 0:
+                self.ebias = e - 127 - 2**(self.ebits-1)
+            else:
+                self.ebias = e - 127
         # Below code runs too SLOW #
         #    e = torch.log2(a).ceil().int().item()
         #    self.ebias = e- 2**(self.ebits-1)

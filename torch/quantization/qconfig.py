@@ -113,12 +113,14 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
 
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
-    return QConfig(activation=FakeQuantize.with_args(observer=FlexFpObserver,
+    observer = (FlexFpDynBiasObserver if len(fpfmt) < 3 else
+                FlexFpObserver)
+    return QConfig(activation=FakeQuantize.with_args(observer=observer,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
-                   weight=FakeQuantize.with_args(observer=FlexFpObserver,
+                   weight=FakeQuantize.with_args(observer=observer,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
@@ -126,30 +128,24 @@ def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
 
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_dynbias_qat_qconfig(fpfmt, grad_fpfmt=None):
-    return QConfig(activation=FakeQuantize.with_args(observer=FlexFpDynBiasObserver,
-                         quant_min=torch.iinfo(torch.int32).min,
-                         quant_max=torch.iinfo(torch.int32).max,
-                         dtype=torch.int32,
-                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
-                   weight=FakeQuantize.with_args(observer=FlexFpDynBiasObserver,
-                         quant_min=torch.iinfo(torch.int32).min,
-                         quant_max=torch.iinfo(torch.int32).max,
-                         dtype=torch.int32,
-                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
+    '''Obsoleted by get_flexfp_qat_qconfig()'''
+    return get_flexfp_qat_qconfig(fpfmt, grad_fpfmt)
 
 # Added by Flab (Y. Tamiya) #
 def get_qint_grad_flexfp_qat_qconfig(grad_fpfmt):
+    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 else
+                     FlexFpObserver)
     return QConfig(activation=FakeQuantize.with_args(
                        observer=MovingAverageMinMaxObserver,
                        quant_min=0,
                        quant_max=255,
                        dtype=torch.quint8,
-                       grad_observer=FlexFpObserver,
+                       grad_observer=grad_observer,
                        grad_fpfmt=grad_fpfmt),
                    weight=FakeQuantize.with_args(
                        observer=MovingAverageMinMaxObserver,
                        quant_min=-128,
                        quant_max= 127,
                        dtype=torch.qint8,
-                       grad_observer=FlexFpObserver,
+                       grad_observer=grad_observer,
                        grad_fpfmt=grad_fpfmt))
