@@ -113,17 +113,21 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
 
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
-    observer = (FlexFpDynBiasObserver if len(fpfmt) < 3 else
+    observer = (FlexFpDynBiasObserver if len(fpfmt) < 3 or fpfmt[2]==None else
                 FlexFpObserver)
+    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 or grad_fpfmt[2]==None else
+                     FlexFpObserver)
     return QConfig(activation=FakeQuantize.with_args(observer=observer,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
+                         grad_observer=grad_observer,
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
                    weight=FakeQuantize.with_args(observer=observer,
                          quant_min=torch.iinfo(torch.int32).min,
                          quant_max=torch.iinfo(torch.int32).max,
                          dtype=torch.int32,
+                         grad_observer=grad_observer,
                          fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
 
 # Added by Flab (Y. Tamiya) #
@@ -133,7 +137,7 @@ def get_flexfp_dynbias_qat_qconfig(fpfmt, grad_fpfmt=None):
 
 # Added by Flab (Y. Tamiya) #
 def get_qint_grad_flexfp_qat_qconfig(grad_fpfmt):
-    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 else
+    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 or grad_fpfmt[2]==None else
                      FlexFpObserver)
     return QConfig(activation=FakeQuantize.with_args(
                        observer=MovingAverageMinMaxObserver,

@@ -31,6 +31,13 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
     const int FP32_EBITS = 8;
     const int FP32_MBITS = 23;
 #   define BIAS(ebits)     ((1 << ((ebits) -1)) -1)
+#   define IS_RNE_ROUNDING_UP(x, fp_mbits, mbits) \
+	((fp_mbits) - (mbits) > 0 \
+	 && ((x) & (1 << ((fp_mbits) - (mbits) -1))) \
+	 && ((fp_mbits) - (mbits) < 2 \
+	    || ((x) & ((1 << ((fp_mbits) - (mbits) -1)) -1)) \
+	    || ((x) & (1 << ((fp_mbits) - (mbits)))) \
+	    ))
     uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) + ebias;
     uint32_t e_max = e_min + (1 << ebits) -1;
     //printf("[DEBUG] e_min/max = %d/%d\n", e_min, e_max);
@@ -43,16 +50,18 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
 
     uint32_t s = (t.i & (1<< (FP32_EBITS+FP32_MBITS))) != 0;
     uint32_t e = (t.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
-    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits)); 
-    uint32_t r0 = t.i &  (1 << (FP32_MBITS - mbits -1));
-    uint32_t r1 = t.i & ((1 << (FP32_MBITS - mbits -1)) -1);
 
-    if (FP32_MBITS - mbits <= 0
-	|| r0 == 0
-	|| (FP32_MBITS - mbits >= 2 && r1 == 0
-	    && (m & (1 << (FP32_MBITS - mbits))) == 0)) {
-      ; //floor: nop
-    } else {
+    if (e < e_min) {
+      // subnormal (denormalized) number
+      mbits -= (e_min - e);
+      if (mbits < 0) {
+	//round to zero (e = 0, m = 0)
+	return (s << (FP32_EBITS+FP32_MBITS));
+      }
+    }
+
+    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits)); 
+    if (IS_RNE_ROUNDING_UP(t.i, FP32_MBITS, mbits)) {
       // ceil
       if (m == (((1 << mbits) -1) << (FP32_MBITS - mbits))) {
 	m = 0;
@@ -60,10 +69,13 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
       } else {
 	m += (1 << (FP32_MBITS - mbits));
       }
+    } else {
+      ; //floor: nop
     }
-    //printf("[DEBUG] s=%d, e=%d, m=%d (before clip)\n", s, e, m);
-    if (e > e_max) { e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits); }
-    else if (e < e_min) { e = 0; m = 0; }
+    if (e > e_max) {
+      // saturated toward Inf
+      e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits);
+    }
 
     t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m; 
     //printf("[DEBUG] y = 0x%08x\n", t.i);
