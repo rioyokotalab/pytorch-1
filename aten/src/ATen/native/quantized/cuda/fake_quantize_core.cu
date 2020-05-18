@@ -55,8 +55,9 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
       // subnormal (denormalized) number
       mbits -= (e_min - e);
       if (mbits < 0) {
-	//round to zero (e = 0, m = 0)
-	return (s << (FP32_EBITS+FP32_MBITS));
+        //round to zero (e = 0, m = 0)
+        t.i =(s << (FP32_EBITS+FP32_MBITS));
+        return t.f;
       }
     }
 
