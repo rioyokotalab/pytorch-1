@@ -111,6 +111,17 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
 
     return qconfig
 
+# Flab by Y. Tamiya
+def get_default_per_channel_qat_qconfig():
+    return QConfig(activation=FakeQuantize.with_args(
+                         observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1),
+                         quant_min=0,
+                         quant_max=255,
+                         grad_observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1),
+                         reduce_range=True),
+                   weight=default_per_channel_weight_fake_quant.with_args(
+                         grad_observer=default_per_channel_weight_observer))
+
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
     observer = (FlexFpDynBiasObserver if len(fpfmt) < 3 or fpfmt[2]==None else

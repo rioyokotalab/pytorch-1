@@ -100,7 +100,7 @@ void fake_quantize_tensor_kernel_cuda(
   iter.add_input(input);
   iter.build();
 #if 1 //Added by Flab (Y. Tamiya)
-  if (scale == 0.0f) {
+  if (std::isnan(scale)) {
   gpu_kernel(iter,
     [zero_point] GPU_LAMBDA (float input_val) -> float {
        return fake_convert_fp(input_val, (zero_point>>8) & 0xff,
@@ -134,33 +134,18 @@ void fake_quantize_grad_tensor_kernel_cuda(
     int64_t zero_point,
     int64_t quant_min,
     int64_t quant_max) {
-  // scalar type of this function is guaranteed to be float
-//Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / scale;
+  float inv_scale = 1.0f / scale;
   auto iter = TensorIterator();
   iter.dont_compute_common_dtype();
   iter.add_output(input_grad);
   iter.add_input(output_grad);
   iter.add_input(input);
   iter.build();
-#if 1 //Added by Flab (Y. Tamiya)
-  if (scale == 0.0f) {
-  gpu_kernel(iter,
-    [zero_point] GPU_LAMBDA (float dy, float x) -> float {
-       return fake_convert_fp(dy, (zero_point>>8) & 0xff,
-			      zero_point & 0xff,
-			      (signed char)((zero_point>>16) & 0xff));
-    });
-  } else {
-  float inv_scale = 1.0f / scale;
-#endif //Added by Flab (Y. Tamiya)
   gpu_kernel(iter,
     [=] GPU_LAMBDA (float dy, float x) -> float {
       int64_t Xq = std::nearbyint(x * inv_scale + zero_point);
       return (Xq >= quant_min && Xq <= quant_max) * dy;
     });
-#if 1 //Added by Flab (Y. Tamiya)
-  }
-#endif //Added by Flab (Y. Tamiya)
 }
 
 REGISTER_DISPATCH(fake_quant_tensor_stub, &fake_quantize_tensor_kernel_cuda);
@@ -172,7 +157,7 @@ void fake_quant_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_
   gpu_kernel(iter,
     [=] GPU_LAMBDA (float input_val, float scale, int64_t zero_point) -> float {
 #if 1 //Added by Flab (Y. Tamiya)
-    if (scale == 0.0f) {
+    if (std::isnan(scale)) {
       return fake_convert_fp(input_val, (zero_point>>8) & 0xff,
 			     zero_point & 0xff,
 			     (signed char)((zero_point>>16) & 0xff));
@@ -196,19 +181,9 @@ void fake_quant_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_
 void fake_quant_grad_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   gpu_kernel(iter,
     [=] GPU_LAMBDA (float x, float dy, float scale, int64_t zero_point) -> float {
-#if 1 //Added by Flab (Y. Tamiya)
-    if (scale == 0.0f) {
-      return fake_convert_fp(dy, (zero_point>>8) & 0xff,
-			     zero_point & 0xff,
-			     (signed char)((zero_point>>16) & 0xff));
-    } else {
-#endif //Added by Flab (Y. Tamiya)
       float inv_scale = 1.0f / scale;
       int64_t Xq = std::nearbyint(x * inv_scale + zero_point);
       return (Xq >= quant_min && Xq <= quant_max) * dy;
-#if 1 //Added by Flab (Y. Tamiya)
-    }
-#endif //Added by Flab (Y. Tamiya)
     });
 }
 

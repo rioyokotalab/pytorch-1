@@ -32,7 +32,7 @@ Tensor fake_quantize_per_tensor_affine(
     int64_t quant_min,
     int64_t quant_max) {
   TORCH_CHECK(self.scalar_type() == ScalarType::Float);
-  if (scale) {/* Added by Flab (Y.Tamiya) */
+  if (! std::isnan(scale)) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
       quant_min <= quant_max,
       "`quant_min` should be less than or \
@@ -79,7 +79,6 @@ Tensor fake_quantize_per_tensor_affine_backward(
   TORCH_CHECK(dY.scalar_type() == ScalarType::Float);
   TORCH_CHECK(X.scalar_type() == ScalarType::Float);
   TORCH_CHECK(X.numel() == dY.numel(), "`X` and `dY` are not the same size");
-  if (scale) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
       quant_min <= quant_max,
       "`quant_min` should be less than or \
@@ -87,7 +86,6 @@ Tensor fake_quantize_per_tensor_affine_backward(
   TORCH_CHECK(
       zero_point >= quant_min && zero_point <= quant_max,
       "`zero_point` must be between `quant_min` and `quant_max`.");
-  } /* Added by Flab (Y.Tamiya) */
   if (X.numel() <= 0) {
     return X;
   }

@@ -909,7 +909,7 @@ class FlexFpObserver(ObserverBase):
          : Tuple of (exponent_bits, manttissa_bits, exponent_bias)
     *Note*
     + {ebits, mbits, ebias} must be 8-bit integer.
-    + FlexFpObserver.calc_qparams() returns scale=0.0, and zero_point, where
+    + FlexFpObserver.calc_qparams() returns scale=NaN, and zero_point, where
       zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
     """
 
@@ -928,7 +928,7 @@ class FlexFpObserver(ObserverBase):
 
     @torch.jit.export
     def calculate_qparams(self):
-        scale = 0.0  # 0 means "Flexible Floating Point"
+        scale = math.nan  # NaN means "Flexible Floating Point"
         zero_point = (self.ebias & 0xff)<<16 |(self.ebits & 0xff)<< 8 \
                      |(self.mbits & 0xff)<< 0
         return torch.tensor([scale]), torch.tensor([zero_point])
@@ -950,7 +950,7 @@ class FlexFpDynBiasObserver(FlexFpObserver):
     *Note*
     + {ebits, mbits} must be 8-bit integer.
     + ebias (exponent bias) is calculated with forward input Tensor.
-    + FlexFpObserver.calc_qparams() returns scale=0.0, and zero_point, where
+    + FlexFpObserver.calc_qparams() returns scale=NaN, and zero_point, where
       zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
     """
 

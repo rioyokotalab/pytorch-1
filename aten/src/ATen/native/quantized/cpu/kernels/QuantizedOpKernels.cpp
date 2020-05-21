@@ -1156,7 +1156,7 @@ void fake_quantize_tensor_kernel(
 //Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / sc;
   auto iter = TensorIterator::unary_op(output, input);
 #if 1 //Added by Flab (Y. Tamiya)
-  if (sc == 0.0f) {
+  if (std::isnan(sc)) {
   //DEBUG*/std::cout << "fake_quantize_tensor: z_point=" << std::hex << z_point << std::endl;
   cpu_kernel(iter, [&](float self) -> float {
     return fake_convert_fp(self, (z_point>>8) & 0xff,
@@ -1190,34 +1190,19 @@ void fake_quantize_grad_tensor_kernel(
     int64_t z_point,
     int64_t quant_min,
     int64_t quant_max) {
-//Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / sc;
+    float inv_scale = 1.0f / sc;
   auto iter = TensorIterator::binary_op(input_grad, input, output_grad);
-#if 1 //Added by Flab (Y. Tamiya)
-  if (sc == 0.0f) {
-  //DEBUG*/std::cout << "fake_quantize_grad_tensor: z_point=" << std::hex << z_point << std::endl;
-  cpu_kernel(iter, [&](float x, float dy) -> float {
-    return fake_convert_fp(dy, (z_point>>8) & 0xff,
-			   z_point & 0xff,
-			   (signed char)((z_point>>16) & 0xff));
-    });
-  } else {
-  //DEBUG*/std::cout << "fake_quantize_grad_tensor: qint: scale=" << sc << std::endl;
-  float inv_scale = 1.0f / sc;
-#endif //Added by Flab (Y. Tamiya)
   cpu_kernel(iter, [&](float x, float dy) -> float {
     int64_t xq = static_cast<int64_t>(std::nearbyint(x * inv_scale + z_point));
     return dy * (xq >= quant_min && xq <= quant_max);
   });
-#if 1 //Added by Flab (Y. Tamiya)
-  }
-#endif //Added by Flab (Y. Tamiya)
 }
 
 void fake_quant_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   cpu_kernel(iter,
     [=](float self, float scale, int64_t zero_point) -> float {
 #if 1 //Added by Flab (Y. Tamiya)
-    if (scale == 0.0f) {
+    if (std::isnan(scale)) {
       return fake_convert_fp(self, (zero_point>>8) & 0xff,
 			     zero_point & 0xff,
 			     (signed char)((zero_point>>16) & 0xff));
@@ -1241,19 +1226,9 @@ void fake_quant_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t
 void fake_quant_grad_per_channel_cpu(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   cpu_kernel(iter,
     [=](float x, float dy, float scale, int64_t zero_point) -> float {
-#if 1 //Added by Flab (Y. Tamiya)
-    if (scale == 0.0f) {
-      return fake_convert_fp(dy, (zero_point>>8) & 0xff,
-			     zero_point & 0xff,
-			     (signed char)((zero_point>>16) & 0xff));
-    } else {
-#endif //Added by Flab (Y. Tamiya)
       float inv_scale = 1.0f / scale;
       int64_t xq = static_cast<int64_t>(std::nearbyint(x * inv_scale + zero_point));
       return dy * (xq >= quant_min && xq <= quant_max);
-#if 1 //Added by Flab (Y. Tamiya)
-    }
-#endif //Added by Flab (Y. Tamiya)
     });
 }
 
