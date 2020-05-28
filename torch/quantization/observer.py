@@ -144,21 +144,33 @@ class _ObserverBase(ObserverBase):
             )
             return torch.tensor([1.0]), torch.tensor([0])
 
-        for i in range(len(min_vals)):
-            assert (
-                min_vals[i] <= max_vals[i]
-            ), "min {} should be less than max {}".format(min_vals[i], max_vals[i])
+        assert (
+            torch.all(min_vals <= max_vals).item()
+        ), "min_vals should be less than max_vals".format(min_vals[i], max_vals[i])
+        if self.dtype == torch.qint8:
+            if self.reduce_range:
+                qmin, qmax = -64, 63
+            else:
+                qmin, qmax = -128, 127
+        else:
+            if self.reduce_range:
+                qmin, qmax = 0, 127
+            else:
+                qmin, qmax = 0, 255
 
-        scales = torch.empty(min_vals.size(), dtype=torch.float32)
-        zero_points = torch.empty(min_vals.size(), dtype=torch.int64)
-
-        for i in range(len(scales)):
-            qparam = self._calculate_qparams(
-                min_vals[i], max_vals[i]
-            )
-            scales[i] = float(qparam[0])
-            zero_points[i] = int(qparam[1])
-
+        min_vals = min_vals.clamp(max=0.0)
+        max_vals = max_vals.clamp(min=0.0)
+        cond = (max_vals == min_vals)
+        if self.qscheme == torch.per_tensor_symmetric \
+           or self.qscheme == torch.per_channel_symmetric:
+            scales = torch.where(cond, torch.ones_like(min_vals),
+                                 (torch.max(-min_vals,max_vals)/((qmax-qmin)/2)).clamp(min=self.eps))
+            zero_points = (~cond) * (0 if self.dtype == torch.qint8 else 128)
+        else:
+            scales = torch.where(cond, torch.ones_like(min_vals),
+                                 ((max_vals-min_vals)/(qmax-qmin)).clamp(min=self.eps))
+            zero_points = (~cond) \
+                    * (qmin-(min_vals/scales).round()).int().clamp(qmin,qmax)
         return scales, zero_points
 
     @torch.jit.export
@@ -462,17 +474,21 @@ class PerChannelMinMaxObserver(_ObserverBase):
         max_vals = self.max_vals
         x_dim = x.size()
 
-        new_axis_list = list(range(len(x_dim)))
-        new_axis_list[self.ch_axis] = 0
-        new_axis_list[0] = self.ch_axis
-        y = x.permute(tuple(new_axis_list))
-        y = torch.flatten(y, start_dim=1)
+        d = x
+        u = x
+        if self.ch_axis < len(x_dim)-1:
+            d = d.flatten(start_dim=self.ch_axis+1).min(dim=self.ch_axis+1)[0]
+            u = u.flatten(start_dim=self.ch_axis+1).max(dim=self.ch_axis+1)[0]
+        if self.ch_axis > 0:
+            d = d.flatten(end_dim=self.ch_axis-1).min(dim=0)[0]
+            u = u.flatten(end_dim=self.ch_axis-1).max(dim=0)[0]
+
         if min_vals.numel() == 0 or max_vals.numel() == 0:
-            min_vals = torch.min(y, 1)[0]
-            max_vals = torch.max(y, 1)[0]
+            min_vals = d
+            max_vals = u
         else:
-            min_vals = torch.min(torch.min(y, 1)[0], min_vals)
-            max_vals = torch.max(torch.max(y, 1)[0], max_vals)
+            min_vals = torch.min(d, min_vals)
+            max_vals = torch.max(u, max_vals)
         self.min_vals = min_vals
         self.max_vals = max_vals
         return x_orig
@@ -545,17 +561,21 @@ class MovingAveragePerChannelMinMaxObserver(PerChannelMinMaxObserver):
         max_vals = self.max_vals
         x_dim = x.size()
 
-        new_axis_list = list(range(len(x_dim)))
-        new_axis_list[self.ch_axis] = 0
-        new_axis_list[0] = self.ch_axis
-        y = x.permute(tuple(new_axis_list))
-        y = torch.flatten(y, start_dim=1)
+        d = x
+        u = x
+        if self.ch_axis < len(x_dim)-1:
+            d = d.flatten(start_dim=self.ch_axis+1).min(dim=self.ch_axis+1)[0]
+            u = u.flatten(start_dim=self.ch_axis+1).max(dim=self.ch_axis+1)[0]
+        if self.ch_axis > 0:
+            d = d.flatten(end_dim=self.ch_axis-1).min(dim=0)[0]
+            u = u.flatten(end_dim=self.ch_axis-1).max(dim=0)[0]
+
         if min_vals.numel() == 0 or max_vals.numel() == 0:
-            min_vals = torch.min(y, 1)[0]
-            max_vals = torch.max(y, 1)[0]
+            min_vals = d
+            max_vals = u
         else:
-            min_vals = min_vals + self.averaging_constant * (torch.min(y, 1)[0] - min_vals)
-            max_vals = max_vals + self.averaging_constant * (torch.max(y, 1)[0] - max_vals)
+            min_vals = min_vals + self.averaging_constant * (d - min_vals)
+            max_vals = max_vals + self.averaging_constant * (u - max_vals)
         self.min_vals = min_vals
         self.max_vals = max_vals
         return x_orig
