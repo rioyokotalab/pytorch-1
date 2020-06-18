@@ -62,6 +62,8 @@ class FakeQuantize(Module):
                 self.grad_quant = grad_observer(**grad_obs_kwargs)
             else:
                 self.grad_quant = observer(**grad_obs_kwargs)
+            self.grad_quant_min = torch.iinfo(self.grad_quant.dtype).min
+            self.grad_quant_max = torch.iinfo(self.grad_quant.dtype).max
             self.register_backward_hook(FakeQuantize.backward_hook)
         self.activation_post_process = observer(**observer_kwargs)
         assert torch.iinfo(self.activation_post_process.dtype).min <= quant_min, 'quant_min out of bound'
@@ -91,6 +93,9 @@ class FakeQuantize(Module):
 
     def forward(self, X):
         if self.observer_enabled:
+            # Flab by Y. Tamiya
+            if hasattr(self, 'fullname'):
+                print(X.device, self.fullname, 'X', torch.min(X).item(), torch.max(X).item())
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
             self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device)
@@ -103,6 +108,9 @@ class FakeQuantize(Module):
                 X = torch.fake_quantize_per_tensor_affine(X, float(self.scale),
                                                           int(self.zero_point), self.quant_min,
                                                           self.quant_max)
+            # Flab by Y. Tamiya
+            if hasattr(self, 'fullname'):
+                print(X.device, self.fullname, 'Y', torch.min(X).item(), torch.max(X).item())
         return X
 
     # Flab by Y. Tamiya
@@ -112,21 +120,27 @@ class FakeQuantize(Module):
         assert not self.fake_quant_enabled or len(dY)==1, \
             'FakeQuantize with more than one inputs: {}'.format(len(dY))
         if self.observer_enabled:
+            # Flab by Y. Tamiya
+            if hasattr(self, 'fullname'):
+                print(dY[0].device, self.fullname, 'dY', torch.min(dY[0]).item(), torch.max(dY[0]).item())
             self.grad_quant(dY[0])
             _scale, _zero_point = self.grad_quant.calculate_qparams()
             scale = _scale.to(self.scale.device)
             zero_point = _zero_point.to(self.zero_point.device)
             #print('fake_quantize.grad_hook: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
         if self.fake_quant_enabled:
-            if self.qscheme == torch.per_channel_symmetric \
-               or self.qscheme == torch.per_channel_affine:
+            if self.grad_quant.qscheme == torch.per_channel_symmetric \
+               or self.grad_quant.qscheme == torch.per_channel_affine:
                 dx = torch.fake_quantize_per_channel_affine(dY[0],
                                 scale, zero_point,
-                                self.ch_axis, self.quant_min, self.quant_max)
+                                self.ch_axis, self.grad_quant_min, self.grad_quant_max)
             else:
                 dx = torch.fake_quantize_per_tensor_affine(dY[0],
                                 float(scale), int(zero_point),
-                                self.quant_min, self.quant_max)
+                                self.grad_quant_min, self.grad_quant_max)
+            # Flab by Y. Tamiya
+            if hasattr(self, 'fullname'):
+                print(dx.device, self.fullname, 'dX', torch.min(dx).item(), torch.max(dx).item())
             return (dx,)
 
     with_args = classmethod(_with_args)

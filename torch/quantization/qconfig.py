@@ -92,7 +92,8 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
-                                                            grad_observer=grad_observer, #Flab by Y.Tamiya
+                                                            #TMP_TAMIYA3#grad_observer=grad_observer, #Flab by Y.Tamiya
+                                                            grad_observer=grad_observer.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric), #Flab by Y.Tamiya
                                                             reduce_range=True),
                           # Flab by Y. Tamiya
                           #weight=default_per_channel_weight_fake_quant)
@@ -101,7 +102,8 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
-                                                            grad_observer=grad_observer, #Flab by Y.Tamiya
+                                                            #TMP_TAMIYA3#grad_observer=grad_observer, #Flab by Y.Tamiya
+                                                            grad_observer=grad_observer.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric), #Flab by Y.Tamiya
                                                             reduce_range=False),
                           # Flab by Y. Tamiya
                           #weight=default_weight_fake_quant)
@@ -117,10 +119,16 @@ def get_default_per_channel_qat_qconfig():
                          observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1),
                          quant_min=0,
                          quant_max=255,
-                         grad_observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1),
+                         grad_observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1, dtype=torch.qint8,qscheme=torch.per_channel_symmetric),
                          reduce_range=True),
-                   weight=default_per_channel_weight_fake_quant.with_args(
-                         grad_observer=default_per_channel_weight_observer))
+                   weight=FakeQuantize.with_args(
+                         observer=MovingAveragePerChannelMinMaxObserver,
+                         quant_min=-128,
+                         quant_max=127,
+                         dtype=torch.qint8,
+                         qscheme=torch.per_channel_symmetric,
+                         grad_observer=MovingAveragePerChannelMinMaxObserver,
+                         ch_axis=0))
 
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
