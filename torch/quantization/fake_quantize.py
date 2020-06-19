@@ -94,8 +94,12 @@ class FakeQuantize(Module):
     def forward(self, X):
         if self.observer_enabled:
             # Flab by Y. Tamiya
-            if hasattr(self, 'fullname'):
-                print(X.device, self.fullname, 'X', torch.min(X).item(), torch.max(X).item())
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == X.device):
+                if abs(self.dbg_level) == 1:
+                    print(X.device, self.fullname, 'X', torch.min(X).item(), torch.max(X).item())
+                elif abs(self.dbg_level) == 2:
+                    print(X.device, self.fullname, 'X', X)
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
             self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device)
@@ -109,8 +113,12 @@ class FakeQuantize(Module):
                                                           int(self.zero_point), self.quant_min,
                                                           self.quant_max)
             # Flab by Y. Tamiya
-            if hasattr(self, 'fullname'):
-                print(X.device, self.fullname, 'Y', torch.min(X).item(), torch.max(X).item())
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == X.device):
+                if self.dbg_level == -1:
+                    print(X.device, self.fullname, 'Y', torch.min(X).item(), torch.max(X).item())
+                elif self.dbg_level == -2:
+                    print(X.device, self.fullname, 'Y', Y)
         return X
 
     # Flab by Y. Tamiya
@@ -121,8 +129,12 @@ class FakeQuantize(Module):
             'FakeQuantize with more than one inputs: {}'.format(len(dY))
         if self.observer_enabled:
             # Flab by Y. Tamiya
-            if hasattr(self, 'fullname'):
-                print(dY[0].device, self.fullname, 'dY', torch.min(dY[0]).item(), torch.max(dY[0]).item())
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == dY[0].device):
+                if abs(self.dbg_level) == 1:
+                    print(dY[0].device, self.fullname, 'dY', torch.min(dY[0]).item(), torch.max(dY[0]).item())
+                elif abs(self.dbg_level) == 2:
+                    print(dY[0].device, self.fullname, 'dY', dY)
             self.grad_quant(dY[0])
             _scale, _zero_point = self.grad_quant.calculate_qparams()
             scale = _scale.to(self.scale.device)
@@ -139,8 +151,12 @@ class FakeQuantize(Module):
                                 float(scale), int(zero_point),
                                 self.grad_quant_min, self.grad_quant_max)
             # Flab by Y. Tamiya
-            if hasattr(self, 'fullname'):
-                print(dx.device, self.fullname, 'dX', torch.min(dx).item(), torch.max(dx).item())
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == dx.device):
+                if self.dbg_level == -1:
+                    print(dx.device, self.fullname, 'dX', torch.min(dx).item(), torch.max(dx).item())
+                elif self.dbg_level == -2:
+                    print(dx.device, self.fullname, 'dX', dx)
             return (dx,)
 
     with_args = classmethod(_with_args)
@@ -206,3 +222,43 @@ def disable_observer(mod):
 def enable_observer(mod):
     if type(mod) == FakeQuantize:
         mod.enable_observer()
+
+# Flab by Y. Tamiya
+def debug_fake_quant(module, dbg_level=0, device=None):
+    '''Set QAT debug level
+    Call this func from the script or debugger like:
+      torch.quantizatin.debug_fake_quant(model, 1, torch.device('cuda',0))
+    dgb_level means:
+     0: nop
+     1: print min/max of Tensors before quantized.
+    -1: print min/max of Tensors before & after quantized.
+     2: print contents of Tensors before quantized.
+    -2: print contents of Tensors before & after quantized.
+    If device is given, print Tensors only on the specific device. 
+    '''
+    def set_fullname(mod, path_name=''):
+        '''Set hierarchical names (fullnames) to submodules.'''
+        for m in mod.named_children():
+            fullname = path_name + '/' + m[0]
+            m[1].fullname = fullname
+            set_fullname(m[1], path_name=fullname) #recursive call
+
+    # Set fullname to all submodules
+    if dbg_level and not hasattr(module, 'fullname'):
+        set_fullname(module)
+    # print() will print all contents of Tensors
+    if abs(dbg_level) == 2:
+        torch.set_printoptions(profile='full')
+    else:
+        torch.set_printoptions(profile='default')
+        
+    # Set debug level to all FakeQuantize instances
+    for m in module.modules():
+        if type(m) == FakeQuantize:
+            m.dbg_level = dbg_level
+            if dbg_level:
+                m.enable_observer()
+            else:
+                m.disable_observer()
+            if device:
+                m.dbg_device = device
