@@ -20,8 +20,10 @@ Returns:
 namespace at {
 namespace native {
 #if 1 //Added by Flab (Y. Tamiya)
+// Stochastic rounding from x to FlexFp(ebits, mbits, ebias) 
+//   with random value of rnd (0 <= rnd <= 1).
 static inline __host__ __device__
-float fake_convert_fp(float x, int ebits, int mbits, int ebias)
+float fake_convert_fp(float x, float rnd, int ebits, int mbits, int ebias)
 {
   if (x == 0.0f || std::isinf(x) || std::isnan(x)) {
     return x;
@@ -31,24 +33,25 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
     const int FP32_EBITS = 8;
     const int FP32_MBITS = 23;
 #   define BIAS(ebits)     ((1 << ((ebits) -1)) -1)
-#   define IS_RNE_ROUNDING_UP(x, fp_mbits, mbits) \
-	((fp_mbits) - (mbits) > 0 \
-	 && ((x) & (1 << ((fp_mbits) - (mbits) -1))) \
-	 && ((fp_mbits) - (mbits) < 2 \
-	    || ((x) & ((1 << ((fp_mbits) - (mbits) -1)) -1)) \
-	    || ((x) & (1 << ((fp_mbits) - (mbits)))) \
-	    ))
     uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) + ebias;
     uint32_t e_max = e_min + (1 << ebits) -1;
     //printf("[DEBUG] e_min/max = %d/%d\n", e_min, e_max);
     union {
       uint32_t i;
       float    f;
-    } t;
-    t.f = x;
+    } t, u;
+    u.f = x;
+
+    uint32_t us = (u.i & (1<< (FP32_EBITS+FP32_MBITS))) != 0;
+    uint32_t ue = (u.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
+    if (ue < e_min) ue = e_min;
+    u.i = (us << (FP32_EBITS+FP32_MBITS)) | (ue << FP32_MBITS);
+    u.f /= float(1 << mbits); // unit val of the exponent.
+
+    t.f = x + u.f * rnd; // stochastic rounding on mbits.
     //printf("[DEBUG] x = 0x%08x\n", t.i);
 
-    uint32_t s = (t.i & (1<< (FP32_EBITS+FP32_MBITS))) != 0;
+    uint32_t s = us;
     uint32_t e = (t.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
 
     if (e < e_min) {
@@ -56,29 +59,18 @@ float fake_convert_fp(float x, int ebits, int mbits, int ebias)
       mbits -= (e_min - e);
       if (mbits < 0) {
         //round to zero (e = 0, m = 0)
-        t.i =(s << (FP32_EBITS+FP32_MBITS));
+        t.i = (s << (FP32_EBITS+FP32_MBITS));
         return t.f;
       }
     }
 
-    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits)); 
-    if (IS_RNE_ROUNDING_UP(t.i, FP32_MBITS, mbits)) {
-      // ceil
-      if (m == (((1 << mbits) -1) << (FP32_MBITS - mbits))) {
-	m = 0;
-	e += 1;
-      } else {
-	m += (1 << (FP32_MBITS - mbits));
-      }
-    } else {
-      ; //floor: nop
-    }
+    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits));
     if (e > e_max) {
       // saturated toward Inf
       e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits);
     }
 
-    t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m; 
+    t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m;
     //printf("[DEBUG] y = 0x%08x\n", t.i);
     return t.f;
   }
@@ -98,12 +90,15 @@ void fake_quantize_tensor_kernel_cuda(
   iter.dont_compute_common_dtype();
   iter.add_output(output);
   iter.add_input(input);
+  // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
+  Tensor rnd = input.new_empty(input.sizes()).uniform_(0, 1);
+  iter.add_input(rnd);
   iter.build();
 #if 1 //Added by Flab (Y. Tamiya)
   if (std::isnan(scale)) {
   gpu_kernel(iter,
-    [zero_point] GPU_LAMBDA (float input_val) -> float {
-       return fake_convert_fp(input_val, (zero_point>>8) & 0xff,
+    [zero_point] GPU_LAMBDA (float input_val, float rnd) -> float {
+       return fake_convert_fp(input_val, rnd, (zero_point>>8) & 0xff,
 			      zero_point & 0xff,
 			      (signed char)((zero_point>>16) & 0xff));
     });
@@ -111,13 +106,14 @@ void fake_quantize_tensor_kernel_cuda(
   float inv_scale = 1.0f / scale;
 #endif //Added by Flab (Y. Tamiya)
   gpu_kernel(iter,
-    [=] GPU_LAMBDA (float input_val) -> float {
+    [=] GPU_LAMBDA (float input_val, float rnd) -> float {
       return (fminf(
                 quant_max,
                 fmaxf(
                     quant_min,
-                    static_cast<int64_t>(std::nearbyint(
-                        input_val * inv_scale + zero_point)))) -
+                    // use stochastic rounding (by Flab)
+                    static_cast<int64_t>(std::floor(
+                        input_val * inv_scale + zero_point + rnd)))) -
             zero_point) *
           scale;
     });
@@ -155,10 +151,10 @@ REGISTER_DISPATCH(fake_quant_grad_tensor_stub, &fake_quantize_grad_tensor_kernel
 
 void fake_quant_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_t quant_max) {
   gpu_kernel(iter,
-    [=] GPU_LAMBDA (float input_val, float scale, int64_t zero_point) -> float {
+    [=] GPU_LAMBDA (float input_val, float rnd, float scale, int64_t zero_point) -> float {
 #if 1 //Added by Flab (Y. Tamiya)
     if (std::isnan(scale)) {
-      return fake_convert_fp(input_val, (zero_point>>8) & 0xff,
+      return fake_convert_fp(input_val, rnd, (zero_point>>8) & 0xff,
 			     zero_point & 0xff,
 			     (signed char)((zero_point>>16) & 0xff));
     } else {
@@ -168,8 +164,9 @@ void fake_quant_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_
                 quant_max,
                 fmaxf(
                     quant_min,
-                    static_cast<int64_t>(std::nearbyint(
-                        input_val * inv_scale + zero_point)))) -
+                    // use stochastic rounding (by Flab)
+                    static_cast<int64_t>(std::floor(
+                        input_val * inv_scale + zero_point + rnd)))) -
             zero_point) *
           scale;
 #if 1 //Added by Flab (Y. Tamiya)

@@ -69,6 +69,9 @@ Tensor fake_quantize_per_channel_affine(
   iter.dont_compute_common_dtype();
   iter.add_output(Y);
   iter.add_input(self);
+  // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
+  Tensor rnd = self.new_empty(self.sizes()).uniform_(0, 1);
+  iter.add_input(rnd);
   iter.add_input(native::_unsafe_view(scale, expected_shape));
   iter.add_input(native::_unsafe_view(zero_point, expected_shape));
   iter.build();
