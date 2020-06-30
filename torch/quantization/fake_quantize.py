@@ -102,7 +102,7 @@ class FakeQuantize(Module):
                     print(X.device, self.fullname, 'X', X)
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
-            self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device)
+            self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device, torch.int64)
         if self.fake_quant_enabled:
             #print('fake_quantize.forward: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
             if self.qscheme == torch.per_channel_symmetric or self.qscheme == torch.per_channel_affine:
@@ -138,7 +138,7 @@ class FakeQuantize(Module):
             self.grad_quant(dY[0])
             _scale, _zero_point = self.grad_quant.calculate_qparams()
             scale = _scale.to(self.scale.device)
-            zero_point = _zero_point.to(self.zero_point.device)
+            zero_point = _zero_point.to(self.zero_point.device, torch.int64)
             #print('fake_quantize.grad_hook: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
         if self.fake_quant_enabled:
             if self.grad_quant.qscheme == torch.per_channel_symmetric \
