@@ -99,7 +99,7 @@ class FakeQuantize(Module):
                 if abs(self.dbg_level) == 1:
                     print(X.device, self.fullname, 'X', torch.min(X).item(), torch.max(X).item())
                 elif abs(self.dbg_level) == 2:
-                    print(X.device, self.fullname, 'X', X)
+                    print(X.device, self.fullname, 'X', X.cpu())
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
             self.scale, self.zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device, torch.int64)
@@ -118,7 +118,7 @@ class FakeQuantize(Module):
                 if self.dbg_level == -1:
                     print(X.device, self.fullname, 'Y', torch.min(X).item(), torch.max(X).item())
                 elif self.dbg_level == -2:
-                    print(X.device, self.fullname, 'Y', Y)
+                    print(X.device, self.fullname, 'Y', X.cpu())
         return X
 
     # Flab by Y. Tamiya
@@ -134,7 +134,7 @@ class FakeQuantize(Module):
                 if abs(self.dbg_level) == 1:
                     print(dY[0].device, self.fullname, 'dY', torch.min(dY[0]).item(), torch.max(dY[0]).item())
                 elif abs(self.dbg_level) == 2:
-                    print(dY[0].device, self.fullname, 'dY', dY)
+                    print(dY[0].device, self.fullname, 'dY', dY[0].cpu())
             self.grad_quant(dY[0])
             _scale, _zero_point = self.grad_quant.calculate_qparams()
             scale = _scale.to(self.scale.device)
@@ -156,7 +156,7 @@ class FakeQuantize(Module):
                 if self.dbg_level == -1:
                     print(dx.device, self.fullname, 'dX', torch.min(dx).item(), torch.max(dx).item())
                 elif self.dbg_level == -2:
-                    print(dx.device, self.fullname, 'dX', dx)
+                    print(dx.device, self.fullname, 'dX', dx.cpu())
             return (dx,)
 
     with_args = classmethod(_with_args)
