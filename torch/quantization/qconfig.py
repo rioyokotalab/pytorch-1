@@ -114,20 +114,23 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
     return qconfig
 
 # Flab by Y. Tamiya
-def get_default_per_channel_qat_qconfig():
+def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True):
+    obs_cls = MovingAveragePerChannelMinMaxObserver if use_moving_average \
+              else PerChannelMinMaxObserver
     return QConfig(activation=FakeQuantize.with_args(
-                         observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1),
+                         observer=obs_cls.with_args(ch_axis=activation_ch_axis),
                          quant_min=0,
                          quant_max=255,
-                         grad_observer=MovingAveragePerChannelMinMaxObserver.with_args(ch_axis=1, dtype=torch.qint8,qscheme=torch.per_channel_symmetric),
+                         grad_observer=obs_cls.with_args(ch_axis=activation_ch_axis,
+                                dtype=torch.qint8, qscheme=torch.per_channel_symmetric),
                          reduce_range=True),
                    weight=FakeQuantize.with_args(
-                         observer=MovingAveragePerChannelMinMaxObserver,
+                         observer=obs_cls,
                          quant_min=-128,
                          quant_max=127,
                          dtype=torch.qint8,
                          qscheme=torch.per_channel_symmetric,
-                         grad_observer=MovingAveragePerChannelMinMaxObserver,
+                         grad_observer=obs_cls,
                          ch_axis=0))
 
 # Added by Flab (Y. Tamiya) #
