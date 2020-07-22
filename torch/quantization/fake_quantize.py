@@ -52,11 +52,14 @@ class FakeQuantize(Module):
         self.fake_quant_enabled = True
         self.observer_enabled = True
         # Flab by Y. Tamiya
+        grad_fpfmt_is_None = 'grad_fpfmt' in observer_kwargs \
+                             and observer_kwargs['grad_fpfmt'] == None
         grad_fpfmt = observer_kwargs.pop('grad_fpfmt', None)
         if grad_observer or grad_fpfmt:
-            grad_obs_kwargs = observer_kwargs
+            grad_obs_kwargs = observer_kwargs.copy()
+            if grad_fpfmt_is_None: # specified: grad_fpfmt=None
+                grad_obs_kwargs.pop('fpfmt', None)
             if grad_fpfmt:
-                grad_obs_kwargs = grad_obs_kwargs.copy()
                 grad_obs_kwargs['fpfmt'] = grad_fpfmt
             if grad_observer:
                 self.grad_quant = grad_observer(**grad_obs_kwargs)
