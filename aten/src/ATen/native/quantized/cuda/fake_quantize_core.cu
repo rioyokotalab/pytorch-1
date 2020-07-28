@@ -83,7 +83,8 @@ void fake_quantize_tensor_kernel_cuda(
     float scale,
     int64_t zero_point,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
   // scalar type of this function is guaranteed to be float
 //Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / scale;
   auto iter = TensorIterator();
@@ -91,7 +92,8 @@ void fake_quantize_tensor_kernel_cuda(
   iter.add_output(output);
   iter.add_input(input);
   // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
-  Tensor rnd = input.new_empty(input.sizes()).uniform_(0, 1);
+  Tensor rnd = train ? input.new_empty(input.sizes()).uniform_(0, 1).detach_() :
+                       input.new_full(input.sizes(), 0.5).detach_();
   iter.add_input(rnd);
   iter.build();
 #if 1 //Added by Flab (Y. Tamiya)

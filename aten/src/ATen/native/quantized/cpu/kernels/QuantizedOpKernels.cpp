@@ -1144,10 +1144,12 @@ void fake_quantize_tensor_kernel(
     float sc,
     int64_t z_point,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
 //Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / sc;
   // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
-  Tensor rnd = input.new_empty(input.sizes()).uniform_(0, 1);
+  Tensor rnd = train ? input.new_empty(input.sizes()).uniform_(0, 1).detach_() :
+                       input.new_full(input.sizes(), 0.5).detach_();
   auto iter = TensorIterator::binary_op(output, input, rnd);
 #if 1 //Added by Flab (Y. Tamiya)
   if (std::isnan(sc)) {

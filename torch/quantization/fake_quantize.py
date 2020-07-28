@@ -110,11 +110,11 @@ class FakeQuantize(Module):
             #print('fake_quantize.forward: scale={}, zero_point={:x}'.format(self.scale, self.zero_point[0]))
             if self.qscheme == torch.per_channel_symmetric or self.qscheme == torch.per_channel_affine:
                 X = torch.fake_quantize_per_channel_affine(X, self.scale, self.zero_point,
-                                                           self.activation_post_process.ch_axis, self.quant_min, self.quant_max)
+                                                           self.activation_post_process.ch_axis, self.quant_min, self.quant_max, self.training)
             else:
                 X = torch.fake_quantize_per_tensor_affine(X, float(self.scale),
                                                           int(self.zero_point), self.quant_min,
-                                                          self.quant_max)
+                                                          self.quant_max, self.training)
             # Flab by Y. Tamiya
             if hasattr(self, 'dbg_level') \
                and (not hasattr(self, 'dbg_device') or self.dbg_device == X.device):
@@ -148,11 +148,11 @@ class FakeQuantize(Module):
                or self.grad_quant.qscheme == torch.per_channel_affine:
                 dx = torch.fake_quantize_per_channel_affine(dY[0],
                                 scale, zero_point,
-                                self.grad_quant.ch_axis, self.grad_quant_min, self.grad_quant_max)
+                                self.grad_quant.ch_axis, self.grad_quant_min, self.grad_quant_max, self.training)
             else:
                 dx = torch.fake_quantize_per_tensor_affine(dY[0],
                                 float(scale), int(zero_point),
-                                self.grad_quant_min, self.grad_quant_max)
+                                self.grad_quant_min, self.grad_quant_max, self.training)
             # Flab by Y. Tamiya
             if hasattr(self, 'dbg_level') \
                and (not hasattr(self, 'dbg_device') or self.dbg_device == dx.device):

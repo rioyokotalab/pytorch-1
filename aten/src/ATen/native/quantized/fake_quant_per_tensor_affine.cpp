@@ -30,7 +30,8 @@ Tensor fake_quantize_per_tensor_affine(
     double scale,
     int64_t zero_point,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
   TORCH_CHECK(self.scalar_type() == ScalarType::Float);
   if (! std::isnan(scale)) {/* Added by Flab (Y.Tamiya) */
   TORCH_CHECK(
@@ -44,7 +45,7 @@ Tensor fake_quantize_per_tensor_affine(
 
   auto Y = at::empty_like(self, self.options(), MemoryFormat::Preserve);
   fake_quant_tensor_stub(
-      self.device().type(), Y, self, scale, zero_point, quant_min, quant_max);
+      self.device().type(), Y, self, scale, zero_point, quant_min, quant_max, train);
   return Y;
 }
 

@@ -33,7 +33,8 @@ Tensor fake_quantize_per_channel_affine(
     const Tensor& zero_point,
     int64_t axis,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
   TORCH_CHECK(self.scalar_type() == ScalarType::Float);
   TORCH_CHECK(scale.dim() == 1, "scale should be a 1-D tensor");
   TORCH_CHECK(zero_point.dim() == 1, "zero point should be a 1-D tensor");
@@ -70,7 +71,8 @@ Tensor fake_quantize_per_channel_affine(
   iter.add_output(Y);
   iter.add_input(self);
   // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
-  Tensor rnd = self.new_empty(self.sizes()).uniform_(0, 1);
+  Tensor rnd = train ? self.new_empty(self.sizes()).uniform_(0, 1).detach_() :
+                       self.new_full(self.sizes(), 0.5).detach_();
   iter.add_input(rnd);
   iter.add_input(native::_unsafe_view(scale, expected_shape));
   iter.add_input(native::_unsafe_view(zero_point, expected_shape));

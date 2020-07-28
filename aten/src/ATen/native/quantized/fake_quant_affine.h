@@ -15,7 +15,8 @@ using fake_quant_tensor_fn = void (*)(
     float sc,
     int64_t z_point,
     int64_t quant_min,
-    int64_t quant_max);
+    int64_t quant_max,
+    bool train);
 
 using fake_quant_grad_tensor_fn = void (*)(
     Tensor& input_grad,
