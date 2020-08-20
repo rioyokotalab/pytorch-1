@@ -105,6 +105,14 @@ static Tensor & copy_impl(Tensor & self, const Tensor & src, bool non_blocking) 
     return self;
   }
 
+  if (self.is_mkldnn() && src.is_mkldnn()) {
+    return at::copy_opaque_to_opaque_(self, src, non_blocking);
+  } else if (self.is_mkldnn() || src.is_mkldnn()) {
+    AT_ERROR("copy_() between dense and opaque Tensors is not implemented! Found self type = ",
+             self.type(), " and src type = ", src.type());
+  }
+
+
   // Re-dispatch copies when src device not implemented here (e.g. XLA).
   // This includes: cpu_tensor.copy_(xla_tensor) which
   // calls xla_tensor._copy_from(cpu_tensor)
