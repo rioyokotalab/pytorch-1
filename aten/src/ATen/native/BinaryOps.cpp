@@ -42,6 +42,9 @@ DEFINE_DISPATCH(logaddexp_stub);
 DEFINE_DISPATCH(logaddexp2_stub);
 
 Tensor& add_out(Tensor& result, const Tensor& self, const Tensor& other, Scalar alpha) {
+  if (self.is_mkldnn()) {
+    return native::mkldnn_add_out(result, self, other, alpha);
+  }
   auto iter = TensorIterator::binary_op(result, self, other,
     /*check_mem_overlap=*/true);
   alpha_check(iter.dtype(), alpha);
@@ -189,6 +192,9 @@ Tensor& floor_divide_(Tensor& self, const Tensor& other) {
 }
 
 Tensor& mul_out(Tensor& result, const Tensor& self, const Tensor& other) {
+  if (self.is_mkldnn()) {
+    return native::mkldnn_mul_out(result, self, other);
+  }
   auto iter = TensorIterator::binary_op(result, self, other,
     /*check_mem_overlap=*/true);
   mul_stub(iter.device_type(), iter);
