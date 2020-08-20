@@ -38,11 +38,15 @@ struct CAFFE2_API OpaqueTensorImpl : public TensorImpl {
   }
 
   bool is_contiguous(c10::MemoryFormat memory_format=c10::MemoryFormat::Contiguous) const override {
-    AT_ERROR("opaque tensors do not have is_contiguous");
+    return opaque_handle_->is_contiguous(memory_format);
   }
 
   int64_t stride(int64_t d) const override {
     AT_ERROR("opaque tensors do not have strides");
+  }
+
+  void* data() const override {
+    return opaque_handle_->get_raw_data_ptr();
   }
 
   void set_size(int64_t dim, int64_t new_size) override {
@@ -59,7 +63,7 @@ struct CAFFE2_API OpaqueTensorImpl : public TensorImpl {
 
   bool has_storage() const override {
     return false;
-    }
+  }
 
   const Storage& storage() const override{
     AT_ERROR("opaque tensors do not have storage");
