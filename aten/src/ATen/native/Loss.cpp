@@ -13,6 +13,7 @@
 #include <ATen/native/PointwiseOps.h>
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/cpu/Loops.h>
+#include <ATen/native/cpu/Loss.h>
 
 constexpr float EPSILON = 1e-12;
 
@@ -33,6 +34,7 @@ DEFINE_DISPATCH(smooth_l1_stub);
 DEFINE_DISPATCH(smooth_l1_backward_stub);
 DEFINE_DISPATCH(mse_stub);
 DEFINE_DISPATCH(mse_backward_stub);
+DEFINE_DISPATCH(kl_div_backward_stub);
 
 Tensor cosine_embedding_loss(const Tensor& input1, const Tensor& input2, const Tensor& target, double margin, int64_t reduction) {
   auto prod_sum = (input1 * input2).sum(1);
@@ -94,6 +96,9 @@ Tensor kl_div(const Tensor& input, const Tensor& target, int64_t reduction, bool
 }
 
 Tensor kl_div_backward_cpu(const Tensor& grad, const Tensor& input, const Tensor& target, int64_t reduction, bool log_target) {
+#ifdef __ARM_FEATURE_SVE
+  return kl_div_backward_stub(grad.device().type(), grad, input, target, reduction, log_target);
+#endif
   auto grad_input = at::zeros_like(input, LEGACY_CONTIGUOUS_MEMORY_FORMAT);
   auto grad_expand = grad.expand_as(input);
   if (!log_target) {
