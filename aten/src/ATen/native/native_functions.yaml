@@ -539,6 +539,9 @@
 - func: bernoulli.p(Tensor self, float p, *, Generator? generator=None) -> Tensor
   variants: function, method
 
+- func: _bernoulli_fujitsu_(Tensor(a!) self, float p=0.5, *, Generator? generator=None) -> Tensor(a!)
+  variants: function
+
 - func: bilinear(Tensor input1, Tensor input2, Tensor weight, Tensor? bias) -> Tensor
 
 - func: binary_cross_entropy(Tensor self, Tensor target, Tensor? weight=None, int reduction=Mean) -> Tensor
