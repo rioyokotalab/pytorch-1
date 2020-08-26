@@ -52,8 +52,6 @@ Tensor _kl_div_backward(const Tensor & grad, const Tensor & input,
 
 #endif
 
-#include <sleef.h>
-
 namespace at {
 namespace native {
 namespace {
@@ -62,72 +60,70 @@ namespace {
 
 #define ptrue svptrue_b8()
 
-#define SVE_KL_DIV_BACKWARD_IMPL_TEMPLATE(type, bit, svcnt_func, sleef_type)                            \
-static inline void kl_div_backward_impl(type * _grad_input, const int64_t grad_input_size,              \
-                                        const type * _grad, const int64_t grad_size,                    \ 
-                                        const type * _target, const int64_t target_size,                \
-                                        const int64_t reduction, const bool log_target) {               \
-  svfloat##bit##_t const_grad;                                                                          \
-  svfloat##bit##_t const_target;                                                                        \
-  svfloat##bit##_t zero = svdup_n_f##bit((type)0);                                                      \
-  if (grad_size == 1) const_grad = svdup_n_f##bit(*_grad);                                              \
-  if (target_size == 1) const_target = svdup_n_f##bit(*_target);                                        \
-                                                                                                        \
-  if (!log_target) {							                                \
-    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                        \
-      int64_t size = end - start;                                                                       \
-      int64_t offset;                                                                                   \
-      svbool_t pg;                                                                                      \
-      svbool_t mask;                                                                                    \
-      svfloat##bit##_t grad_input;                                                                      \
-                                                                                                        \
-      for (int64_t i = 0; i < size; i += svcnt_func()) {                                                \
-	offset = start + i;                                                                             \
-	pg = svwhilelt_b##bit(i, size);                                                                 \
-	svfloat##bit##_t grad = grad_size == 1 ? const_grad : svld1_f##bit(pg, _grad + offset);         \
-	svfloat##bit##_t target = target_size == 1 ? const_target : svld1_f##bit(pg, _target + offset); \
-	mask = svcmpgt_f##bit(pg, target, zero);                                                        \
-	grad_input = svmul_f##bit##_z(mask, svneg_f##bit##_x(ptrue, target), grad);                     \
-	svst1_f##bit(pg, _grad_input + offset, grad_input);                                             \
-      }                                                                                                 \
-    });                                                                                                 \
-  } else {                                                                                              \
-    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                        \
-      int64_t size = end - start;                                                                       \
-      int64_t offset;                                                                                   \
-      svbool_t pg;                                                                                      \
-      svfloat##bit##_t grad_input;                                                                      \
-                                                                                                        \
-      for (int64_t i = 0; i < size; i += svcnt_func()) {                                                \
-        offset = start + i;                                                                             \
-        pg = svwhilelt_b##bit(i, size);                                                                 \
-        svfloat##bit##_t grad = grad_size == 1 ? const_grad : svld1_f##bit(pg, _grad + offset);         \
-        svfloat##bit##_t target = target_size == 1 ? const_target : svld1_f##bit(pg, _target + offset); \
-        grad_input = svmul_f##bit##_x(ptrue,                                                            \
-				 svneg_f##bit##_x(ptrue, Sleef_exp##sleef_type##x_u10sve(target)),      \
-				 grad);				                                        \
-        svst1_f##bit(pg, _grad_input + offset, grad_input);                                             \
-      }                                                                                                 \
-    });                                                                                                 \
-  }                                                                                                     \
-                                                                                                        \
-  if (reduction == at::Reduction::Mean) {                                                               \
-    svfloat##bit##_t recp_numel = svdup_n_f##bit(1 / (type)grad_input_size);                            \
-    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                        \
-      int64_t size = end - start;                                                                       \
-      int64_t offset;                                                                                   \
-      svbool_t pg;                                                                                      \
-      svfloat##bit##_t grad_input;                                                                      \
-                                                                                                        \
-      for (int64_t i = 0; i < size; i += svcnt_func()) {                                                \
-	offset = start + i;                                                                             \
-	pg = svwhilelt_b##bit(i, size);                                                                 \
-	grad_input = svld1_f##bit(pg, _grad_input + offset);                                            \
-	grad_input = svmul_f##bit##_x(pg, grad_input, recp_numel);                                      \
-	svst1_f##bit(pg, _grad_input + offset, grad_input);                                             \
-      }                                                                                                 \
-    });                                                                                                 \
-  }                                                                                                     \
+#define SVE_KL_DIV_BACKWARD_IMPL_TEMPLATE(type, bit, svcnt_func, sleef_type)                       \
+static inline void kl_div_backward_impl(type * _grad_input, const int64_t grad_input_size,         \
+                                        const type * _grad, const int64_t grad_size,               \
+                                        const type * _target, const int64_t target_size,           \
+                                        const int64_t reduction, const bool log_target) {          \
+  svfloat##bit##_t const_grad, const_target;						           \
+  svfloat##bit##_t zero = svdup_n_f##bit((type)0);                                                 \
+  if (grad_size == 1) const_grad = svdup_n_f##bit(*_grad);                                         \
+  if (target_size == 1) const_target = svdup_n_f##bit(*_target);                                   \
+                                                                                                   \
+  if (!log_target) {							                           \
+    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                   \
+      int64_t size = end - start;                                                                  \
+      int64_t offset;                                                                              \
+      svbool_t pg, mask;							                   \
+      svfloat##bit##_t grad, target, grad_input;				                   \
+                                                                                                   \
+      for (int64_t i = 0; i < size; i += svcnt_func()) {                                           \
+	offset = start + i;                                                                        \
+	pg = svwhilelt_b##bit(i, size);                                                            \
+	grad = grad_size == 1 ? const_grad : svld1_f##bit(pg, _grad + offset);                     \
+	target = target_size == 1 ? const_target : svld1_f##bit(pg, _target + offset);             \
+	mask = svcmpgt_f##bit(pg, target, zero);                                                   \
+	grad_input = svmul_f##bit##_z(mask, svneg_f##bit##_x(ptrue, target), grad);                \
+	svst1_f##bit(pg, _grad_input + offset, grad_input);                                        \
+      }                                                                                            \
+    });                                                                                            \
+  } else {                                                                                         \
+    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                   \
+      int64_t size = end - start;                                                                  \
+      int64_t offset;                                                                              \
+      svbool_t pg;                                                                                 \
+      svfloat##bit##_t grad, target, grad_input;            			                   \
+                                                                                                   \
+      for (int64_t i = 0; i < size; i += svcnt_func()) {                                           \
+        offset = start + i;                                                                        \
+        pg = svwhilelt_b##bit(i, size);                                                            \
+        grad = grad_size == 1 ? const_grad : svld1_f##bit(pg, _grad + offset);                     \
+        target = target_size == 1 ? const_target : svld1_f##bit(pg, _target + offset);             \
+        grad_input = svmul_f##bit##_x(ptrue,                                                       \
+				 svneg_f##bit##_x(ptrue, Sleef_exp##sleef_type##x_u10sve(target)), \
+				 grad);				                                   \
+        svst1_f##bit(pg, _grad_input + offset, grad_input);                                        \
+      }                                                                                            \
+    });                                                                                            \
+  }                                                                                                \
+                                                                                                   \
+  if (reduction == at::Reduction::Mean) {                                                          \
+    svfloat##bit##_t recp_numel = svdup_n_f##bit(1 / (type)grad_input_size);                       \
+    at::parallel_for(0, grad_input_size, 2048, [&](int64_t start, int64_t end) {                   \
+      int64_t size = end - start;                                                                  \
+      int64_t offset;                                                                              \
+      svbool_t pg;                                                                                 \
+      svfloat##bit##_t grad_input;                                                                 \
+                                                                                                   \
+      for (int64_t i = 0; i < size; i += svcnt_func()) {                                           \
+	offset = start + i;                                                                        \
+	pg = svwhilelt_b##bit(i, size);                                                            \
+	grad_input = svld1_f##bit(pg, _grad_input + offset);                                       \
+	grad_input = svmul_f##bit##_x(pg, grad_input, recp_numel);                                 \
+	svst1_f##bit(pg, _grad_input + offset, grad_input);                                        \
+      }                                                                                            \
+    });                                                                                            \
+  }                                                                                                \
 }
 
 SVE_KL_DIV_BACKWARD_IMPL_TEMPLATE(float, 32, svcntw, f)
