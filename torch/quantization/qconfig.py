@@ -114,29 +114,30 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
     return qconfig
 
 # Flab by Y. Tamiya
-def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True, activation_per_channel=True, weight_per_channel=True, bwd_ci_weight_per_channel=False):
+def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True, qat='qint_per_channel'):
     pertn_obs_cls = MovingAverageMinMaxObserver if use_moving_average \
               else MinMaxObserver
     perch_obs_cls = MovingAveragePerChannelMinMaxObserver if use_moving_average \
               else PerChannelMinMaxObserver
     
     # Modified by Higuchi
-    if weight_per_channel == True and bwd_ci_weight_per_channel == True:
+    if qat == 'qint_per_channel_weight_only_bwd_ci':
         wgt_grad_axis = 1 #Ci
-    elif weight_per_channel == True and bwd_ci_weight_per_channel == False:
+    else:
         wgt_grad_axis = 0 #Co
-        
-    if activation_per_channel == True:
+    
+    if qat == 'qint_per_channel_activation_only' or qat == 'qint_per_channel':
         act_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis)
         act_grad_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis, dtype=torch.qint8, qscheme=torch.per_channel_symmetric)
-    elif activation_per_channel == False:
+    elif qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci':
         act_obs = pertn_obs_cls
         act_grad_obs = pertn_obs_cls.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric)
-    if weight_per_channel == True:
+    
+    if qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci' or qat == 'qint_per_channel':
         wgt_obs = perch_obs_cls.with_args(ch_axis=0)
         wgt_grad_obs = perch_obs_cls.with_args(ch_axis=wgt_grad_axis)
         wgt_qscheme = torch.per_channel_symmetric
-    elif weight_per_channel == False:
+    elif qat == 'qint_per_channel_activation_only':
         wgt_obs = pertn_obs_cls
         wgt_grad_obs = pertn_obs_cls
         wgt_qscheme = torch.per_tensor_symmetric
