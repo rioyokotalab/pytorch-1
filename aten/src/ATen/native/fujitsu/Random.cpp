@@ -91,7 +91,11 @@ void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
     auto sample = [&](int64_t begin, int64_t end) {
       int64_t len = end - begin;
       if (len > 0) {
-	RngBernoulli_fujitsu(0, seed, len, sample_int_ptr + begin, p);
+	struct StreamStatePtr_fujitsu stream;
+	NewStream_fujitsu(&stream, 0, seed);
+	SkipAheadStream_fujitsu(stream, begin);
+	RngBernoulli_fujitsu(0, stream, len, sample_int_ptr + begin, p);
+	DeleteStream_fujitsu(stream);
 
 	// vectorized copy if using buffer and contiguous, i.e., being non-int
 	// type and contiguous
