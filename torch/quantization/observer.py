@@ -353,7 +353,8 @@ class MinMaxObserver(_ObserverBase):
             key = prefix + name
             if key in state_dict:
                 val = state_dict[key]
-                setattr(self, name, val)
+                device = getattr(self, name).device
+                setattr(self, name, val.to(device))
             elif strict:
                 missing_keys.append(key)
         super(MinMaxObserver, self)._load_from_state_dict(state_dict, prefix, local_metadata, strict,
