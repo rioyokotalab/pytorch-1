@@ -31,6 +31,7 @@ DECLARE_DISPATCH(binary_fn_alpha, add_stub);
 DECLARE_DISPATCH(binary_fn_alpha, sub_stub);
 DECLARE_DISPATCH(binary_fn, mul_stub);
 DECLARE_DISPATCH(binary_fn, div_stub);
+DECLARE_DISPATCH(binary_fn, remainder_stub);
 DECLARE_DISPATCH(binary_fn, atan2_stub);
 DECLARE_DISPATCH(binary_fn, bitwise_and_stub);
 DECLARE_DISPATCH(binary_fn, bitwise_or_stub);
@@ -54,5 +55,7 @@ DECLARE_DISPATCH(binary_fn, tanh_backward_stub);
 DECLARE_DISPATCH(binary_fn, mse_stub);
 DECLARE_DISPATCH(binary_fn, fmod_stub);
 DECLARE_DISPATCH(binary_fn_alpha, fmod_scalar_stub);
+DECLARE_DISPATCH(binary_fn, logaddexp_stub);
+DECLARE_DISPATCH(binary_fn, logaddexp2_stub);
 
 }} // namespace at::native

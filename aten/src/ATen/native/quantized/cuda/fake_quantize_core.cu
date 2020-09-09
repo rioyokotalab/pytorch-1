@@ -21,7 +21,7 @@ namespace at {
 namespace native {
 #if 1 //Added by Flab (Y. Tamiya)
 // Stochastic rounding from x to FlexFp(ebits, mbits, ebias) 
-//   with random value of rnd (0 <= rnd <= 1).
+//   with random value of rnd (-0.5 <= rnd <= 0.5).
 static inline __host__ __device__
 float fake_convert_fp(float x, float rnd, int ebits, int mbits, int ebias)
 {
@@ -48,7 +48,7 @@ float fake_convert_fp(float x, float rnd, int ebits, int mbits, int ebias)
     u.i = (us << (FP32_EBITS+FP32_MBITS)) | (ue << FP32_MBITS);
     u.f /= float(1 << mbits); // unit val of the exponent.
 
-    t.f = x + u.f * rnd; // stochastic rounding on mbits.
+    t.f = x + u.f * (rnd + 0.5); // stochastic rounding on mbits.
     //printf("[DEBUG] x = 0x%08x\n", t.i);
 
     uint32_t s = us;
@@ -86,20 +86,20 @@ void fake_quantize_tensor_kernel_cuda(
     int64_t quant_max,
     bool train) {
   // scalar type of this function is guaranteed to be float
-//Removed by Flab (Y. Tamiya)//  float inv_scale = 1.0f / scale;
-  auto iter = TensorIterator();
-  iter.dont_compute_common_dtype();
-  iter.add_output(output);
-  iter.add_input(input);
-  // uniform(0, 1) random values for stochastic rounding. (Added by Flab)
-  Tensor rnd = train ? input.new_empty(input.sizes()).uniform_(0, 1).detach_() :
-                       input.new_full(input.sizes(), 0.5).detach_();
-  iter.add_input(rnd);
-  iter.build();
+  //Moved by Flab (Y. Tamiya)//float inv_scale = 1.0f / scale;
+  // uniform(-.5, .5) random values for stochastic rounding. (Added by Flab)
+  Tensor rnd = train ? input.new_empty(input.sizes()).uniform_(-.5, .5).detach_() :
+                       input.new_full(input.sizes(), 0.).detach_();
+  auto iter = TensorIteratorConfig()
+    .check_all_same_dtype(false)
+    .add_output(output)
+    .add_input(input)
+    .add_input(rnd)
+    .build();
 #if 1 //Added by Flab (Y. Tamiya)
   if (std::isnan(scale)) {
   gpu_kernel(iter,
-    [zero_point] GPU_LAMBDA (float input_val, float rnd) -> float {
+    [=] GPU_LAMBDA (float input_val, float rnd) -> float {
        return fake_convert_fp(input_val, rnd, (zero_point>>8) & 0xff,
 			      zero_point & 0xff,
 			      (signed char)((zero_point>>16) & 0xff));
@@ -114,7 +114,7 @@ void fake_quantize_tensor_kernel_cuda(
                 fmaxf(
                     quant_min,
                     // use stochastic rounding (by Flab)
-                    static_cast<int64_t>(std::floor(
+                    static_cast<int64_t>(std::nearbyint(
                         input_val * inv_scale + zero_point + rnd)))) -
             zero_point) *
           scale;
@@ -132,13 +132,14 @@ void fake_quantize_grad_tensor_kernel_cuda(
     int64_t zero_point,
     int64_t quant_min,
     int64_t quant_max) {
+  // scalar type of this function is guaranteed to be float
   float inv_scale = 1.0f / scale;
-  auto iter = TensorIterator();
-  iter.dont_compute_common_dtype();
-  iter.add_output(input_grad);
-  iter.add_input(output_grad);
-  iter.add_input(input);
-  iter.build();
+  auto iter = TensorIteratorConfig()
+    .check_all_same_dtype(false)
+    .add_output(input_grad)
+    .add_input(output_grad)
+    .add_input(input)
+    .build();
   gpu_kernel(iter,
     [=] GPU_LAMBDA (float dy, float x) -> float {
       int64_t Xq = std::nearbyint(x * inv_scale + zero_point);
@@ -167,7 +168,7 @@ void fake_quant_per_channel_cuda(TensorIterator &iter, int64_t quant_min, int64_
                 fmaxf(
                     quant_min,
                     // use stochastic rounding (by Flab)
-                    static_cast<int64_t>(std::floor(
+                    static_cast<int64_t>(std::nearbyint(
                         input_val * inv_scale + zero_point + rnd)))) -
             zero_point) *
           scale;

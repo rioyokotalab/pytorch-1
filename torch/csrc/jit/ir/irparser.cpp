@@ -1,15 +1,14 @@
 #include <torch/csrc/jit/ir/irparser.h>
-#include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/frontend/lexer.h>
 #include <torch/csrc/jit/frontend/parse_string_literal.h>
 #include <torch/csrc/jit/frontend/schema_type_parser.h>
+#include <torch/csrc/jit/ir/ir.h>
 
 #include <string>
 #include <vector>
 
 namespace torch {
 namespace jit {
-namespace script {
 
 struct VarWithType;
 struct ParsedLiteral;
@@ -57,7 +56,7 @@ class IRParser {
 
   Value* findValueInVMap(const std::string& name);
 
-  torch::jit::script::Lexer L;
+  torch::jit::Lexer L;
   torch::jit::Graph* g = nullptr;
   std::unordered_map<std::string, Value*>& vmap;
   SchemaTypeParser type_parser;
@@ -86,7 +85,7 @@ void parseIR(
     const std::string& str,
     torch::jit::Graph* graph,
     std::unordered_map<std::string, Value*>& vmap) {
-  torch::jit::script::IRParser p(str, graph, vmap);
+  torch::jit::IRParser p(str, graph, vmap);
   p.parse();
 }
 
@@ -150,7 +149,10 @@ ParsedLiteral IRParser::parseScalarLiteral(Node* n) {
     case '-':
       str = "-";
       L.next();
-      L.expect(TK_NUMBER);
+      if (L.cur().kind != TK_NUMBER) {
+        throw ErrorReport(token.range)
+            << "Expected a number after '-' but got:" << token.text();
+      }
       // Fallthrough
     case TK_NUMBER:
       str += L.cur().text();
@@ -369,10 +371,9 @@ void IRParser::parseOperator(Block* b) {
         if (!schema_return_type->hasFreeVariables() &&
             !v.type->isSubtypeOf(schema_return_type)) {
           throw ErrorReport(source_range)
-              << "Annotated type " << v.type->python_str()
+              << "Annotated type " << v.type->repr_str()
               << " does not match schema type "
-              << schema_return_type->python_str() << " for operator "
-              << *schema;
+              << schema_return_type->repr_str() << " for operator " << *schema;
         }
         vmap[v.name]->setType(v.type);
       }
@@ -473,6 +474,5 @@ Value* IRParser::findValueInVMap(const std::string& name) {
   return vmap.at(name);
 }
 
-} // namespace script
 } // namespace jit
 } // namespace torch

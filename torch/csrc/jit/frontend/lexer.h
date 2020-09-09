@@ -3,9 +3,9 @@
 #include <c10/util/C++17.h>
 #include <c10/util/Exception.h>
 #include <torch/csrc/WindowsTorchApiMacro.h>
-#include <torch/csrc/jit/frontend/strtod.h>
 #include <torch/csrc/jit/frontend/parser_constants.h>
 #include <torch/csrc/jit/frontend/source_range.h>
+#include <torch/csrc/jit/frontend/strtod.h>
 #include <algorithm>
 #include <clocale>
 #include <cstdlib>
@@ -16,7 +16,6 @@
 
 namespace torch {
 namespace jit {
-namespace script {
 
 // single character tokens are just the character itself '+'
 // multi-character tokens need an entry here
@@ -73,11 +72,14 @@ namespace script {
   _(TK_AND, "and", "and")                        \
   _(TK_OR, "or", "or")                           \
   _(TK_NOT, "not", "not")                        \
+  _(TK_LSHIFT, "<<", "<<")                       \
+  _(TK_RSHIFT, ">>", ">>")                       \
   _(TK_CAST, "cast", "")                         \
   _(TK_PLUS_EQ, "+=", "+=")                      \
   _(TK_MINUS_EQ, "-=", "-=")                     \
   _(TK_TIMES_EQ, "*=", "*=")                     \
   _(TK_DIV_EQ, "/=", "/=")                       \
+  _(TK_MOD_EQ, "%=", "%=")                       \
   _(TK_GLOBAL, "global", "global")               \
   _(TK_BUILT_IN, "built-in", "")                 \
   _(TK_SUBSCRIPT, "subscript", "")               \
@@ -105,7 +107,10 @@ namespace script {
   _(TK_DELETE, "del", "del")                     \
   _(TK_PASS, "pass", "pass")                     \
   _(TK_CLASS_DEF, "class", "class")              \
-  _(TK_IMPORT, "import", "import")
+  _(TK_IMPORT, "import", "import")               \
+  _(TK_WITH, "with", "with")                     \
+  _(TK_WITH_ITEM, "withitem", "")                \
+  _(TK_AS, "as", "as")
 
 enum TokenKind {
   // we use characters to represent themselves so skip all valid characters
@@ -180,7 +185,7 @@ struct CAFFE2_API SharedParserData {
       return false;
     const char* startptr = str.c_str() + start;
     char* endptr;
-    torch::jit::script::strtod_c(startptr, &endptr);
+    torch::jit::strtod_c(startptr, &endptr);
     *len = endptr - startptr;
     return *len > 0;
   }
@@ -515,6 +520,5 @@ struct Lexer {
   std::vector<Token> next_tokens;
   SharedParserData& shared;
 };
-} // namespace script
 } // namespace jit
 } // namespace torch

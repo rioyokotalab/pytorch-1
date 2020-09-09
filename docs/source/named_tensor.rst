@@ -187,7 +187,7 @@ mentioning all of them as in required by :meth:`~Tensor.permute`.
     # Move the F (dim 5) and E dimension (dim 4) to the front while keeping
     # the rest in the same order
     >>> tensor.permute(5, 4, 0, 1, 2, 3)
-    >>> named_tensor.align_to('F', 'E', ...)  # Use '...' instead in Python 2
+    >>> named_tensor.align_to('F', 'E', ...)
 
 Use :meth:`~Tensor.flatten` and :meth:`~Tensor.unflatten` to flatten and unflatten
 dimensions, respectively. These methods are more verbose than :meth:`~Tensor.view`
@@ -316,5 +316,4 @@ operators, see :ref:`name_inference_reference-doc`.
           (('N', 'features'), torch.Size([32, 49152]))
 
       .. warning::
-          The named tensor API is experimental and subject to change.
-
+          The named tensor API is a prototype feature and subject to change.
