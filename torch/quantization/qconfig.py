@@ -114,24 +114,48 @@ def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
     return qconfig
 
 # Flab by Y. Tamiya
-def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True):
-    obs_cls = MovingAveragePerChannelMinMaxObserver if use_moving_average \
+def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True, qat='qint_per_channel'):
+    pertn_obs_cls = MovingAverageMinMaxObserver if use_moving_average \
+              else MinMaxObserver
+    perch_obs_cls = MovingAveragePerChannelMinMaxObserver if use_moving_average \
               else PerChannelMinMaxObserver
+    
+    # Modified by Higuchi
+    if qat == 'qint_per_channel_weight_only_bwd_ci':
+        wgt_grad_axis = 1 #Ci
+    else:
+        wgt_grad_axis = 0 #Co
+    
+    if qat == 'qint_per_channel_activation_only' or qat == 'qint_per_channel':
+        act_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis)
+        act_grad_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis, dtype=torch.qint8, qscheme=torch.per_channel_symmetric)
+    elif qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci':
+        act_obs = pertn_obs_cls
+        act_grad_obs = pertn_obs_cls.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric)
+    
+    if qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci' or qat == 'qint_per_channel':
+        wgt_obs = perch_obs_cls.with_args(ch_axis=0)
+        wgt_grad_obs = perch_obs_cls.with_args(ch_axis=wgt_grad_axis)
+        wgt_qscheme = torch.per_channel_symmetric
+    elif qat == 'qint_per_channel_activation_only':
+        wgt_obs = pertn_obs_cls
+        wgt_grad_obs = pertn_obs_cls
+        wgt_qscheme = torch.per_tensor_symmetric
+    
     return QConfig(activation=FakeQuantize.with_args(
-                         observer=obs_cls.with_args(ch_axis=activation_ch_axis),
+                         observer=act_obs,
                          quant_min=0,
                          quant_max=255,
-                         grad_observer=obs_cls.with_args(ch_axis=activation_ch_axis,
-                                dtype=torch.qint8, qscheme=torch.per_channel_symmetric),
+                         grad_observer=act_grad_obs,
                          reduce_range=True),
                    weight=FakeQuantize.with_args(
-                         observer=obs_cls,
+                         observer=wgt_obs,
                          quant_min=-128,
                          quant_max=127,
                          dtype=torch.qint8,
-                         qscheme=torch.per_channel_symmetric,
-                         grad_observer=obs_cls,
-                         ch_axis=0))
+                         qscheme=wgt_qscheme,
+                         grad_observer=wgt_grad_obs,
+                         ))
 
 # Added by Flab (Y. Tamiya) #
 def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
