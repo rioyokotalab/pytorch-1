@@ -532,8 +532,8 @@ class PerChannelMinMaxObserver(_ObserverBase):
             min_vals = torch.min(d, min_vals)
             max_vals = torch.max(u, max_vals)
         # Reverted for DDP by Flab (Y. Tamiya)
-        self.min_val = min_val
-        self.max_val = max_val
+        self.min_vals = min_vals
+        self.max_vals = max_vals
         #self.min_vals.resize_(min_vals.shape)
         #self.max_vals.resize_(max_vals.shape)
         #self.min_vals.copy_(min_vals)
@@ -620,8 +620,8 @@ class MovingAveragePerChannelMinMaxObserver(PerChannelMinMaxObserver):
             min_vals = min_vals + self.averaging_constant * (d - min_vals)
             max_vals = max_vals + self.averaging_constant * (u - max_vals)
         # Reverted for DDP by Flab (Y. Tamiya)
-        self.min_val = min_val
-        self.max_val = max_val
+        self.min_vals = min_vals
+        self.max_vals = max_vals
         #self.min_vals.resize_(min_vals.shape)
         #self.max_vals.resize_(max_vals.shape)
         #self.min_vals.copy_(min_vals)
