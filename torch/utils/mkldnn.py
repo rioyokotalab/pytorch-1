@@ -48,6 +48,8 @@ class _MkldnnConvNd(torch.jit.ScriptModule):
         self.padding = dense_module.padding
         self.dilation = dense_module.dilation
         self.groups = dense_module.groups
+        self.kernel_size = dense_module.kernel_size
+        self.use_bias = dense_module.bias is not None
 
         if dense_module.bias is not None:
             self.register_parameter('bias',
@@ -68,7 +70,7 @@ class _MkldnnConvNd(torch.jit.ScriptModule):
         return torch.mkldnn_convolution(
             x,
             self.weight,
-            self.bias,
+            self.bias if self.use_bias else None,
             self.padding,
             self.stride,
             self.dilation,
