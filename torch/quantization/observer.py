@@ -283,10 +283,13 @@ class MinMaxObserver(_ObserverBase):
         else:
             min_val = torch.min(torch.min(x), min_val)
             max_val = torch.max(torch.max(x), max_val)
-        self.min_val.resize_(min_val.shape)
-        self.max_val.resize_(max_val.shape)
-        self.min_val.copy_(min_val)
-        self.max_val.copy_(max_val)
+        # Reverted for DDP by Flab (Y. Tamiya)
+        self.min_val = min_val
+        self.max_val = max_val
+        #self.min_val.resize_(min_val.shape)
+        #self.max_val.resize_(max_val.shape)
+        #self.min_val.copy_(min_val)
+        #self.max_val.copy_(max_val)
         return x_orig
 
     @torch.jit.export
@@ -377,10 +380,13 @@ class MovingAverageMinMaxObserver(MinMaxObserver):
         else:
             min_val = min_val + self.averaging_constant * (torch.min(x) - min_val)
             max_val = max_val + self.averaging_constant * (torch.max(x) - max_val)
-        self.min_val.resize_(min_val.shape)
-        self.max_val.resize_(max_val.shape)
-        self.min_val.copy_(min_val)
-        self.max_val.copy_(max_val)
+        # Reverted for DDP by Flab (Y. Tamiya)
+        self.min_val = min_val
+        self.max_val = max_val
+        #self.min_val.resize_(min_val.shape)
+        #self.max_val.resize_(max_val.shape)
+        #self.min_val.copy_(min_val)
+        #self.max_val.copy_(max_val)
         return x_orig
 
 
@@ -525,10 +531,13 @@ class PerChannelMinMaxObserver(_ObserverBase):
         else:
             min_vals = torch.min(d, min_vals)
             max_vals = torch.max(u, max_vals)
-            self.min_vals.resize_(min_vals.shape)
-        self.max_vals.resize_(max_vals.shape)
-        self.min_vals.copy_(min_vals)
-        self.max_vals.copy_(max_vals)
+        # Reverted for DDP by Flab (Y. Tamiya)
+        self.min_val = min_val
+        self.max_val = max_val
+        #self.min_vals.resize_(min_vals.shape)
+        #self.max_vals.resize_(max_vals.shape)
+        #self.min_vals.copy_(min_vals)
+        #self.max_vals.copy_(max_vals)
         return x_orig
 
     @torch.jit.export
@@ -610,10 +619,13 @@ class MovingAveragePerChannelMinMaxObserver(PerChannelMinMaxObserver):
         else:
             min_vals = min_vals + self.averaging_constant * (d - min_vals)
             max_vals = max_vals + self.averaging_constant * (u - max_vals)
-        self.min_vals.resize_(min_vals.shape)
-        self.max_vals.resize_(max_vals.shape)
-        self.min_vals.copy_(min_vals)
-        self.max_vals.copy_(max_vals)
+        # Reverted for DDP by Flab (Y. Tamiya)
+        self.min_val = min_val
+        self.max_val = max_val
+        #self.min_vals.resize_(min_vals.shape)
+        #self.max_vals.resize_(max_vals.shape)
+        #self.min_vals.copy_(min_vals)
+        #self.max_vals.copy_(max_vals)
         return x_orig
 
 class HistogramObserver(_ObserverBase):
@@ -839,10 +851,13 @@ class HistogramObserver(_ObserverBase):
         if min_val.numel() == 0 or max_val.numel() == 0 or same_values:
             min_val = torch.min(x)
             max_val = torch.max(x)
-            self.min_val.resize_(min_val.shape)
-            self.min_val.copy_(min_val)
-            self.max_val.resize_(max_val.shape)
-            self.max_val.copy_(max_val)
+            # Reverted for DDP by Flab (Y. Tamiya)
+            self.min_val = min_val
+            self.max_val = max_val
+            #self.min_val.resize_(min_val.shape)
+            #self.min_val.copy_(min_val)
+            #self.max_val.resize_(max_val.shape)
+            #self.max_val.copy_(max_val)
             torch.histc(x, self.bins, min=min_val, max=max_val, out=self.histogram)
         else:
             new_min = torch.min(x)
@@ -866,12 +881,16 @@ class HistogramObserver(_ObserverBase):
                     start_idx,
                     self.bins)
 
-            self.histogram.resize_(combined_histogram.shape)
-            self.histogram.copy_(combined_histogram)
-            self.min_val.resize_(combined_min.shape)
-            self.min_val.copy_(combined_min)
-            self.max_val.resize_(combined_max.shape)
-            self.max_val.copy_(combined_max)
+            # Reverted for DDP by Flab (Y. Tamiya)
+            self.histogram = combined_histogram
+            self.min_val = combined_min
+            self.max_val = combined_max
+            #self.histogram.resize_(combined_histogram.shape)
+            #self.histogram.copy_(combined_histogram)
+            #self.min_val.resize_(combined_min.shape)
+            #self.min_val.copy_(combined_min)
+            #self.max_val.resize_(combined_max.shape)
+            #self.max_val.copy_(combined_max)
         return x_orig
 
     @torch.jit.export
