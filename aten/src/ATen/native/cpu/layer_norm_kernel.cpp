@@ -99,6 +99,7 @@ void LayerNormBackwardKernelImplInternal(
   DCHECK_EQ(mean.numel(), M);
   DCHECK_EQ(rstd.numel(), M);
   DCHECK(!gamma.defined() || gamma.numel() == N);
+  const int num_threads = at::get_num_threads();
   const T* dY_data = dY.template data_ptr<T>();
   const T* X_data = X.template data_ptr<T>();
   const T* mean_data = mean.template data_ptr<T>();
@@ -107,47 +108,67 @@ void LayerNormBackwardKernelImplInternal(
       gamma.defined() ? gamma.template data_ptr<T>() : nullptr;
   T* dX_data = dX->defined() ? dX->template data_ptr<T>() : nullptr;
   T* dgamma_data = dgamma->defined() ? dgamma->template data_ptr<T>() : nullptr;
+  T dX_data_temp[N * M];
+  std::vector<T> dgamma_data_temp(0);
   if (dgamma_data != nullptr) {
     std::memset(dgamma_data, 0, N * sizeof(T));
+    dgamma_data_temp.resize(num_threads * N);
+    std::memset(&dgamma_data_temp[0], 0, num_threads * N * sizeof(T));
   }
   T* dbeta_data = dbeta->defined() ? dbeta->template data_ptr<T>() : nullptr;
+  std::vector<T> dbeta_data_temp(0);
   if (dbeta_data != nullptr) {
     std::memset(dbeta_data, 0, N * sizeof(T));
+    dbeta_data_temp.resize(num_threads * N);
+    std::memset(&dbeta_data_temp[0], 0, num_threads * N * sizeof(T));
   }
   const T scale = T(1) / static_cast<T>(N);
   const bool gamma_null = gamma_data == nullptr;
-  for (int64_t i = 0; i < M; ++i) {
-    const T* dY_ptr = dY_data + i * N;
-    const T* X_ptr = X_data + i * N;
-    if (dX_data != nullptr) {
-      T* dX_ptr = dX_data + i * N;
-      T ds = 0;
-      T db = 0;
-      for (int64_t j = 0; j < N; ++j) {
-        const T gamma_v = gamma_null ? T(1) : gamma_data[j];
-        ds += dY_ptr[j] * X_ptr[j] * gamma_v;
-        db += dY_ptr[j] * gamma_v;
+  at::parallel_for(0, M, 1, [&](int64_t start, int64_t end) {
+    int thread_no = at::get_thread_num();
+    for (int64_t i = start; i < end; ++i) {
+      const T* dY_ptr = dY_data + i * N;
+      const T* X_ptr = X_data + i * N;
+      if (dX_data != nullptr) {
+	T* dX_ptr = dX_data + i * N;
+	T ds = 0;
+	T db = 0;
+	for (int64_t j = 0; j < N; ++j) {
+	  const T gamma_v = gamma_null ? T(1) : gamma_data[j];
+	  ds += dY_ptr[j] * X_ptr[j] * gamma_v;
+	  db += dY_ptr[j] * gamma_v;
+	}
+	const T a = rstd_data[i];
+	const T b = (db * mean_data[i] - ds) * a * a * a * scale;
+	const T c = -b * mean_data[i] - db * a * scale;
+	for (int64_t j = 0; j < N; ++j) {
+	  const T gamma_v = gamma_null ? T(1) : gamma_data[j];
+	  dX_ptr[j] = a * dY_ptr[j] * gamma_v + b * X_ptr[j] + c;
+	}
       }
-      const T a = rstd_data[i];
-      const T b = (db * mean_data[i] - ds) * a * a * a * scale;
-      const T c = -b * mean_data[i] - db * a * scale;
-      for (int64_t j = 0; j < N; ++j) {
-        const T gamma_v = gamma_null ? T(1) : gamma_data[j];
-        dX_ptr[j] = a * dY_ptr[j] * gamma_v + b * X_ptr[j] + c;
+      if (dgamma_data != nullptr) {
+	const T a = rstd_data[i];
+	const T b = -a * mean_data[i];
+	for (int64_t j = 0; j < N; ++j) {
+	  dgamma_data_temp[(thread_no * N) + j] += dY_ptr[j] * (a * X_ptr[j] + b);
+	}
+      }
+      if (dbeta_data != nullptr) {
+	for (int64_t j = 0; j < N; ++j) {
+	  dbeta_data_temp[(thread_no * N) + j] += dY_ptr[j];
+	}
       }
     }
-    if (dgamma_data != nullptr) {
-      const T a = rstd_data[i];
-      const T b = -a * mean_data[i];
-      for (int64_t j = 0; j < N; ++j) {
-        dgamma_data[j] += dY_ptr[j] * (a * X_ptr[j] + b);
+  });
+  if (dgamma_data != nullptr || dbeta_data != nullptr) {
+    at::parallel_for(0, N, 1, [&](int64_t start, int64_t end) {
+      for (int64_t i = start; i < end; ++i) {
+	for (int64_t j =  0; j < num_threads; ++j) {
+	  dgamma_data[i] += dgamma_data_temp[(j * N) + i];
+	  dbeta_data[i] += dbeta_data_temp[(j * N) + i];
+	}
       }
-    }
-    if (dbeta_data != nullptr) {
-      for (int64_t j = 0; j < N; ++j) {
-        dbeta_data[j] += dY_ptr[j];
-      }
-    }
+    });
   }
 }
 
