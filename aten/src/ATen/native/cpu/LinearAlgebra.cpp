@@ -28,16 +28,22 @@
 #include <ATen/ATen.h>
 #include <ATen/NativeFunctions.h>
 #include <ATen/Config.h>
+#include <ATen/native/cpu/LinearAlgebra.h>
 
 #include <TH/THBlasUtils.h>
 
 #if !AT_BUILD_WITH_BLAS()
 
 namespace at { namespace native {
+namespace {
 
 Tensor& _baddbmm_blas_(Tensor& self, const Tensor& batch1, const Tensor& batch2, Scalar beta, Scalar alpha) {
   AT_ERROR("bmm: ATen not compiled with BLAS support");
 }
+
+} // namespace
+
+REGISTER_DISPATCH(baddbmm_blas_stub, &_baddbmm_blas_);
 
 }}
 
@@ -58,26 +64,12 @@ Tensor& _baddbmm_blas_(Tensor& self, const Tensor& batch1, const Tensor& batch2,
 namespace {
 
 double get_cost_side_n3(const std::vector<int>& cost_param) {
-#ifdef CBLAS_H
-  int n1, n2;
-  CBLAS_SIDE side;
-
-  side = (CBLAS_SIDE)cost_param[0];
-  n1 = cost_param[1];
-  n2 = cost_param[2];
-
-  if(side == CblasLeft)
-    return (double)n1 * (double)n1 * (double)n2;
-  else
-    return (double)n1 * (double)n2 * (double)n2;
-#else
   int n1, n2;
 
   n1 = cost_param[1];
   n2 = cost_param[2];
 
   return (double)n1 * (double)n2 * (double)n2;
-#endif
 }
 
 static int pick_min_thread(const double *cost, const int n) {
@@ -125,6 +117,7 @@ int use_batch() {
 } // namespace
 
 namespace at { namespace native {
+namespace {
 
 template <typename scalar_t>
 static inline void baddbmm_blas_template(const Tensor& res, const Tensor& mat1, const Tensor& mat2, Scalar beta_, Scalar alpha_) {
@@ -191,6 +184,10 @@ Tensor& _baddbmm_blas_(Tensor& self, const Tensor& batch1, const Tensor& batch2,
 
   return self;
 }
+
+} // namespace
+
+REGISTER_DISPATCH(baddbmm_blas_stub, &_baddbmm_blas_);
 
 }} // namespace at::native
 
