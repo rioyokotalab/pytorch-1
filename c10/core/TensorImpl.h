@@ -637,7 +637,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
    * assume that itemsize() * numel() is sufficient to compute the bytes that
    * can be validly read from this tensor.
    */
-  inline void* data() const {
+  virtual void* data() const {
     TORCH_CHECK(has_storage(),
         "Cannot access data pointer of Tensor that doesn't have storage");
     TORCH_CHECK(dtype_initialized(),

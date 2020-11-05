@@ -30,8 +30,21 @@ public:
   IntrusivePtrTargetWrapper(const T& target): target_(target) {}
   IntrusivePtrTargetWrapper(T&& target): target_(std::move(target)) {}
 
+  bool is_contiguous(c10::MemoryFormat memory_format) {
+    AT_ASSERTM(memory_format == c10::MemoryFormat::Contiguous,
+	       "is_contiguous expects Contiguous memory format.");
+    return true;
+  }
+
   T& get_target() {
     return target_;
+  }
+
+  void* get_raw_data_ptr() {
+    if (target_.get_data_handle() != nullptr) {
+      return static_cast<void*>(target_.get_data_handle());
+    }
+    return nullptr;
   }
 };
 
