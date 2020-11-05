@@ -1,4 +1,3 @@
-
 /*
  Copyright (c) 2020, FUJITSU LIMITED
  All rights reserved.
@@ -33,7 +32,6 @@
 #if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 #include <sleef.h>
 
-#define MAX_VECTOR_SIZE 2048
 #define ptrue svptrue_b8()
 #define ALL_S32_TRUE_MASK svdup_n_s32(0xffffffff)
 #define ALL_F32_TRUE_MASK svreinterpret_f32_s32(ALL_S32_TRUE_MASK)
@@ -56,9 +54,6 @@ public:
   using value_type = float;
   static constexpr int size() {
     return 16;
-  }
-  static constexpr int max_vector_length() {
-    return MAX_VECTOR_SIZE / 8 / sizeof(float);
   }
   Vec256(const Vec256& rhs) {
     *reinterpret_cast<svfloat32_t*>(values) = *reinterpret_cast<const svfloat32_t*>(rhs.values);
@@ -83,21 +78,11 @@ public:
   operator svfloat32_t() const {
     return *reinterpret_cast<const svfloat32_t*>(values);
   }
-  template <int64_t mask>
-  static Vec256<float> blend(const Vec256<float>& a, const Vec256<float>& b) {
-    int32_t mask_array[max_vector_length()] = {0};
-
-    for (int64_t i = 0; i < max_vector_length(); ++i) {
-      if (mask & (1ull << i)) mask_array[i] = 0xffffffff;
-    }
-    svint32_t svmask_array = svld1_s32(ptrue, mask_array);
-    return svsel_f32(svcmpeq_s32(ptrue, svmask_array, ALL_S32_TRUE_MASK), b, a);
-  }
   static Vec256<float> blendv(const Vec256<float>& a, const Vec256<float>& b,
-                              const Vec256<float>& mask) {
-    svbool_t svbool_mask = svcmpeq_s32(ptrue, svreinterpret_s32_f32(mask),
-                                       ALL_S32_TRUE_MASK);
-    return svsel_f32(svbool_mask, b, a);
+                              const Vec256<float>& mask_) {
+    svbool_t mask = svcmpeq_s32(ptrue, svreinterpret_s32_f32(mask_),
+				ALL_S32_TRUE_MASK);
+    return svsel_f32(mask, b, a);
   }
   static Vec256<float> arange(float base = 0.f, float step = 1.f) {
     float buffer[size()];
@@ -111,15 +96,7 @@ public:
     if (count == 0) {
       return a;
     } else if (count < size()) {
-      float mask_array[max_vector_length()];
-      for (int64_t i = 0; i < max_vector_length(); ++i) {
-        reinterpret_cast<int32_t*>(mask_array)[i] = 0x0;
-      }
-      int64_t mask = std::pow(2, count) - 1;
-      for (int64_t i = 0; i < max_vector_length(); ++i) {
-        if (mask & (1ull << i)) reinterpret_cast<int32_t*>(mask_array)[i] = 0xffffffff;
-      }
-      return blendv(a, b, loadu(mask_array));
+      return svsel_f32(svwhilelt_b32(0ull, count), b, a);
     }
     return b;
   }
@@ -142,11 +119,13 @@ public:
   int64_t zero_mask() const {
     // returns an integer mask where all zero elements are translated to 1-bit and others are translated to 0-bit
     int64_t mask = 0;
-    int32_t mask_array[max_vector_length()];
+    int32_t mask_array[svcntw()];
 
     svbool_t svbool_mask = svcmpeq_f32(ptrue, *this, svdup_n_f32(0.f));
-    svst1_s32(ptrue, mask_array, svsel_s32(svbool_mask, ALL_S32_TRUE_MASK, ALL_S32_FALSE_MASK));
-    for (int64_t i = 0; i < max_vector_length(); ++i) {
+    svst1_s32(ptrue, mask_array, svsel_s32(svbool_mask,
+					   ALL_S32_TRUE_MASK,
+					   ALL_S32_FALSE_MASK));
+    for (int64_t i = 0; i < svcntw(); ++i) {
       if (mask_array[i]) mask |= (1ull << i);
     }
     return mask;
@@ -375,17 +354,17 @@ Vec256<float> inline minimum(const Vec256<float>& a, const Vec256<float>& b) {
 
 template <>
 Vec256<float> inline clamp(const Vec256<float>& a, const Vec256<float>& min, const Vec256<float>& max) {
-  return svmin_f32_x(ptrue, max, svmax_f32_x(ptrue, min, a));
+  return svminnm_f32_x(ptrue, max, svmaxnm_f32_x(ptrue, min, a));
 }
 
 template <>
 Vec256<float> inline clamp_max(const Vec256<float>& a, const Vec256<float>& max) {
-  return svmin_f32_x(ptrue, max, a);
+  return svminnm_f32_x(ptrue, max, a);
 }
 
 template <>
 Vec256<float> inline clamp_min(const Vec256<float>& a, const Vec256<float>& min) {
-  return svmax_f32_x(ptrue, min, a);
+  return svmaxnm_f32_x(ptrue, min, a);
 }
 
 template <>
@@ -433,6 +412,15 @@ inline void convert(const float* src, float* dst, int64_t n) {
   for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
     svbool_t pg = svwhilelt_b32(i, n);
     svst1_f32(pg, dst + i, svldnt1_f32(pg, src + i));
+  }
+}
+
+template <>
+inline void convert(const int32_t *src, float *dst, int64_t n) {
+# pragma unroll
+  for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
+    svbool_t pg = svwhilelt_b32(i, n);
+    svst1_f32(pg, dst + i, svcvt_f32_s32_x(pg, svld1_s32(pg, src + i)));
   }
 }
 
