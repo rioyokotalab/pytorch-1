@@ -36,3 +36,7 @@
 /* GCC-compatible compiler, targeting PowerPC with SPE */
 #include <spe.h>
 #endif
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+/* GCC-compatible compiler, targeting ARM with SVE */
+#include <arm_sve.h>
+#endif
