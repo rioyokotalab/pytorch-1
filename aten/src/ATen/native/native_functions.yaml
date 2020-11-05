@@ -730,6 +730,9 @@
 - func: bernoulli.p(Tensor self, float p, *, Generator? generator=None) -> Tensor
   variants: function, method
 
+- func: _bernoulli_fujitsu_(Tensor(a!) self, float p=0.5, *, Generator? generator=None) -> ()
+  variants: function
+
 - func: bilinear(Tensor input1, Tensor input2, Tensor weight, Tensor? bias) -> Tensor
   use_c10_dispatcher: full
 
