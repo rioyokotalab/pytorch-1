@@ -337,10 +337,12 @@ void check_base_legacy_new(c10::DispatchKey dispatch_key, at::Layout expected_la
     TORCH_CHECK(dispatch_key == c10::DispatchKey::CPU
                 || dispatch_key == c10::DispatchKey::CUDA
                 || dispatch_key == c10::DispatchKey::HIP
+		|| dispatch_key == c10::DispatchKey::MkldnnCPU
                 || dispatch_key == c10::DispatchKey::XLA,
                 "new(): expected DispatchKey: ", c10::DispatchKey::CPU,
                 " or ", c10::DispatchKey::CUDA,
                 " or ", c10::DispatchKey::HIP,
+		" or ", c10::DispatchKey::MkldnnCPU,
                 " or ", c10::DispatchKey::XLA,
                 " but got: ", dispatch_key);
   } else if(expected_layout == c10::kSparse) {
