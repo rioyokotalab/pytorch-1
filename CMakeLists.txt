@@ -99,6 +99,11 @@ else()
     set(CPU_INTEL OFF)
   endif()
 endif()
+if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  set(CPU_AARCH64 ON)
+else()
+  set(CPU_AARCH64 OFF)
+endif()
 
 
 # For non-supported platforms, turn USE_DISTRIBUTED off by default.
@@ -205,9 +210,12 @@ option(USE_VULKAN_RELAXED_PRECISION "Use Vulkan relaxed precision(mediump)" OFF)
 option(USE_XNNPACK "Use XNNPACK" ON)
 option(USE_ZMQ "Use ZMQ" OFF)
 option(USE_ZSTD "Use ZSTD" OFF)
+if(CPU_INTEL OR CPU_AARCH64)
+    set(MKLDNN_SUPPORT ON)
+endif()
 cmake_dependent_option(
-  USE_MKLDNN "Use MKLDNN. Only available on x86 and x86_64." ON
-  "CPU_INTEL" OFF)
+  USE_MKLDNN "Use MKLDNN. Only available on x86 and x86_64 and aarch64." ON
+  "MKLDNN_SUPPORT" OFF)
 set(MKLDNN_ENABLE_CONCURRENT_EXEC ${USE_MKLDNN})
 cmake_dependent_option(
     USE_MKLDNN_CBLAS "Use CBLAS in MKLDNN" OFF
@@ -310,6 +318,9 @@ set(OP_DEPENDENCY "" CACHE STRING
 # https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
 if(LINUX)
   set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-as-needed")
+endif()
+if(CMAKE_CXX_COMPILER MATCHES ".*/FCC$")
+  set(CMAKE_SHARED_LINKER_FLAGS "-Nnoclang ${CMAKE_SHARED_LINKER_FLAGS}")
 endif()
 
 if(MSVC)

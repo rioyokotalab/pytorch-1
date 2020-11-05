@@ -84,7 +84,12 @@ function(_OPENMP_FLAG_CANDIDATES LANG)
     unset(OpenMP_FLAG_CANDIDATES)
 
     set(OMP_FLAG_GNU "-fopenmp")
-    set(OMP_FLAG_Clang "-fopenmp=libomp" "-fopenmp=libiomp5" "-fopenmp")
+    if(CMAKE_${LANG}_COMPILER MATCHES ".*/fcc$" OR
+	CMAKE_${LANG}_COMPILER MATCHES ".*/FCC$")
+      set(OMP_FLAG_Clang "-Kopenmp")
+    else()
+      set(OMP_FLAG_Clang "-fopenmp=libomp" "-fopenmp=libiomp5" "-fopenmp")
+    endif()
 
     # AppleClang may need a header file, search for omp.h with hints to brew
     # default include dir
@@ -243,6 +248,17 @@ function(_OPENMP_GET_FLAGS LANG FLAG_MODE OPENMP_FLAG_VAR OPENMP_LIB_NAMES_VAR)
         # OpenMP will complain about being initialized twice (OMP: Error #15),
         # can may cause incorrect behavior.
         set(OpenMP_libomp_LIBRARY "${MKL_OPENMP_LIBRARY}" CACHE STRING "libomp location for OpenMP")
+      elseif(CMAKE_${LANG}_COMPILER MATCHES ".*/fcc$" OR
+	  CMAKE_${LANG}_COMPILER MATCHES ".*/FCC$")
+	try_compile( OpenMP_COMPILE_RESULT_${FLAG_MODE}_${OPENMP_PLAIN_FLAG} ${CMAKE_BINARY_DIR} ${_OPENMP_TEST_SRC}
+          CMAKE_FLAGS "-DCOMPILE_DEFINITIONS:STRING=${OPENMP_FLAGS_TEST}"
+          OUTPUT_VARIABLE OpenMP_TRY_COMPILE_OUTPUT
+          )
+        if(OpenMP_COMPILE_RESULT_${FLAG_MODE}_${OPENMP_PLAIN_FLAG})
+	  set("${OPENMP_FLAG_VAR}" "${OPENMP_FLAG}" PARENT_SCOPE)
+          set("${OPENMP_LIB_NAMES_VAR}" "" PARENT_SCOPE)
+          break()
+	endif()
       else()
         find_library(OpenMP_libomp_LIBRARY
           NAMES omp gomp iomp5

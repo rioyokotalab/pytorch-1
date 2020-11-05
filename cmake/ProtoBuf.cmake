@@ -34,6 +34,10 @@ macro(custom_protobuf_find)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
     endif()
   endif()
+  # FIXME: If pthread is not specified in the case of FCC, an error will occur.
+  if(CMAKE_CXX_COMPILER MATCHES ".*/FCC$")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
+  endif()
 
   set(__caffe2_CMAKE_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE})
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)

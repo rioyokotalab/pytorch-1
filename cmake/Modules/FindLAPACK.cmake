@@ -170,6 +170,18 @@ if(BLAS_FOUND)
     endif()
   endif()
 
+  # SSL2
+  if((NOT LAPACK_INFO) AND (BLAS_INFO STREQUAL "ssl2"))
+    set(CMAKE_REQUIRED_LIBRARIES ${BLAS_LIBRARIES})
+    check_function_exists("cheev_" SSL2_LAPACK_WORKS)
+    set(CMAKE_REQUIRED_LIBRARIES)
+    if(SSL2_LAPACK_WORKS)
+      SET(LAPACK_INFO "ssl2")
+    else()
+      message(STATUS "Strangely, this SSL2 library does not support Lapack?!")
+    endif()
+  endif()
+
   # Generic LAPACK library?
   IF((NOT LAPACK_INFO) AND (BLAS_INFO STREQUAL "generic"))
     check_lapack_libraries(
