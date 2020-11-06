@@ -3,6 +3,7 @@
 #include <ATen/Dispatch.h>
 #include <ATen/NativeFunctions.h>
 #include <ATen/native/CPUBlas.h>
+#include <ATen/native/cpu/LinearAlgebra.h>
 #include <ATen/native/LinearAlgebraUtils.h>
 #include <ATen/native/Resize.h>
 #include <ATen/TensorUtils.h>
@@ -17,6 +18,8 @@
 
 namespace at {
 namespace native {
+
+DEFINE_DISPATCH(baddbmm_blas_stub);
 
 // Helper function for det methods.
 // For pivoted LU factorization A = P * L * U. Since we always have det(L) = 1,
@@ -515,7 +518,8 @@ static inline Tensor& bmm_out_or_baddbmm_(Tensor& self_or_result, const Tensor& 
             && batch_items_contiguous_or_transposed(batch1)
             && batch_items_contiguous_or_transposed(batch2)
             && self_or_result.is_contiguous()) {
-    at::native::_baddbmm_blas_(self_or_result, batch1, batch2, beta, alpha);
+    return baddbmm_blas_stub(self_or_result.device().type(), self_or_result,
+			     batch1, batch2, beta, alpha);
 #endif
   } else { // split along batch dimension
     if (is_bmm_out) {
