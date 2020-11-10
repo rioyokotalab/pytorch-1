@@ -183,31 +183,15 @@ public:
   Vec256<float> fmod(const Vec256<float>& q) const {
     return Vec256<float>(Sleef_fmodfx_sve(*this, q));
   }
-  // sawada
   Vec256<float> hypot(const Vec256<float> &b) const {
-    __at_align32__ float tmp[size()];
-    __at_align32__ float tmp_b[size()];
-    store(tmp);
-    b.store(tmp_b);
-    for (int64_t i = 0; i < size(); i++) {
-      tmp[i] = std::hypot(tmp[i], tmp_b[i]);
-    }
-    return loadu(tmp);
+    return Vec256<float>(Sleef_hypotfx_u05sve(*this, b));
   }
   Vec256<float> i0() const {
     return map(calc_i0);
   }
   Vec256<float> nextafter(const Vec256<float> &b) const {
-    __at_align32__ float tmp[size()];
-    __at_align32__ float tmp_b[size()];
-    store(tmp);
-    b.store(tmp_b);
-    for (int64_t i = 0; i < size(); i++) {
-      tmp[i] = std::nextafter(tmp[i], tmp_b[i]);
-    }
-    return loadu(tmp);
+    return Vec256<float>(Sleef_nextafterfx_sve(*this, b));
   }
-  // sawada
   Vec256<float> log() const {
     return Vec256<float>(Sleef_logfx_u10sve(*this));
   }
