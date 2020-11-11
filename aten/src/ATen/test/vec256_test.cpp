@@ -364,6 +364,7 @@ TEST(Vec256TestFloat, arangeTest) {
   ASSERT_TRUE(check_equal(arange_output_ref, arange_output_vectorized));
 }
 
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
 // Checks blend and blendv.
 TEST(Vec256TestFloat, Blend) {
   at::Tensor a = at::rand({23, 23});
@@ -440,6 +441,7 @@ TEST(Vec256TestFloat, Blend) {
   }
   ASSERT_TRUE(check_equal(ref_res, vec_res));
 }
+#endif
 
 // Checks Set
 TEST(Vec256TestFloat, Set) {
