@@ -71,6 +71,8 @@ std::vector<at::Tensor> cat_tensors_backward(const at::Tensor & grad, const std:
 at::Tensor clamp_backward(const at::Tensor & grad, const at::Tensor &self, const optional<at::Scalar> & min, const optional<at::Scalar> & max);
 at::Tensor mm_mat1_backward(const at::Tensor & grad, const at::Tensor & mat2, const at::Tensor & mat1, const at::Scalar & alpha);
 at::Tensor mm_mat2_backward(const at::Tensor & grad, const at::Tensor & mat1, at::IntArrayRef sizes, at::IntArrayRef strides, const at::Scalar & alpha);
+std::tuple<at::Tensor, at::Tensor, at::Tensor> addmm_backward(const at::Tensor& grad_output, const at::Tensor& mat1, const at::Tensor& mat2,
+							      const at::Scalar& beta, const at::Scalar& alpha, std::array<bool, 3> output_mask);
 at::Tensor _sparse_addmm_sparse_backward(const at::Tensor& grad, const at::Tensor& sparse_, const at::Tensor& dense, const at::Scalar& alpha);
 at::Tensor renorm_backward(const at::Tensor & grad, const at::Tensor & self, at::Scalar p, int64_t dim, at::Scalar maxnorm);
 at::Tensor sum_tensorlist(at::TensorList tl);
