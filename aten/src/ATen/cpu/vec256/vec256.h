@@ -14,6 +14,9 @@
 #endif
 #include <ATen/cpu/vec256/vec256_bfloat16.h>
 #include <ATen/cpu/vec256/vec256_double.h>
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+#include <ATen/cpu/vec256/vec256_double_sve.h>
+#endif
 #include <ATen/cpu/vec256/vec256_int.h>
 #include <ATen/cpu/vec256/vec256_qint.h>
 #include <ATen/cpu/vec256/vec256_complex_float.h>

@@ -31,12 +31,6 @@
 #include <ATen/cpu/vec256/vec256_base.h>
 #if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 #include <sleef.h>
-
-#define ptrue svptrue_b8()
-#define ALL_S32_TRUE_MASK svdup_n_s32(0xffffffff)
-#define ALL_F32_TRUE_MASK svreinterpret_f32_s32(ALL_S32_TRUE_MASK)
-#define ALL_S32_FALSE_MASK svdup_n_s32(0x0)
-#define ALL_F32_FALSE_MASK svreinterpret_f32_s32(ALL_S32_FALSE_MASK)
 #endif
 
 namespace at {
@@ -84,7 +78,8 @@ public:
 				ALL_S32_TRUE_MASK);
     return svsel_f32(mask, b, a);
   }
-  static Vec256<float> arange(float base = 0.f, float step = 1.f) {
+  template<typename step_t>
+  static Vec256<float> arange(float base = 0.f, step_t step = static_cast<step_t>(1)) {
     float buffer[size()];
     for (int64_t i = 0; i < size(); i++) {
       buffer[i] = base + i * step;
@@ -227,7 +222,7 @@ public:
     return svneg_f32_x(ptrue, *this);
   }
   Vec256<float> round() const {
-    return svrinta_f32_x(ptrue, *this);
+    return svrinti_f32_x(ptrue, *this);
   }
   Vec256<float> tan() const {
     return Vec256<float>(Sleef_tanfx_u10sve(*this));

@@ -39,4 +39,5 @@
 #if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 /* GCC-compatible compiler, targeting ARM with SVE */
 #include <arm_sve.h>
+#include <ATen/cpu/vec256/sve_common.h>
 #endif

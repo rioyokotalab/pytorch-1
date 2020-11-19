@@ -704,6 +704,7 @@ namespace {
                 << "\nActual:\n#\t" << actual;
         } //
     }
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
     template<typename vec, typename VT, int64_t mask>
     typename std::enable_if_t<(mask < 0 || mask> 255), void>
         test_blend(VT expected_val[vec::size()], VT a[vec::size()], VT b[vec::size()])
@@ -770,6 +771,7 @@ namespace {
         constexpr int64_t power_sets = 1LL << (vec::size());
         test_blend<vec, VT, power_sets - 1>(expected_val, a, b);
     }
+#endif
     TEST(ComplexTests, TestComplexFloatImagRealConj) {
         float aa[] = { 1.5488e-28,2.5488e-28,3.5488e-28,4.5488e-28,5.5488e-28,6.5488e-28,7.5488e-28,8.5488e-28 };
         float exp[] = { aa[0],0,aa[2],0,aa[4],0,aa[6],0 };
