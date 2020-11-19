@@ -39,6 +39,9 @@ static inline void reduction128(char** data, int64_t n, int64_t stride, func_t o
   for  (int j = 0; j < 4; j++) {
     acc[j] = Vec::loadu(in1_ptr + j * Vec::size() * sizeof(scalar_t));
   }
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (int64_t i = 1; i < n; i++) {
     const char* ptr = in1_ptr + stride * i;
     acc[0] = vop(acc[0], Vec::loadu(ptr + (0 * Vec::size() * sizeof(scalar_t))));
@@ -50,6 +53,9 @@ static inline void reduction128(char** data, int64_t n, int64_t stride, func_t o
     scalar_t buffer[Vec::size()];
     acc[0] = vop(vop(acc[0], acc[1]), vop(acc[2], acc[3]));
     acc[0].store(buffer);
+#if defined(__CLANG_FUJITSU)
+    #pragma clang loop vectorize(disable)
+#endif
     for (int j = 1; j < Vec::size(); j++) {
       buffer[0] = op(buffer[0], buffer[j]);
     }
@@ -66,6 +72,9 @@ static inline void reduction128(char** data, int64_t n, int64_t stride, func_t o
 
 template <typename F>
 static inline void UNARY_OUTER_LOOP(char* data[2], const int64_t strides[2], int64_t n, F f) {
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (int j = 0; j < n; j++) {
     f();
     data[0] += strides[0];

@@ -87,6 +87,9 @@ static inline void
 execute_op(char* C10_RESTRICT data[], const int64_t* strides, int64_t i, int64_t n, func_t&& op) {
   using traits = function_traits<func_t>;
   using result_type = typename traits::result_type;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; i < n; i++) {
     result_type* out_ptr = (result_type*)(data[0] + i * strides[0]);
     *out_ptr = c10::guts::apply(std::forward<func_t>(op), dereference<traits>(
@@ -101,6 +104,9 @@ template <typename func_t,
 static inline void
 execute_op(char* C10_RESTRICT data[], const int64_t* strides, int64_t i, int64_t n, func_t&& op) {
   using traits = function_traits<func_t>;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; i < n; i++) {
     c10::guts::apply(std::forward<func_t>(op), dereference<traits>(
         &data[0],
@@ -120,6 +126,9 @@ basic_loop(char* C10_RESTRICT data[], const int64_t* strides_, int64_t i, int64_
   // Copying strides to temporary array helps auto vectorization in older GCC
   // versions.
   int64_t strides[ntensors];
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (int arg = 0; arg < ntensors; arg++) {
     strides[arg] = strides_[arg];
   }
@@ -140,12 +149,18 @@ vectorized_loop(char** C10_RESTRICT data_, int64_t n, int64_t S, func_t&& op, ve
   constexpr int ntensors = traits::arity + 1;
 
   char* C10_RESTRICT data[ntensors];
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (int arg = 0; arg < ntensors; arg++) {
     data[arg] = data_[arg];
   }
 
   Vec opt_scalar = Vec(S > 0 ? *(scalar_t*)data[S] : scalar_t(0));
   int64_t i = 0;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; i <= n - 2 * Vec::size(); i += 2 * Vec::size()) {
     auto args1 = dereference_vec<traits>(&data[1], opt_scalar, S, i);
     auto args2 = dereference_vec<traits>(&data[1], opt_scalar, S, i + Vec::size());
@@ -156,6 +171,9 @@ vectorized_loop(char** C10_RESTRICT data_, int64_t n, int64_t S, func_t&& op, ve
   }
   if (i < n) {
     int64_t strides[ntensors];
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
     for (int arg = 0; arg < ntensors; arg++) {
       strides[arg] = (S > 0 && arg == S) ? 0 : sizeof(scalar_t);
     }

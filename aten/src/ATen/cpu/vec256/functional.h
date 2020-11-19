@@ -16,6 +16,9 @@ inline scalar_t vec_reduce_all(
   using Vec = vec256::Vec256<scalar_t>;
   scalar_t acc_arr[Vec::size()];
   acc_vec.store(acc_arr);
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (int64_t i = 1; i < size; i++) {
     std::array<scalar_t, Vec::size()> acc_arr_next = {0};
     acc_arr_next[0] = acc_arr[i];
@@ -33,6 +36,9 @@ inline scalar_t reduce_all(const Op& vec_fun, const scalar_t* data, int64_t size
     return vec_reduce_all(vec_fun, Vec::loadu(data, size), size);
   int64_t d = Vec::size();
   Vec acc_vec = Vec::loadu(data);
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(data + d);
     acc_vec = vec_fun(acc_vec, data_vec);
@@ -58,6 +64,9 @@ inline std::pair<scalar_t, scalar_t> reduce2_all(const Op1& vec_fun1, const Op2&
   int64_t d = Vec::size();
   Vec acc_vec1 = Vec::loadu(data);
   Vec acc_vec2 = Vec::loadu(data);
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(data + d);
     acc_vec1 = vec_fun1(acc_vec1, data_vec);
@@ -84,6 +93,9 @@ inline scalar_t map_reduce_all(
     return vec_reduce_all(red_fun, map_fun(Vec::loadu(data, size)), size);
   int64_t d = Vec::size();
   Vec acc_vec = map_fun(Vec::loadu(data));
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(data + d);
     data_vec = map_fun(data_vec);
@@ -113,6 +125,9 @@ inline scalar_t map2_reduce_all(
   }
   int64_t d = Vec::size();
   Vec acc_vec = map_fun(Vec::loadu(data), Vec::loadu(data2));
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(data + d);
     Vec data2_vec = Vec::loadu(data2 + d);
@@ -147,6 +162,9 @@ inline scalar_t map3_reduce_all(
 
   int64_t d = Vec::size();
   Vec acc_vec = map_fun(Vec::loadu(data), Vec::loadu(data2), Vec::loadu(data3));
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(data + d);
     Vec data2_vec = Vec::loadu(data2 + d);
@@ -172,6 +190,9 @@ inline void map(
     int64_t size) {
   using Vec = vec256::Vec256<scalar_t>;
   int64_t d = 0;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec output_vec = vec_fun(Vec::loadu(input_data + d));
     output_vec.store(output_data + d);
@@ -191,6 +212,9 @@ inline void map2(
     int64_t size) {
   using Vec = vec256::Vec256<scalar_t>;
   int64_t d = 0;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec = Vec::loadu(input_data + d);
     Vec data_vec2 = Vec::loadu(input_data2 + d);
@@ -215,6 +239,9 @@ inline void map3(
     int64_t size) {
   using Vec = vec256::Vec256<scalar_t>;
   int64_t d = 0;
+#if defined(__CLANG_FUJITSU)
+  #pragma clang loop vectorize(disable)
+#endif
   for (; d < size - (size % Vec::size()); d += Vec::size()) {
     Vec data_vec1 = Vec::loadu(input_data1 + d);
     Vec data_vec2 = Vec::loadu(input_data2 + d);
