@@ -350,12 +350,12 @@ TEST(Vec256TestFloat, CopyTest) {
 }
 
 TEST(Vec256TestFloat, arangeTest) {
-  at::Tensor arange_output_ref = at::zeros({8});
-  at::Tensor arange_output_vectorized = at::zeros({8});
+  at::Tensor arange_output_ref = at::zeros({Vec256<float>::size()});
+  at::Tensor arange_output_vectorized = at::zeros({Vec256<float>::size()});
   float base = 7.f;
   float step = 5.f;
   float* ref_output_ptr = arange_output_ref.data_ptr<float>();
-  for (int64_t i = 0; i < 8; ++i) {
+  for (int64_t i = 0; i < Vec256<float>::size(); ++i) {
     ref_output_ptr[i] = base + i * step;
   }
   float* vec_output_ptr = arange_output_vectorized.data_ptr<float>();
@@ -364,7 +364,6 @@ TEST(Vec256TestFloat, arangeTest) {
   ASSERT_TRUE(check_equal(arange_output_ref, arange_output_vectorized));
 }
 
-#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
 // Checks blend and blendv.
 TEST(Vec256TestFloat, Blend) {
   at::Tensor a = at::rand({23, 23});
@@ -395,6 +394,8 @@ TEST(Vec256TestFloat, Blend) {
     tmp_mask = tmp_mask >> 1;
   }
 
+// NOTE: SVE backend is not need blend<mask> test.
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
   // Vectorized impl
   float* vec_res_ptr = vec_res.data_ptr<float>();
   for (size_t i = 0; i < num_els; i += Vec256<float>::size()) {
@@ -407,17 +408,25 @@ TEST(Vec256TestFloat, Blend) {
     vec_res_ptr += Vec256<float>::size();
   }
   ASSERT_TRUE(check_equal(ref_res, vec_res));
+#endif
 
   // Vector components
   a_ptr = a.data_ptr<float>();
   b_ptr = b.data_ptr<float>();
+  const size_t base_size = 8;
   int32_t full_int_mask = 0xFFFFFFFF;
   float* full_ptr = reinterpret_cast<float*>(&full_int_mask);
   float full_float_mask = *full_ptr;
-  Vec256<float> float_mask(full_float_mask, 0.f, full_float_mask, 0.f,
-                           0.f, full_float_mask, 0.f, 0.f);
+  float mask_base[] = {full_float_mask, 0.f, full_float_mask, 0.f,
+		       0.f, full_float_mask, 0.f, 0.f};
+  float native_size_mask[Vec256<float>::size()];
+  for (int64_t i = 0; i < Vec256<float>::size() / base_size; ++i) {
+    std::memcpy(native_size_mask + base_size * i, mask_base,
+		sizeof(float) * base_size);
+  }
+  Vec256<float> mask_vec = Vec256<float>::loadu(native_size_mask);
   float float_mask_array[Vec256<float>::size()];
-  float_mask.store(float_mask_array);
+  mask_vec.store(float_mask_array);
   ref_res_ptr = ref_res.data_ptr<float>();
   for (size_t i = 0; i < num_els; ++i) {
     if (float_mask_array[i % Vec256<float>::size()] != 0) {
@@ -429,19 +438,22 @@ TEST(Vec256TestFloat, Blend) {
   }
 
   // Vectorized impl
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+  float* vec_res_ptr = vec_res.data_ptr<float>();
+#else
   vec_res_ptr = vec_res.data_ptr<float>();
+#endif
   for (size_t i = 0; i < num_els; i += Vec256<float>::size()) {
     auto a_elements = Vec256<float>::loadu(a_ptr);
     auto b_elements = Vec256<float>::loadu(b_ptr);
     a_ptr += Vec256<float>::size();
     b_ptr += Vec256<float>::size();
-    auto res_elements = Vec256<float>::blendv(a_elements, b_elements, float_mask);
+    auto res_elements = Vec256<float>::blendv(a_elements, b_elements, mask_vec);
     res_elements.store(vec_res_ptr);
     vec_res_ptr += Vec256<float>::size();
   }
   ASSERT_TRUE(check_equal(ref_res, vec_res));
 }
-#endif
 
 // Checks Set
 TEST(Vec256TestFloat, Set) {

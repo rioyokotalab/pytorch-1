@@ -1039,7 +1039,7 @@ Vec256<c10::quint8> inline maximum(const Vec256<c10::quint8>& a, const Vec256<c1
   return a.maximum(b);
 }
 
-#else
+#elif !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
 
 // NOTE: These are low-performance implementations that we fall back on
 // if we are not building with AVX2. This may not be an issue, because
@@ -1092,17 +1092,20 @@ struct Vec256QuantizedConverter {
       Vec256<float> zero_point,
       Vec256<float> scale_zp_premul) const {
     float_vec_return_type rv;
-    float tmp_scale[8];
-    float tmp_zero_point[8];
-    scale.store(tmp_scale, 8);
-    zero_point.store(tmp_zero_point, 8);
     for (int i = 0; i < float_num_vecs(); ++i) {
       float tmp_vals[8];
       for (int j = 0; j < 8; ++j) {
-        tmp_vals[j] =
-          at::native::dequantize_val<T>(tmp_scale[j], tmp_zero_point[j], T(vals[8 * i + j]));
+        tmp_vals[j] = at::native::dequantize_val<T>(
+            scale[j], zero_point[j], T(vals[8 * i + j]));
       }
-      rv[i] = Vec256<float>::loadu(tmp_vals, 8);
+      rv[i] = Vec256<float>(tmp_vals[0],
+          tmp_vals[1],
+          tmp_vals[2],
+          tmp_vals[3],
+          tmp_vals[4],
+          tmp_vals[5],
+          tmp_vals[6],
+          tmp_vals[7]);
     }
     return rv;
   }

@@ -704,6 +704,7 @@ namespace {
                 << "\nActual:\n#\t" << actual;
         } //
     }
+// NOTE: SVE backend is not need blend<mask> test.
 #if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
     template<typename vec, typename VT, int64_t mask>
     typename std::enable_if_t<(mask < 0 || mask> 255), void>
@@ -773,11 +774,23 @@ namespace {
     }
 #endif
     TEST(ComplexTests, TestComplexFloatImagRealConj) {
-        float aa[] = { 1.5488e-28,2.5488e-28,3.5488e-28,4.5488e-28,5.5488e-28,6.5488e-28,7.5488e-28,8.5488e-28 };
-        float exp[] = { aa[0],0,aa[2],0,aa[4],0,aa[6],0 };
-        float exp3[] = { aa[1],0,aa[3],0,aa[5],0,aa[7],0 };
-        float exp4[] = { 1.5488e-28, -2.5488e-28,3.5488e-28,-4.5488e-28,5.5488e-28,-6.5488e-28,7.5488e-28,-8.5488e-28 };
-        auto a = vcomplex::loadu(aa);
+        const size_t base_size = 8;
+        float aa_base[] = { 1.5488e-28,2.5488e-28,3.5488e-28,4.5488e-28,5.5488e-28,6.5488e-28,7.5488e-28,8.5488e-28 };
+        float exp_base[] = { aa_base[0],0,aa_base[2],0,aa_base[4],0,aa_base[6],0 };
+        float exp3_base[] = { aa_base[1],0,aa_base[3],0,aa_base[5],0,aa_base[7],0 };
+        float exp4_base[] = { 1.5488e-28, -2.5488e-28,3.5488e-28,-4.5488e-28,5.5488e-28,-6.5488e-28,7.5488e-28,-8.5488e-28 };
+	const size_t float_vec_size = vcomplex::size() * 2;
+	float aa[float_vec_size];
+	float exp[float_vec_size];
+	float exp3[float_vec_size];
+	float exp4[float_vec_size];
+	for (int64_t i = 0; i < float_vec_size / base_size; ++i) {
+	  std::memcpy(aa + base_size * i, aa_base, sizeof(float) * base_size);
+	  std::memcpy(exp + base_size * i, exp_base, sizeof(float) * base_size);
+	  std::memcpy(exp3 + base_size * i, exp3_base, sizeof(float) * base_size);
+	  std::memcpy(exp4 + base_size * i, exp4_base, sizeof(float) * base_size);
+	}
+	auto a = vcomplex::loadu(aa);
         auto actual1 = a.real();
         auto actual3 = a.imag();
         auto actual4 = a.conj();

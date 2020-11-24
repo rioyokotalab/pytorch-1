@@ -42,7 +42,7 @@ namespace {
 
 template <> class Vec256<float> {
 private:
-  /* @todo fj svfloat32_t*/
+  /* TODO: Convert to svfloat32_t. */
   float values[16];
 public:
   using value_type = float;
@@ -248,7 +248,6 @@ public:
   Vec256<float> pow(const Vec256<float> &b) const {
     return Vec256<float>(Sleef_powfx_u10sve(*this, b));
   }
-  // @todo fj
   // Comparison using the _CMP_**_OQ predicate.
   //   `O`: get false if an operand is NaN
   //   `Q`: do not raise if an operand is NaN
@@ -315,7 +314,6 @@ Vec256<float> Vec256<float>::frac() const {
   return *this - this->trunc();
 }
 
-// @todo fj
 // Implements the IEEE 754 201X `maximum` operation, which propagates NaN if
 // either input is a NaN.
 template <>
@@ -323,7 +321,6 @@ Vec256<float> inline maximum(const Vec256<float>& a, const Vec256<float>& b) {
   return svmax_f32_x(ptrue, a, b);
 }
 
-// @todo fj
 // Implements the IEEE 754 201X `minimum` operation, which propagates NaN if
 // either input is a NaN.
 template <>
@@ -391,15 +388,6 @@ inline void convert(const float* src, float* dst, int64_t n) {
   for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
     svbool_t pg = svwhilelt_b32(i, n);
     svst1_f32(pg, dst + i, svldnt1_f32(pg, src + i));
-  }
-}
-
-template <>
-inline void convert(const int32_t *src, float *dst, int64_t n) {
-# pragma unroll
-  for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
-    svbool_t pg = svwhilelt_b32(i, n);
-    svst1_f32(pg, dst + i, svcvt_f32_s32_x(pg, svld1_s32(pg, src + i)));
   }
 }
 

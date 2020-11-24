@@ -270,10 +270,13 @@ void binary_kernel_reduce_vec(TensorIterator& iter, func_t op, vec_func_t vop, d
       UNARY_OUTER_LOOP(data, outer_strides, size1, [&] {
         vectorized_inner_reduction(data, size0, op, vop);
       });
+    // FIXME: Changing vector length to 512 bit causes the unit test to fail.
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
     } else if (is_outer_reduction<traits>(strides)) {
       // input and output are contiguous in dim 1
       int64_t inner_stride = strides[1]; // stride of input in dim 0
       vectorized_outer_reduction(data, inner_stride, size0, size1, op, vop);
+#endif
     } else {
       UNARY_OUTER_LOOP(data, outer_strides, size1, [&] {
         char* ptrs[3] = { data[0], data[0], data[1] };

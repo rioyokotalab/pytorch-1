@@ -45,8 +45,7 @@ private:                                                                        
 public:                                                                                                 \
   using value_type = int##bit##_t;                                                                      \
   static constexpr int size() {                                                                         \
-    /* FIXME: Changing vector length to 512 bit causes the unit test to fail. */                        \
-    return 256 / bit;                                                                                   \
+    return vl;                                                                                          \
   }                                                                                                     \
   Vec256(const Vec256& rhs) {                                                                           \
     *reinterpret_cast<svint##bit##_t*>(values) = *reinterpret_cast<const svint##bit##_t*>(rhs.values);  \
@@ -66,9 +65,7 @@ public:                                                                         
            typename = std::enable_if_t<(sizeof...(Args) == size())>>                                    \
   Vec256(Args... vals) {                                                                                \
     int##bit##_t buffer[size()] = { vals... };                                                          \
-    /* TODO: Replace with ptrue when vector length can be changed. */                                   \
-    svbool_t pg = svwhilelt_b##bit(0ull, size());			                                \
-    *reinterpret_cast<svint##bit##_t*>(values) = svld1_s##bit(pg, buffer);                              \
+    *reinterpret_cast<svint##bit##_t*>(values) = svld1_s##bit(ptrue, buffer);                           \
   }                                                                                                     \
   operator svint##bit##_t() const {                                                                     \
     return *reinterpret_cast<const svint##bit##_t*>(values);                                            \
@@ -92,26 +89,18 @@ public:                                                                         
     return b;                                                                                           \
   }                                                                                                     \
   static Vec256<int##bit##_t> loadu(const void* ptr, int64_t count = size()) {                          \
-    /* TODO: Replace with the code below when vector length can be changed.                             \
     if (count == size())                                                                                \
-      return svld1_s##bit(ptrue, reinterpret_cast<const type*>(ptr));                                   \
-    svbool_t pg = svwhilelt_b##bit(0ull, count);                                                        \
-    return svld1_s##bit(pg, reinterpret_cast<const int##bit##_t*>(ptr));                                \
-    */                                                                                                  \
+      return svld1_s##bit(ptrue, reinterpret_cast<const int##bit##_t*>(ptr));                           \
     svbool_t pg = svwhilelt_b##bit(0ull, count);                                                        \
     return svld1_s##bit(pg, reinterpret_cast<const int##bit##_t*>(ptr));                                \
   }                                                                                                     \
   void store(void* ptr, int64_t count = size()) const {                                                 \
-    /* TODO: Replace with the code below when vector length can be changed.                             \
     if (count == size()) {                                                                              \
-      svst1_s##bit(ptrue, reinterpret_cast<type*>(ptr), *this);                                         \
+      svst1_s##bit(ptrue, reinterpret_cast<int##bit##_t*>(ptr), *this);                                 \
     } else {                                                                                            \
       svbool_t pg = svwhilelt_b##bit(0ull, count);                                                      \
-      svst1_s##bit(pg, reinterpret_cast<type*>(ptr), *this);                                            \
+      svst1_s##bit(pg, reinterpret_cast<int##bit##_t*>(ptr), *this);                                    \
     }                                                                                                   \
-    */                                                                                                  \
-    svbool_t pg = svwhilelt_b##bit(0ull, count);			                                \
-    svst1_s##bit(pg, reinterpret_cast<int##bit##_t*>(ptr), *this);	                                \
   }                                                                                                     \
   const int##bit##_t& operator[](int idx) const  = delete;                                              \
   int##bit##_t& operator[](int idx) = delete;                                                           \

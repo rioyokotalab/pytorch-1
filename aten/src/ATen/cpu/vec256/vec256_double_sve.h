@@ -42,7 +42,7 @@ namespace {
 
 template <> class Vec256<double> {
 private:
-  /* @todo fj svfloat64_t*/
+  /* TODO: Convert to svfloat64_t. */
   double values[8];
 public:
   using value_type = double;
@@ -248,7 +248,6 @@ public:
   Vec256<double> pow(const Vec256<double> &b) const {
     return Vec256<double>(Sleef_powdx_u10sve(*this, b));
   }
-  // @todo fj
   // Comparison using the _CMP_**_OQ predicate.
   //   `O`: get false if an operand is NaN
   //   `Q`: do not raise if an operand is NaN
@@ -315,7 +314,6 @@ Vec256<double> Vec256<double>::frac() const {
   return *this - this->trunc();
 }
 
-// @todo fj
 // Implements the IEEE 754 201X `maximum` operation, which propagates NaN if
 // either input is a NaN.
 template <>
@@ -323,7 +321,6 @@ Vec256<double> inline maximum(const Vec256<double>& a, const Vec256<double>& b) 
   return svmax_f64_x(ptrue, a, b);
 }
 
-// @todo fj
 // Implements the IEEE 754 201X `minimum` operation, which propagates NaN if
 // either input is a NaN.
 template <>

@@ -29,6 +29,8 @@
 
 #include <ATen/cpu/vec256/intrinsics.h>
 
+#define CUSTOM_VEC256_VECTOR_BIT_SIZE 512
+
 #define ptrue svptrue_b8()
 #define ALL_S8_TRUE_MASK svdup_n_s8(0xff)
 #define ALL_S8_FALSE_MASK svdup_n_s8(0x0)

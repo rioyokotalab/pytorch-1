@@ -41,6 +41,12 @@
 #define __at_align32__
 #endif
 
+#if defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+#define VECTOR_BYTE_SIZE CUSTOM_VEC256_VECTOR_BIT_SIZE / 8
+#else
+#define VECTOR_BYTE_SIZE 32
+#endif
+
 namespace at {
 namespace vec256 {
 // See Note [Acceptable use of anonymous namespace in header]
@@ -74,7 +80,7 @@ using int_same_size_t = typename int_of_size<sizeof(T)>::type;
 template <class T>
 struct Vec256 {
 private:
-  __at_align32__ T values[32 / sizeof(T)];
+  __at_align32__ T values[VECTOR_BYTE_SIZE / sizeof(T)];
 public:
   using value_type = T;
   // Note [constexpr static function to avoid odr-usage compiler bug]
@@ -110,7 +116,7 @@ public:
   // identifier is odr-used or not, and in any case it's hard to tell if
   // a variable is odr-used or not.  So best to just cut the problem at the root.
   static constexpr int size() {
-    return 32 / sizeof(T);
+    return VECTOR_BYTE_SIZE / sizeof(T);
   }
   Vec256() : values{0} {}
   Vec256(T val) {
@@ -180,7 +186,7 @@ public:
   }
   static Vec256<T> loadu(const void* ptr) {
     Vec256 vec;
-    std::memcpy(vec.values, ptr, 32);
+    std::memcpy(vec.values, ptr, VECTOR_BYTE_SIZE);
     return vec;
   }
   static Vec256<T> loadu(const void* ptr, int64_t count) {
@@ -711,7 +717,7 @@ inline Vec256<T> operator^(const Vec256<T>& a, const Vec256<T>& b) {
 
 template<class T, typename Op>
 static inline Vec256<T> bitwise_binary_op(const Vec256<T> &a, const Vec256<T> &b, Op op) {
-  static constexpr uint32_t element_no = 32 / sizeof(intmax_t);
+  static constexpr uint32_t element_no = VECTOR_BYTE_SIZE / sizeof(intmax_t);
   __at_align32__ intmax_t buffer[element_no];
   const intmax_t *a_ptr = reinterpret_cast<const intmax_t*>((const T*) a);
   const intmax_t *b_ptr = reinterpret_cast<const intmax_t*>((const T*) b);
@@ -739,7 +745,7 @@ inline Vec256<T> operator^(const Vec256<T>& a, const Vec256<T>& b) {
 template<class T, typename std::enable_if_t<!std::is_base_of<Vec256i, Vec256<T>>::value, int> = 0>
 inline Vec256<T> operator~(const Vec256<T>& a) {
   Vec256<T> ones;  // All bits are 1
-  memset((T*) ones, 0xFF, 32);
+  memset((T*) ones, 0xFF, VECTOR_BYTE_SIZE);
   return a ^ ones;
 }
 
