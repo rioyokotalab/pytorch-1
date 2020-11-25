@@ -300,7 +300,7 @@ void bernoulli_scalar_kernel_default(Tensor& self, double p, c10::optional<Gener
 
 #if !AT_MKL_ENABLED()
 void bernoulli_scalar_kernel(Tensor& self, double p, c10::optional<Generator> gen) {
-#if defined(__FUJITSU) || defined(__CLANG_FUJITSU)
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
   at::native::_bernoulli_fujitsu_(self, p, gen);
 #else
   bernoulli_scalar_kernel_default(self, p, gen);

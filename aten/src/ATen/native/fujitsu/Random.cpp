@@ -31,7 +31,7 @@
 #include <ATen/Dispatch.h>
 #include <ATen/Utils.h>
 
-#if !defined(__FUJITSU) && !defined(__CLANG_FUJITSU)
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
 
 namespace at {
 namespace native {
@@ -92,7 +92,7 @@ void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
       int64_t len = end - begin;
       if (len > 0) {
 	struct StreamStatePtr_fujitsu stream;
-	NewStream_fujitsu(&stream, 1, seed);
+	NewStream_fujitsu(&stream, 0, seed);
 	SkipAheadStream_fujitsu(stream, begin);
 	RngBernoulli_fujitsu(0, stream, len, sample_int_ptr + begin, p);
 	DeleteStream_fujitsu(stream);
