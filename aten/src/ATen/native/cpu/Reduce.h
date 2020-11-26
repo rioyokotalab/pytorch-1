@@ -53,14 +53,28 @@ static inline void reduction128(char** data, int64_t n, int64_t stride, func_t o
     scalar_t buffer[Vec::size()];
     acc[0] = vop(vop(acc[0], acc[1]), vop(acc[2], acc[3]));
     acc[0].store(buffer);
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+    size_t native_vec_size = 32 / sizeof(scalar_t);
 #if defined(__CLANG_FUJITSU)
     #pragma clang loop vectorize(disable)
 #endif
+    for (int j = 0; j < Vec::size() / native_vec_size; ++j) {
+#if defined(__CLANG_FUJITSU)
+      #pragma clang loop vectorize(disable)
+#endif
+      for (int k = 1;  k < native_vec_size; ++k) {
+	buffer[native_vec_size * j] = op(buffer[native_vec_size * j], buffer[native_vec_size * j + k]);
+      }
+      auto dst = (scalar_t*)out_ptr;
+      *dst = op(*dst, buffer[native_vec_size * j]);
+    }
+#else // defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
     for (int j = 1; j < Vec::size(); j++) {
       buffer[0] = op(buffer[0], buffer[j]);
     }
     auto dst = (scalar_t*)out_ptr;
     *dst = op(*dst, buffer[0]);
+#endif // defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
   } else {
     for (int j = 0; j < 4; j++) {
       auto dst = out_ptr + j * Vec::size() * sizeof(scalar_t);
@@ -102,7 +116,7 @@ static inline void vectorized_outer_reduction(char** data, int64_t inner_stride,
   VEC_LOOP_HEADER(func_t, data)
 
   // reduce down each column of 4 * Vec::size() elements (128 bytes)
-  int64_t outer_stride[2] = { 128, 128 };
+  int64_t outer_stride[2] = { 4 * Vec::size() * sizeof(scalar_t), 4 * Vec::size() * sizeof(scalar_t)};
   UNARY_OUTER_LOOP(data, outer_stride, size1 / (4 * Vec::size()), [&] {
     reduction128(data, size0, inner_stride, op, vop, /*reduce=*/false);
   });
@@ -270,13 +284,10 @@ void binary_kernel_reduce_vec(TensorIterator& iter, func_t op, vec_func_t vop, d
       UNARY_OUTER_LOOP(data, outer_strides, size1, [&] {
         vectorized_inner_reduction(data, size0, op, vop);
       });
-    // FIXME: Changing vector length to 512 bit causes the unit test to fail.
-#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
     } else if (is_outer_reduction<traits>(strides)) {
       // input and output are contiguous in dim 1
       int64_t inner_stride = strides[1]; // stride of input in dim 0
       vectorized_outer_reduction(data, inner_stride, size0, size1, op, vop);
-#endif
     } else {
       UNARY_OUTER_LOOP(data, outer_strides, size1, [&] {
         char* ptrs[3] = { data[0], data[0], data[1] };

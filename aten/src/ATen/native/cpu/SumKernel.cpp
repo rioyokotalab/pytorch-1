@@ -27,6 +27,18 @@ struct LoadImpl<Vec256<scalar_t>> {
   }
 };
 
+// FIXME: Changing vector length reduces the accuracy of FP16.
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+template <>
+struct LoadImpl<Vec256<at::Half>> {
+  static Vec256<at::Half> load(const char * C10_RESTRICT data, int64_t stride, int64_t index) {
+    constexpr int64_t fp16_vec_numel = 32 / sizeof(at::Half);
+    auto *ptr = data + index * stride;
+    return Vec256<at::Half>::loadu(ptr, fp16_vec_numel);
+  }
+};
+#endif
+
 template <typename T>
 T load(const char * C10_RESTRICT data, int64_t stride, int64_t index) {
   return LoadImpl<T>::load(data, stride, index);
@@ -209,6 +221,36 @@ void vectorized_inner_sum(
   }
 }
 
+// FIXME: Changing vector length reduces the accuracy of FP16.
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+void vectorized_inner_sum_fp16(
+    char * C10_RESTRICT data[2], int64_t outer_stride, int64_t out_stride,
+    int64_t size0, int64_t size1) {
+  using vec_t = Vec256<at::Half>;
+  constexpr int64_t fp16_vec_numel = 32 / sizeof(at::Half);
+  constexpr int64_t vec_stride = fp16_vec_numel * sizeof(at::Half);
+  const int64_t vec_size = size0 / fp16_vec_numel;
+
+  // Input is contiguous over the first (reduced) dimension
+  for (int64_t j = 0; j < size1; ++j) {
+    const auto *row_in = data[1] + j * outer_stride;
+    auto vec_acc = row_sum<vec_t>(row_in, vec_stride, vec_size);
+
+    at::Half final_acc = 0;
+    for (int64_t k = vec_size * fp16_vec_numel; k < size0; ++k) {
+      final_acc += load<at::Half>(row_in, sizeof(at::Half), k);
+    }
+
+    at::Half partials[fp16_vec_numel];
+    vec_acc.store(partials, fp16_vec_numel);
+    for (int64_t k = 0; k < fp16_vec_numel; ++k) {
+      final_acc += partials[k];
+    }
+    accumulate_result(data[0], out_stride, j, final_acc);
+  }
+}
+#endif
+
 template <typename scalar_t>
 void scalar_inner_sum(
     char * C10_RESTRICT data[2], int64_t in_strides[2], int64_t out_stride,
@@ -258,6 +300,48 @@ void vectorized_outer_sum(
     accumulate_result(data[0], out_stride, j, ans);
   }
 }
+
+// FIXME: Changing vector length reduces the accuracy of FP16.
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+void vectorized_outer_sum_fp16(
+    char * C10_RESTRICT data[2], int64_t inner_stride, int64_t out_stride,
+    int64_t size0, int64_t size1) {
+  using vec_t = Vec256<at::Half>;
+  constexpr int64_t fp16_vec_numel = 32 / sizeof(at::Half);
+  constexpr int64_t nrows = 4;
+  constexpr int64_t vec_stride = fp16_vec_numel * sizeof(at::Half);
+
+  // Input is contiguous over the second (non-reduced) dimension
+  int64_t j = 0;
+  for (; j + nrows * fp16_vec_numel <= size1; j += nrows * fp16_vec_numel) {
+    const auto *row_in = data[1] + j * sizeof(at::Half);
+    auto sums = multi_row_sum<vec_t, nrows>(row_in, inner_stride, vec_stride, size0);
+
+    for (int64_t i = 0; i < nrows; ++i) {
+      const int64_t base_idx = j + i * fp16_vec_numel;
+
+      std::array<at::Half, fp16_vec_numel> ans;
+      sums[i].store(ans.data(), fp16_vec_numel);
+      accumulate_result(data[0], out_stride, base_idx, ans);
+    }
+  }
+
+  for (; j + fp16_vec_numel <= size1; j += fp16_vec_numel) {
+    const auto *row_in = data[1] + j * sizeof(at::Half);
+    const vec_t sums = row_sum<vec_t>(row_in, inner_stride, size0);
+
+    std::array<at::Half, fp16_vec_numel> ans;
+    sums.store(ans.data(), fp16_vec_numel);
+    accumulate_result(data[0], out_stride, j, ans);
+  }
+
+  for (; j < size1; ++j) {
+    const auto *row_in = data[1] + j * sizeof(at::Half);
+    at::Half ans = row_sum<at::Half>(row_in, inner_stride, size0);
+    accumulate_result(data[0], out_stride, j, ans);
+  }
+}
+#endif
 
 template <typename scalar_t>
 void scalar_outer_sum(
@@ -323,11 +407,31 @@ void sum_kernel_impl(TensorIterator &iter) {
           TORCH_INTERNAL_ASSERT(out_strides[0] == 0);
 
           if (in_strides[0] == sizeof(scalar_t) && size0 >= Vec256<scalar_t>::size()) {
+// FIXME: Changing vector length reduces the accuracy of FP16.
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+	    // Contiguous inner reduction
+	    if (iter.dtype() == ScalarType::Half) {
+	      vectorized_inner_sum_fp16(data, in_strides[1], out_stride, size0, size1);
+	    } else {
+	      vectorized_inner_sum<scalar_t>(data, in_strides[1], out_stride, size0, size1);
+	    }
+#else
             // Contiguous inner reduction
             vectorized_inner_sum<scalar_t>(data, in_strides[1], out_stride, size0, size1);
+#endif
           } else if (in_strides[1] == sizeof(scalar_t) && size1 >= Vec256<scalar_t>::size()) {
+// FIXME: Changing vector length reduces the accuracy of FP16.
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+	    // Contiguous outer reduction
+	    if (iter.dtype() == ScalarType::Half) {
+	      vectorized_outer_sum_fp16(data, in_strides[0], out_stride, size0, size1);
+	    } else {
+	      vectorized_outer_sum<scalar_t>(data, in_strides[0], out_stride, size0, size1);
+	    }
+#else
             // Contiguous outer reduction
             vectorized_outer_sum<scalar_t>(data, in_strides[0], out_stride, size0, size1);
+#endif
           } else if (in_strides[0] < in_strides[1]) {
             scalar_inner_sum<scalar_t>(data, in_strides, out_stride, size0, size1);
           } else {
