@@ -42,7 +42,7 @@ Park, Stephen K.; Miller, Keith W.; Stockmeyer, Paul K. (1988).
 doi:10.1145/159544.376068.
 */
 
-struct StreamStatePtr_fujitsu{
+struct StreamStatePtr_ampl{
     int METHOD;                /* METHOD 0:MCG31 */
     uint32_t *s;               /* seed */
 };
@@ -77,8 +77,8 @@ svuint32_t  nextsve_MCG(uint32_t s[16], uint32_t A_CONSTANT) {
 * @param[in] seed The initial state for random number generation.
 */
 
-void NewStream_fujitsu(
-    struct StreamStatePtr_fujitsu *stream,
+void NewStream_ampl(
+    struct StreamStatePtr_ampl *stream,
     int METHOD,
     int seed
 ){
@@ -103,12 +103,12 @@ void NewStream_fujitsu(
 /**
 * To support multi-threaded computation.
 *
-* @param[in, out] StreamStatePtr_fujitsu stream
+* @param[in, out] StreamStatePtr_ampl stream
 * @param[in] begin Number of jumping ahead.
 */
 
-void SkipAheadStream_fujitsu(
-    struct StreamStatePtr_fujitsu stream,
+void SkipAheadStream_ampl(
+    struct StreamStatePtr_ampl stream,
     int begin
 ){
 
@@ -141,15 +141,15 @@ void SkipAheadStream_fujitsu(
 *
 * @param[out] r Value (0 or 1) genereted by the Bernoulli function.
 * @param[in] METHOD 0:MCG31
-* @param[in] StreamStatePtr_fujitsu stream
+* @param[in] StreamStatePtr_ampl stream
 * @param[in] N Number of random numbers to generate.
 * @param[in] r Array of random numbers.
 * @param[in] p Parameters of the Bernoulli distribution.
 * @return 0
 */
-int RngBernoulli_fujitsu(
+int RngBernoulli_ampl(
     int METHOD,
-    struct StreamStatePtr_fujitsu stream,
+    struct StreamStatePtr_ampl stream,
     int N,
     int* r,
     double p
@@ -180,10 +180,10 @@ int RngBernoulli_fujitsu(
 /**
 * Delete stream.
 *
-* @param[in] StreamStatePtr_fujitsu stream
+* @param[in] StreamStatePtr_ampl stream
 */
-void DeleteStream_fujitsu(
-    struct StreamStatePtr_fujitsu stream
+void DeleteStream_ampl(
+    struct StreamStatePtr_ampl stream
 ){
     free(stream.s);
 }
