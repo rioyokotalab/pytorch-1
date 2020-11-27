@@ -254,6 +254,165 @@ inline deinterleave2<float>(const Vec256<float>& a, const Vec256<float>& b) {
 
 #endif  // defined(CPU_CAPABILITY_AVX2)
 
+#elif defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CAST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+template<>
+inline Vec256<float> cast<float, double>(const Vec256<double>& src) {
+  return svcvt_f32_f64_x(ptrue, src);
+}
+
+template<>
+inline Vec256<double> cast<double, float>(const Vec256<float>& src) {
+  return svcvt_f64_f32_x(ptrue, src);
+}
+
+#define DEFINE_FLOAT_INT_CAST(int_t, int_bit, float_t, float_bit)	 \
+template<>                                                               \
+inline  Vec256<int_t> cast<int_t, float_t>(const Vec256<float_t>& src) { \
+  return svcvt_s##int_bit##_f##float_bit##_x(ptrue, src);                \
+}                                                                        \
+template<>                                                               \
+inline Vec256<float_t> cast<float_t, int_t>(const Vec256<int_t>& src) {  \
+  return svcvt_f##float_bit##_s##int_bit##_x(ptrue, src);                \
+}
+
+// FIXME: Since direct int16_t conversion cannot be done in SVE ACLE,
+//        it is necessary to consider another method. 
+#define DEFINE_FLOAT_INT16_CAST(float_t, float_bit)                          \
+template<>                                                                   \
+inline  Vec256<int16_t> cast<int16_t, float_t>(const Vec256<float_t>& src) { \
+ return svcvt_s16_f16_x(ptrue, svcvt_f16_f##float_bit##_x(ptrue, src));      \
+}                                                                            \
+template<>                                                                   \
+inline Vec256<float_t> cast<float_t, int16_t>(const Vec256<int16_t>& src) {  \
+ return svcvt_f##float_bit##_f16_x(ptrue, svcvt_f16_s16_x(ptrue, src));	     \
+}
+
+DEFINE_FLOAT_INT_CAST(int64_t, 64, double, 64)
+DEFINE_FLOAT_INT_CAST(int32_t, 32, double, 64)
+DEFINE_FLOAT_INT16_CAST(double, 64)
+DEFINE_FLOAT_INT_CAST(int64_t, 64,  float, 32)
+DEFINE_FLOAT_INT_CAST(int32_t, 32, float, 32)
+DEFINE_FLOAT_INT16_CAST(float, 32)
+
+#undef DEFINE_FLOAT_INT_CAST
+#undef DEFINE_FLOAT_INT16_CAST
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GATHER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+template<int64_t scale = 1>
+std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vec256<double>>
+inline gather(const double* base_addr, const Vec256<int64_t>& vindex_) {
+  svint64_t vindex = svasrd_n_s64_x(ptrue, svmul_s64_x(ptrue, vindex_, svdup_n_s64(scale)), 3);
+  return svld1_gather_s64index_f64(ptrue, base_addr, vindex);
+}
+
+template<int64_t scale = 1>
+std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vec256<float>>
+inline gather(const float* base_addr, const Vec256<int32_t>& vindex_) {
+  svint32_t vindex = svasrd_n_s32_x(ptrue, svmul_s32_x(ptrue, vindex_, svdup_n_s32(scale)), 2);
+  return svld1_gather_s32index_f32(ptrue, base_addr, vindex);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MASK GATHER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+template<int64_t scale = 1>
+std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vec256<double>>
+inline mask_gather(const Vec256<double>& src, const double* base_addr,
+                   const Vec256<int64_t>& vindex_, const Vec256<double>& mask_) {
+  svbool_t mask = svcmpeq_s64(ptrue, svreinterpret_s64_f64(mask_),
+			      ALL_S64_TRUE_MASK);
+  svint64_t vindex = svasrd_n_s64_x(ptrue, svmul_s64_x(ptrue, vindex_, svdup_n_s64(scale)), 3);
+  return svsel_f64(mask, svld1_gather_s64index_f64(ptrue, base_addr, vindex), src);
+}
+
+template<int64_t scale = 1>
+std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vec256<float>>
+inline mask_gather(const Vec256<float>& src, const float* base_addr,
+                   const Vec256<int32_t>& vindex_, const Vec256<float>& mask_) {
+  svbool_t mask = svcmpeq_s32(ptrue, svreinterpret_s32_f32(mask_),
+			      ALL_S32_TRUE_MASK);
+  svint32_t vindex = svasrd_n_s32_x(ptrue, svmul_s32_x(ptrue, vindex_, svdup_n_s32(scale)), 2);
+  return svsel_f32(mask, svld1_gather_s32index_f32(ptrue, base_addr, vindex), src);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CONVERT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Only works for inputs in the range: [-2^51, 2^51]
+// From: https://stackoverflow.com/a/41148578
+template<>
+Vec256<int64_t>
+inline convert_to_int_of_same_size<double>(const Vec256<double> &src) {
+  svfloat64_t x = svadd_f64_x(ptrue, src, svdup_n_f64(0x0018000000000000));
+  return svsub_s64_x(ptrue,
+		     svreinterpret_s64_f64(x),
+		     svreinterpret_s64_f64(svdup_n_f64(0x0018000000000000)));
+}
+
+template<>
+Vec256<int32_t>
+inline convert_to_int_of_same_size<float>(const Vec256<float> &src) {
+  return svcvt_s32_f32_x(ptrue, src);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INTERLEAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+template <>
+std::pair<Vec256<double>, Vec256<double>>
+inline interleave2<double>(const Vec256<double>& a, const Vec256<double>& b) {
+  // inputs:
+  //   a = {a0, a1, a3, a3}
+  //   b = {b0, b1, b2, b3}
+  // group cols crossing lanes:
+  //   return {a0, b0, a1, b1}
+  //          {a2, b2, a3, b3}
+  return std::make_pair(Vec256<double>(svzip1_f64(a, b)),
+                        Vec256<double>(svzip2_f64(a, b)));
+}
+
+template <>
+std::pair<Vec256<float>, Vec256<float>>
+inline interleave2<float>(const Vec256<float>& a, const Vec256<float>& b) {
+  // inputs:
+  //   a = {a0, a1, a2, a3, a4, a5, a6, a7}
+  //   b = {b0, b1, b2, b3, b4, b5, b6, b7}
+  // group cols crossing lanes:
+  //   return {a0, b0, a1, b1, a2, b2, a3, b3}
+  //          {a4, b4, a5, b5, a6, b6, a7, b7}
+  return std::make_pair(Vec256<float>(svzip1_f32(a, b)),
+                        Vec256<float>(svzip2_f32(a, b)));
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEINTERLEAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+template <>
+std::pair<Vec256<double>, Vec256<double>>
+inline deinterleave2<double>(const Vec256<double>& a, const Vec256<double>& b) {
+  // inputs:
+  //   a = {a0, b0, a1, b1}
+  //   b = {a2, b2, a3, b3}
+  // swap lanes:
+  //   return {a0, a1, a2, a3}
+  //          {b0, b1, b2, b3}
+  return std::make_pair(Vec256<double>(svuzp1_f64(a, b)),
+                        Vec256<double>(svuzp2_f64(a, b)));
+}
+
+template <>
+std::pair<Vec256<float>, Vec256<float>>
+inline deinterleave2<float>(const Vec256<float>& a, const Vec256<float>& b) {
+  // inputs:
+  //   a = {a0, b0, a1, b1, a2, b2, a3, b3}
+  //   b = {a4, b4, a5, b5, a6, b6, a7, b7}
+  // swap lanes:
+  //   return {a0, a1, a2, a3, a4, a5, a6, a7}
+  //          {b0, b1, b2, b3, b4, b5, b6, b7}
+  return std::make_pair(Vec256<float>(svuzp1_f32(a, b)),
+                        Vec256<float>(svuzp2_f32(a, b)));
+}
+
 #endif // (defined(CPU_CAPABILITY_AVX) || defined(CPU_CAPABILITY_AVX2)) && !defined(_MSC_VER)
 
 }}}
