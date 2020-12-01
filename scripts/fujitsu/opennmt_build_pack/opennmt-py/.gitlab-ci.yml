@@ -1,0 +1,10 @@
+image: sdt-gitlab.vpdc.sg.soft.fujitsu.com:5500/ai_soft/models/opennmt-py/jupyter_x86_64_ubuntu18
+
+profile:
+  script:
+  - cd fj-misc
+  - jupyter nbconvert --to notebook --inplace show-results.ipynb
+  - cp show-results.ipynb ${CI_PROJECT_DIR}
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}"
