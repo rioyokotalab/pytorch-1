@@ -191,6 +191,59 @@ inline void _vec_host_softmax_backward_lastdim(
 
 #if defined(__ARM_FEATURE_SVE)
 template <>
+inline void _vec_softmax_lastdim(
+    float* input_data_base,
+    float* output_data_base,
+    int64_t outer_size,
+    int64_t dim_size) {
+  int64_t grain_size = internal::GRAIN_SIZE / (16 * dim_size);
+  if (grain_size < 1)
+    grain_size = 1;
+
+  at::parallel_for(
+      0,
+      outer_size,
+      grain_size,
+      [&](int64_t begin, int64_t end) {
+        for (int64_t ou = begin; ou < end; ++ou) {
+          const float *src_ptr = input_data_base + ou * dim_size;
+          float *dst_ptr = output_data_base + ou * dim_size;
+          float space_max;
+          float space_denom;
+          svfloat32_t space_max_acc = svdup_n_f32(-FLT_MAX);
+          svfloat32_t space_denom_acc = svdup_n_f32(0.f);
+
+          for (int64_t i = 0; i < dim_size; i += svcntw()) {
+            svbool_t pg = svwhilelt_b32(i, dim_size);
+            space_max_acc = svmax_f32_m(pg, space_max_acc, svld1_f32(pg, src_ptr + i));
+          }
+          space_max = svmaxv_f32(svptrue_b32(), space_max_acc);
+
+          // sub + exp + sum
+          svfloat32_t vec_space_max = svdup_n_f32(space_max);
+          for (int64_t i = 0; i < dim_size; i += svcntw()) {
+            svbool_t pg = svwhilelt_b32(i, dim_size);
+            svfloat32_t src = svld1_f32(pg,  src_ptr + i);
+            src = Sleef_expfx_u10sve(svsub_f32_x(pg, src, vec_space_max));
+            space_denom_acc = svadd_f32_m(pg, space_denom_acc, src);
+            svst1_f32(pg, dst_ptr + i, src);
+          }
+          space_denom = svaddv_f32(svptrue_b32(), space_denom_acc);
+
+          // scal
+          space_denom = space_denom ? (1.f / space_denom) : 1.f;
+          svfloat32_t vec_space_denom = svdup_n_f32(space_denom);
+          for (int64_t i = 0; i < dim_size; i += svcntw()) {
+            svbool_t pg = svwhilelt_b32(i, dim_size);
+            svfloat32_t dst = svld1_f32(pg,  dst_ptr + i);
+            dst = svmul_f32_x(pg, dst, vec_space_denom);
+            svst1_f32(pg, dst_ptr + i, dst);
+          }
+        }
+      });
+}
+
+template <>
 inline void _vec_log_softmax_lastdim(
     float* input_data_base,
     float* output_data_base,
