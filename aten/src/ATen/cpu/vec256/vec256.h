@@ -260,45 +260,30 @@ inline deinterleave2<float>(const Vec256<float>& a, const Vec256<float>& b) {
 
 template<>
 inline Vec256<float> cast<float, double>(const Vec256<double>& src) {
-  return svcvt_f32_f64_x(ptrue, src);
+  return svreinterpret_f32_f64(src);
 }
 
 template<>
 inline Vec256<double> cast<double, float>(const Vec256<float>& src) {
-  return svcvt_f64_f32_x(ptrue, src);
+  return svreinterpret_f64_f32(src);
 }
 
-#define DEFINE_FLOAT_INT_CAST(int_t, int_bit, float_t, float_bit)	 \
+#define DEFINE_FLOAT_INT_CAST(int_t, int_bit, float_t, float_bit)        \
 template<>                                                               \
 inline  Vec256<int_t> cast<int_t, float_t>(const Vec256<float_t>& src) { \
-  return svcvt_s##int_bit##_f##float_bit##_x(ptrue, src);                \
+  return svreinterpret_s##int_bit##_f##float_bit(src);                   \
 }                                                                        \
 template<>                                                               \
 inline Vec256<float_t> cast<float_t, int_t>(const Vec256<int_t>& src) {  \
-  return svcvt_f##float_bit##_s##int_bit##_x(ptrue, src);                \
-}
-
-// FIXME: Since direct int16_t conversion cannot be done in SVE ACLE,
-//        it is necessary to consider another method. 
-#define DEFINE_FLOAT_INT16_CAST(float_t, float_bit)                          \
-template<>                                                                   \
-inline  Vec256<int16_t> cast<int16_t, float_t>(const Vec256<float_t>& src) { \
- return svcvt_s16_f16_x(ptrue, svcvt_f16_f##float_bit##_x(ptrue, src));      \
-}                                                                            \
-template<>                                                                   \
-inline Vec256<float_t> cast<float_t, int16_t>(const Vec256<int16_t>& src) {  \
- return svcvt_f##float_bit##_f16_x(ptrue, svcvt_f16_s16_x(ptrue, src));	     \
+  return svreinterpret_f##float_bit##_s##int_bit(src);                   \
 }
 
 DEFINE_FLOAT_INT_CAST(int64_t, 64, double, 64)
 DEFINE_FLOAT_INT_CAST(int32_t, 32, double, 64)
-DEFINE_FLOAT_INT16_CAST(double, 64)
-DEFINE_FLOAT_INT_CAST(int64_t, 64,  float, 32)
+DEFINE_FLOAT_INT_CAST(int16_t, 16, double, 64)
+DEFINE_FLOAT_INT_CAST(int64_t, 64, float, 32)
 DEFINE_FLOAT_INT_CAST(int32_t, 32, float, 32)
-DEFINE_FLOAT_INT16_CAST(float, 32)
-
-#undef DEFINE_FLOAT_INT_CAST
-#undef DEFINE_FLOAT_INT16_CAST
+DEFINE_FLOAT_INT_CAST(int16_t, 16, float, 32)
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GATHER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -325,7 +310,7 @@ inline mask_gather(const Vec256<double>& src, const double* base_addr,
   svbool_t mask = svcmpeq_s64(ptrue, svreinterpret_s64_f64(mask_),
 			      ALL_S64_TRUE_MASK);
   svint64_t vindex = svasrd_n_s64_x(ptrue, svmul_s64_x(ptrue, vindex_, svdup_n_s64(scale)), 3);
-  return svsel_f64(mask, svld1_gather_s64index_f64(ptrue, base_addr, vindex), src);
+  return svsel_f64(mask, svld1_gather_s64index_f64(mask, base_addr, vindex), src);
 }
 
 template<int64_t scale = 1>
@@ -335,7 +320,7 @@ inline mask_gather(const Vec256<float>& src, const float* base_addr,
   svbool_t mask = svcmpeq_s32(ptrue, svreinterpret_s32_f32(mask_),
 			      ALL_S32_TRUE_MASK);
   svint32_t vindex = svasrd_n_s32_x(ptrue, svmul_s32_x(ptrue, vindex_, svdup_n_s32(scale)), 2);
-  return svsel_f32(mask, svld1_gather_s32index_f32(ptrue, base_addr, vindex), src);
+  return svsel_f32(mask, svld1_gather_s32index_f32(mask, base_addr, vindex), src);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CONVERT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
