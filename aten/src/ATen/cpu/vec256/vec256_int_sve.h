@@ -41,7 +41,7 @@ namespace {
 template <> class Vec256<int##bit##_t> {                                                                \
 private:                                                                                                \
   /* TODO: Convert to svintXX_t. */                                                                     \
-  int##bit##_t values[vl];                                                                              \
+  __at_align__ int##bit##_t values[vl];                                                                 \
 public:                                                                                                 \
   using value_type = int##bit##_t;                                                                      \
   static constexpr int size() {                                                                         \
@@ -64,7 +64,7 @@ public:                                                                         
   template<typename... Args,                                                                            \
            typename = std::enable_if_t<(sizeof...(Args) == size())>>                                    \
   Vec256(Args... vals) {                                                                                \
-    int##bit##_t buffer[size()] = { vals... };                                                          \
+    __at_align__ int##bit##_t buffer[size()] = { vals... };                                             \
     *reinterpret_cast<svint##bit##_t*>(values) = svld1_s##bit(ptrue, buffer);                           \
   }                                                                                                     \
   operator svint##bit##_t() const {                                                                     \

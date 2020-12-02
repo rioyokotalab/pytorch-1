@@ -43,7 +43,7 @@ namespace {
 template <> class Vec256<float> {
 private:
   /* TODO: Convert to svfloat32_t. */
-  float values[16];
+  __at_align__ float values[16];
 public:
   using value_type = float;
   static constexpr int size() {
@@ -66,7 +66,7 @@ public:
   template<typename... Args,
            typename = std::enable_if_t<(sizeof...(Args) == size())>>
   Vec256(Args... vals) {
-    float buffer[size()] = { vals... };
+    __at_align__ float buffer[size()] = { vals... };
     *reinterpret_cast<svfloat32_t*>(values) = svld1_f32(ptrue, buffer);
   }
   operator svfloat32_t() const {
@@ -80,7 +80,7 @@ public:
   }
   template<typename step_t>
   static Vec256<float> arange(float base = 0.f, step_t step = static_cast<step_t>(1)) {
-    float buffer[size()];
+    __at_align__ float buffer[size()];
     for (int64_t i = 0; i < size(); i++) {
       buffer[i] = base + i * step;
     }
@@ -126,7 +126,7 @@ public:
     return mask;
   }
   Vec256<float> map(float (*f)(float)) const {
-    __at_align32__ float tmp[size()];
+    __at_align__ float tmp[size()];
     store(tmp);
     for (int64_t i = 0; i < size(); ++i) {
       tmp[i] = f(tmp[i]);

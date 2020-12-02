@@ -33,18 +33,24 @@
 #include <c10/util/TypeCast.h>
 #include <c10/macros/Macros.h>
 
-#if defined(__GNUC__)
+#if defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+#define VECTOR_BYTE_SIZE CUSTOM_VEC256_VECTOR_BIT_SIZE / 8
+#else
+#define VECTOR_BYTE_SIZE 32
+#endif
+
+#if defined(__GNUC__) && defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+#define __at_align__ __attribute__((aligned(VECTOR_BYTE_SIZE)))
+#elif defined(_WIN32) && defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+#define __at_align__ __declspec(align(VECTOR_BYTE_SIZE))
+#elif defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+#define __at_align__
+#elif defined(__GNUC__)
 #define __at_align32__ __attribute__((aligned(32)))
 #elif defined(_WIN32)
 #define __at_align32__ __declspec(align(32))
 #else
 #define __at_align32__
-#endif
-
-#if defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
-#define VECTOR_BYTE_SIZE CUSTOM_VEC256_VECTOR_BIT_SIZE / 8
-#else
-#define VECTOR_BYTE_SIZE 32
 #endif
 
 namespace at {
@@ -80,7 +86,11 @@ using int_same_size_t = typename int_of_size<sizeof(T)>::type;
 template <class T>
 struct Vec256 {
 private:
+#if defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+  __at_align__ T values[VECTOR_BYTE_SIZE / sizeof(T)];
+#else
   __at_align32__ T values[VECTOR_BYTE_SIZE / sizeof(T)];
+#endif
 public:
   using value_type = T;
   // Note [constexpr static function to avoid odr-usage compiler bug]
@@ -718,7 +728,11 @@ inline Vec256<T> operator^(const Vec256<T>& a, const Vec256<T>& b) {
 template<class T, typename Op>
 static inline Vec256<T> bitwise_binary_op(const Vec256<T> &a, const Vec256<T> &b, Op op) {
   static constexpr uint32_t element_no = VECTOR_BYTE_SIZE / sizeof(intmax_t);
+#if defined(CUSTOM_VEC256_VECTOR_BIT_SIZE)
+  __at_align__ intmax_t buffer[element_no];
+#else
   __at_align32__ intmax_t buffer[element_no];
+#endif
   const intmax_t *a_ptr = reinterpret_cast<const intmax_t*>((const T*) a);
   const intmax_t *b_ptr = reinterpret_cast<const intmax_t*>((const T*) b);
   for (uint32_t i = 0U; i < element_no; ++ i) {
