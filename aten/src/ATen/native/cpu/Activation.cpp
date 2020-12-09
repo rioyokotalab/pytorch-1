@@ -18,6 +18,10 @@
 #include <mkl.h>
 #endif // AT_MKL_ENABLED()
 
+#if defined(__ARM_FEATURE_SVE)
+#include <ATen/native/ampl/ampl.hpp>
+#endif
+
 namespace at {
 namespace native {
 
@@ -199,6 +203,55 @@ void GeluBackwardMKLKernelImpl(TensorIterator* /* it */) {
 
 #endif // AT_MKL_ENABLED()
 
+#if defined(__ARM_FEATURE_SVE)
+
+template <typename T>
+void GeluSVEKernelImpl(TensorIterator* it) {
+  if (!it->can_use_32bit_indexing()) {
+    for (auto& sub_it : it->with_32bit_indexing()) {
+      GeluSVEKernelImpl<T>(&sub_it);
+    }
+    return;
+  }
+
+  const int64_t N = it->numel();
+  const T* X_data = static_cast<T*>(it->data_ptr(1));
+  T* Y_data = static_cast<T*>(it->data_ptr(0));
+
+  ampl::GeluForward(N, X_data, Y_data);
+}
+
+template <typename T>
+void GeluBackwardSVEKernelImpl(TensorIterator* it) {
+  if (!it->can_use_32bit_indexing()) {
+    for (auto& sub_it : it->with_32bit_indexing()) {
+      GeluBackwardSVEKernelImpl<T>(&sub_it);
+    }
+    return;
+  }
+
+  const int64_t N = it->numel();
+  const T* dY_data = static_cast<T*>(it->data_ptr(1));
+  const T* X_data = static_cast<T*>(it->data_ptr(2));
+  T* dX_data = static_cast<T*>(it->data_ptr(0));
+
+  ampl::GeluBackward(N, X_data, dY_data, dX_data);
+}
+
+#else
+
+template <typename T>
+void GeluSVEKernelImpl(TensorIterator* /* it */) {
+  TORCH_CHECK(false, "ATen not compiled with SVE");
+}
+
+template <typename T>
+void GeluBackwardSVEKernelImpl(TensorIterator* /* it */) {
+  TORCH_CHECK(false, "ATen not compiled with SVE");
+}
+
+#endif // defined(__ARM_FEATURE_SVE)
+
 void elu_kernel(TensorIterator& it, Scalar alpha, Scalar scale, Scalar input_scale) {
   AT_DISPATCH_FLOATING_TYPES(it.dtype(), "elu_cpu", [&]() {
     using Vec = Vec256<scalar_t>;
@@ -261,6 +314,12 @@ void GeluKernelImpl(TensorIterator& it) {
     AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluKernelImpl", [&]() {
       GeluMKLKernelImpl<scalar_t>(&it);
     });
+#if defined(__ARM_FEATURE_SVE)
+  } else if (it.is_contiguous()) {
+    AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluKernelImpl", [&]() {
+      GeluSVEKernelImpl<scalar_t>(&it);
+    });
+#endif
   } else {
     AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluKernelImpl", [&]() {
       using Vec = vec256::Vec256<scalar_t>;
@@ -286,6 +345,12 @@ void GeluBackwardKernelImpl(TensorIterator& it) {
     AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluBackwardKernelImpl", [&]() {
       GeluBackwardMKLKernelImpl<scalar_t>(&it);
     });
+#if defined(__ARM_FEATURE_SVE)
+  } else if (it.is_contiguous()) {
+    AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluBackwardKernelImpl", [&]() {
+      GeluBackwardSVEKernelImpl<scalar_t>(&it);
+    });
+#endif
   } else {
     AT_DISPATCH_FLOATING_TYPES(it.dtype(), "GeluBackwardKernelImpl", [&]() {
       using Vec = vec256::Vec256<scalar_t>;
