@@ -31,13 +31,13 @@
 #include <ATen/Dispatch.h>
 #include <ATen/Utils.h>
 
-#if !defined(__FUJITSU) && !defined(__CLANG_FUJITSU)
+#if !defined(__GNUC__) || !defined(__ARM_FEATURE_SVE)
 
 namespace at {
 namespace native {
 
-void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
-  AT_ERROR("_bernoulli_fujitsu_: ATen not compiled with AIL support");
+void _bernoulli_ampl_(Tensor& self, double p, c10::optional<Generator> gen) {
+  AT_ERROR("_bernoulli_ampl_: ATen not compiled with AMPL support");
 }
 
 } // namespace native
@@ -61,12 +61,12 @@ void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
 #include <ATen/core/DistributionsHelper.h>
 #include <ATen/native/cpu/DistributionTemplates.h>
 
-#include <ATen/native/fujitsu/bernoulli_fujitsu.h>
+#include <ATen/native/ampl/bernoulli_ampl.h>
 
 namespace at {
 namespace native {
 
-void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
+void _bernoulli_ampl_(Tensor& self, double p, c10::optional<Generator> gen) {
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   int64_t seed;
   {
@@ -77,7 +77,7 @@ void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
   int64_t n = self.numel();
   bool contig = self.is_contiguous();
 
-  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Bool, self.scalar_type(), "_bernoulli_fujitsu_", [&] {
+  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Bool, self.scalar_type(), "_bernoulli_ampl_", [&] {
     at::Tensor tmp_int_tensor;
     if (std::is_same<scalar_t, int>::value && contig) {
       tmp_int_tensor = self;
@@ -91,11 +91,11 @@ void _bernoulli_fujitsu_(Tensor& self, double p, c10::optional<Generator> gen) {
     auto sample = [&](int64_t begin, int64_t end) {
       int64_t len = end - begin;
       if (len > 0) {
-	struct StreamStatePtr_fujitsu stream;
-	NewStream_fujitsu(&stream, 1, seed);
-	SkipAheadStream_fujitsu(stream, begin);
-	RngBernoulli_fujitsu(0, stream, len, sample_int_ptr + begin, p);
-	DeleteStream_fujitsu(stream);
+	struct StreamStatePtr_ampl stream;
+	NewStream_ampl(&stream, 0, seed);
+	SkipAheadStream_ampl(stream, begin);
+	RngBernoulli_ampl(0, stream, len, sample_int_ptr + begin, p);
+	DeleteStream_ampl(stream);
 
 	// vectorized copy if using buffer and contiguous, i.e., being non-int
 	// type and contiguous
