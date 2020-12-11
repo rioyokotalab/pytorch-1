@@ -1,6 +1,15 @@
 /*
+ Copyright (c) 2020, RIKEN, Japan
  Copyright (c) 2020, FUJITSU LIMITED
  All rights reserved.
+
+ Written by Kazutoshi Akao(FUJITSU LIMITED).
+
+ This code was created based on the following Research Poster of ISC18.
+
+ Automatic Generation of Full-Set Batched BLAS
+ Yusuke Hirota, Daichi Mukunoki, Toshiyuki Imamura (RIKEN, Japan)
+ Research Poster, International Supercomputing Conference (ISC'18) 26 June 2018
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
