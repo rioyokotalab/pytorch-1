@@ -30,14 +30,13 @@
  * User-level math functions and statistical functions using SVE.
  * API specifications follow MKL-VML and MKL-VSL
  *
-*/
+ */
 
+#ifdef __ARM_FEATURE_SVE
 #ifndef AMPL_AMPL_H_
 #define AMPL_AMPL_H_
 
-#ifdef __ARM_FEATURE_SVE
 #include <arm_sve.h>
-#endif // __ARM_FEATURE_SVE
 
 #ifdef __cplusplus
 extern "C" {
@@ -148,3 +147,4 @@ void vdErf_ampl(const int64_t n, const float64_t* a, float64_t* y);
 #endif // __cplusplus
 
 #endif // AMPL_AMPL_H_
+#endif // __ARM_FEATURE_SVE

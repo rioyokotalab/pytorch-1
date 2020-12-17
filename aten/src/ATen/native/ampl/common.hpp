@@ -24,6 +24,8 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================*/
+#ifdef __ARM_FEATURE_SVE
+
 #ifndef AMPL_COMMON_HPP_
 #define AMPL_COMMON_HPP_
 
@@ -31,10 +33,6 @@
 #include <atomic>
 #include <cstddef>
 #include <exception>
-
-#ifdef __ARM_FEATURE_SVE
-#include <arm_sve.h>
-#endif
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -120,3 +118,4 @@ inline void parallel_for(
 } // namespace ampl
 
 #endif // AMPL_COMMON_HPP_
+#endif // __ARM_FEATURE_SVE

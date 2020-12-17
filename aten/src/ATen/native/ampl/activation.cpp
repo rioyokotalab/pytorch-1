@@ -24,6 +24,8 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================*/
+#ifdef __ARM_FEATURE_SVE
+
 #include <ATen/native/ampl/activation.hpp>
 #include <ATen/native/ampl/common.hpp>
 #include <ATen/native/ampl/unary_ops.hpp>
@@ -117,3 +119,5 @@ AMPL_IMPLEMENT_GELU(64)
 #undef AMPL_IMPLEMENT_GELU
 
 } // namespace ampl
+
+#endif // __ARM_FEATURE_SVE

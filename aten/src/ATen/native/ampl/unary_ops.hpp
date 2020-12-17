@@ -24,8 +24,11 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================*/
+#ifdef __ARM_FEATURE_SVE
+
 #ifndef AMPL_UNARY_OPS_HPP_
 #define AMPL_UNARY_OPS_HPP_
+
 #include <ATen/native/ampl/ampl.h>
 
 namespace ampl {
@@ -77,3 +80,4 @@ void vErf(const int64_t n, const scalar_t* a, scalar_t* y);
 } // namespace ampl
 
 #endif // AMPL_UNARY_OPS_HPP_
+#endif // __ARM_FEATURE_SVE

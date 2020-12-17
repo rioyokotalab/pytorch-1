@@ -24,6 +24,8 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================*/
+#ifdef __ARM_FEATURE_SVE
+
 #include <ATen/native/ampl/common.hpp>
 #include <ATen/native/ampl/unary_ops.hpp>
 #include <ATen/native/ampl/unary_ops_impl.hpp>
@@ -79,3 +81,5 @@ AMPL_DEFINE_C_API(Erf, float32_t, s)
 AMPL_DEFINE_C_API(Erf, float64_t, d)
 
 #undef AMPL_DEFINE_C_API
+
+#endif // __ARM_FEATURE_SVE
