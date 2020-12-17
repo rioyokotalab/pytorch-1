@@ -12,7 +12,7 @@
 
 #if defined(__ARM_FEATURE_SVE)
 #include <arm_sve.h>
-#include <sleef.h>
+#include <ATen/native/ampl/ampl.hpp>
 #endif
 
 // [Note AVX-SSE transitions] In general we avoid calls into cmath for code
@@ -224,7 +224,7 @@ inline void _vec_softmax_lastdim(
           for (int64_t i = 0; i < dim_size; i += svcntw()) {
             svbool_t pg = svwhilelt_b32(i, dim_size);
             svfloat32_t src = svld1_f32(pg,  src_ptr + i);
-            src = Sleef_expfx_u10sve(svsub_f32_x(pg, src, vec_space_max));
+            src = ampl::Exp(pg, svsub_f32_x(pg, src, vec_space_max));
             space_denom_acc = svadd_f32_m(pg, space_denom_acc, src);
             svst1_f32(pg, dst_ptr + i, src);
           }
@@ -278,7 +278,7 @@ inline void _vec_log_softmax_lastdim(
 	    svbool_t pg = svwhilelt_b32(i, dim_size);
 	    svfloat32_t src = svld1_f32(pg,  src_ptr + i);
 	    src = svsub_f32_x(pg, src, vec_space_max);
-	    space_denom_acc = svadd_f32_m(pg, space_denom_acc, Sleef_expfx_u10sve(src));
+	    space_denom_acc = svadd_f32_m(pg, space_denom_acc, ampl::Exp(pg, src));
 	    svst1_f32(pg, dst_ptr + i, src);
 	  }
 	  space_denom = svaddv_f32(svptrue_b32(), space_denom_acc);
