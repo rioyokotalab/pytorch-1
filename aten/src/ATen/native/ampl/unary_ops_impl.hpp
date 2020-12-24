@@ -50,12 +50,12 @@ namespace ampl {
     const svfloat##bit##_t cst_exp_p5 = svdup_n_f##bit(5.0000001201e-1);      \
                                                                               \
     /* clamp */                                                               \
-    const svfloat##bit##_t c = svmin_n_f##bit##_x(                            \
-        pg, svmax_n_f##bit##_x(pg, a, cst_exp_lo), cst_exp_hi);               \
+    const svfloat##bit##_t c = svminnm_n_f##bit##_x(                          \
+        pg, svmaxnm_n_f##bit##_x(pg, a, cst_exp_lo), cst_exp_hi);             \
     const svfloat##bit##_t m =                                                \
-        svrinti_f##bit##_x(pg, svmul_n_f##bit##_x(pg, a, cst_cephes_LOG2EF)); \
+        svrinti_f##bit##_x(pg, svmul_n_f##bit##_x(pg, c, cst_cephes_LOG2EF)); \
                                                                               \
-    const svfloat##bit##_t r = svmla_n_f##bit##_x(pg, a, m, cst_nln2);        \
+    const svfloat##bit##_t r = svmla_n_f##bit##_x(pg, c, m, cst_nln2);        \
     const svfloat##bit##_t r2 = svmul_f##bit##_x(pg, r, r);                   \
     const svfloat##bit##_t r3 = svmul_f##bit##_x(pg, r2, r);                  \
                                                                               \
@@ -98,7 +98,7 @@ AMPL_IMPLEMENT_CWISE_UOPS(64)
                                                                              \
     /* clamp */                                                              \
     const svfloat##bit##_t c =                                               \
-        svmin_n_f##bit##_x(pg, svmax_n_f##bit##_x(pg, a, -4.0), 4.0);        \
+        svminnm_n_f##bit##_x(pg, svmaxnm_n_f##bit##_x(pg, a, -4.0), 4.0);    \
     const svfloat##bit##_t c2 = svmul_f##bit##_x(pg, c, c);                  \
                                                                              \
     svfloat##bit##_t p = svmla_f##bit##_x(pg, alpha_11, c2, alpha_13);       \
