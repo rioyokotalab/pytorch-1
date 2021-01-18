@@ -1,0 +1,3777 @@
+diff --git a/examples/adversarial/run_hans.py b/examples/adversarial/run_hans.py
+index 1bb6a12..e524f57 100644
+--- a/examples/adversarial/run_hans.py
++++ b/examples/adversarial/run_hans.py
+@@ -36,7 +36,7 @@ from transformers import (
+ from utils_hans import HansDataset, InputFeatures, hans_processors, hans_tasks_num_labels
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/adversarial/utils_hans.py b/examples/adversarial/utils_hans.py
+index ffe6145..d60a712 100644
+--- a/examples/adversarial/utils_hans.py
++++ b/examples/adversarial/utils_hans.py
+@@ -35,7 +35,7 @@ from transformers import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass(frozen=True)
+diff --git a/examples/bert-loses-patience/pabee/modeling_pabee_albert.py b/examples/bert-loses-patience/pabee/modeling_pabee_albert.py
+index 383b2c2..09e868e 100644
+--- a/examples/bert-loses-patience/pabee/modeling_pabee_albert.py
++++ b/examples/bert-loses-patience/pabee/modeling_pabee_albert.py
+@@ -30,7 +30,7 @@ from transformers.modeling_albert import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class AlbertTransformerWithPabee(AlbertTransformer):
+diff --git a/examples/bert-loses-patience/pabee/modeling_pabee_bert.py b/examples/bert-loses-patience/pabee/modeling_pabee_bert.py
+index e44e367..ffc4fd9 100644
+--- a/examples/bert-loses-patience/pabee/modeling_pabee_bert.py
++++ b/examples/bert-loses-patience/pabee/modeling_pabee_bert.py
+@@ -32,7 +32,7 @@ from transformers.modeling_bert import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class BertEncoderWithPabee(BertEncoder):
+diff --git a/examples/bert-loses-patience/run_glue_with_pabee.py b/examples/bert-loses-patience/run_glue_with_pabee.py
+index d20bc34..b0b1b6c 100755
+--- a/examples/bert-loses-patience/run_glue_with_pabee.py
++++ b/examples/bert-loses-patience/run_glue_with_pabee.py
+@@ -52,7 +52,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MODEL_CLASSES = {
+     "bert": (BertConfig, BertForSequenceClassificationWithPabee, BertTokenizer),
+diff --git a/examples/bertology/run_bertology.py b/examples/bertology/run_bertology.py
+index 92653da..6255c59 100644
+--- a/examples/bertology/run_bertology.py
++++ b/examples/bertology/run_bertology.py
+@@ -43,7 +43,7 @@ from transformers import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def entropy(p):
+diff --git a/examples/contrib/mm-imdb/run_mmimdb.py b/examples/contrib/mm-imdb/run_mmimdb.py
+index 0ae6303..238801c 100644
+--- a/examples/contrib/mm-imdb/run_mmimdb.py
++++ b/examples/contrib/mm-imdb/run_mmimdb.py
+@@ -50,7 +50,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def set_seed(args):
+diff --git a/examples/contrib/run_openai_gpt.py b/examples/contrib/run_openai_gpt.py
+index 7febad2..b7e6e38 100644
+--- a/examples/contrib/run_openai_gpt.py
++++ b/examples/contrib/run_openai_gpt.py
+@@ -51,7 +51,7 @@ from transformers import (
+ logging.basicConfig(
+     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def accuracy(out, labels):
+diff --git a/examples/contrib/run_swag.py b/examples/contrib/run_swag.py
+index f39041c..76fed25 100644
+--- a/examples/contrib/run_swag.py
++++ b/examples/contrib/run_swag.py
+@@ -41,7 +41,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class SwagExample(object):
+diff --git a/examples/contrib/run_transfo_xl.py b/examples/contrib/run_transfo_xl.py
+index db3375a..c48a4df 100644
+--- a/examples/contrib/run_transfo_xl.py
++++ b/examples/contrib/run_transfo_xl.py
+@@ -34,7 +34,7 @@ from transformers import TransfoXLCorpus, TransfoXLLMHeadModel
+ logging.basicConfig(
+     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def main():
+diff --git a/examples/deebert/run_glue_deebert.py b/examples/deebert/run_glue_deebert.py
+index a215dcb..aeb83b8 100644
+--- a/examples/deebert/run_glue_deebert.py
++++ b/examples/deebert/run_glue_deebert.py
+@@ -36,7 +36,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ MODEL_CLASSES = {
+diff --git a/examples/distillation/run_squad_w_distillation.py b/examples/distillation/run_squad_w_distillation.py
+index e1d7b75..2b913c9 100644
+--- a/examples/distillation/run_squad_w_distillation.py
++++ b/examples/distillation/run_squad_w_distillation.py
+@@ -65,7 +65,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ MODEL_CLASSES = {
+diff --git a/examples/distillation/scripts/binarized_data.py b/examples/distillation/scripts/binarized_data.py
+index 8e34b29..07dff8d 100644
+--- a/examples/distillation/scripts/binarized_data.py
++++ b/examples/distillation/scripts/binarized_data.py
+@@ -29,7 +29,7 @@ from transformers import BertTokenizer, GPT2Tokenizer, RobertaTokenizer
+ logging.basicConfig(
+     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def main():
+diff --git a/examples/distillation/scripts/token_counts.py b/examples/distillation/scripts/token_counts.py
+index 0238bf6..79ec729 100644
+--- a/examples/distillation/scripts/token_counts.py
++++ b/examples/distillation/scripts/token_counts.py
+@@ -24,7 +24,7 @@ from collections import Counter
+ logging.basicConfig(
+     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ if __name__ == "__main__":
+     parser = argparse.ArgumentParser(
+diff --git a/examples/distillation/utils.py b/examples/distillation/utils.py
+index 6d43945..dd06d8e 100644
+--- a/examples/distillation/utils.py
++++ b/examples/distillation/utils.py
+@@ -30,7 +30,7 @@ logging.basicConfig(
+     datefmt="%m/%d/%Y %H:%M:%S",
+     level=logging.INFO,
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def git_log(folder_path: str):
+diff --git a/examples/language-modeling/run_language_modeling.py b/examples/language-modeling/run_language_modeling.py
+index f3ce40e..bffdadc 100644
+--- a/examples/language-modeling/run_language_modeling.py
++++ b/examples/language-modeling/run_language_modeling.py
+@@ -23,6 +23,8 @@ using a masked language modeling (MLM) loss. XLNet is fine-tuned using a permuta
+ import logging
+ import math
+ import os
++import torch
++
+ from dataclasses import dataclass, field
+ from glob import glob
+ from typing import Optional
+@@ -47,7 +49,7 @@ from transformers import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ MODEL_CONFIG_CLASSES = list(MODEL_WITH_LM_HEAD_MAPPING.keys())
+@@ -284,6 +286,9 @@ def main():
+         prediction_loss_only=True,
+     )
+ 
++    # Show Model
++    logger.info(model)
++
+     # Training
+     if training_args.do_train:
+         model_path = (
+@@ -291,6 +296,7 @@ def main():
+             if model_args.model_name_or_path is not None and os.path.isdir(model_args.model_name_or_path)
+             else None
+         )
++
+         trainer.train(model_path=model_path)
+         trainer.save_model()
+         # For convenience, we also re-save the tokenizer to the same directory,
+diff --git a/examples/lightning_base.py b/examples/lightning_base.py
+index 0f409f5..41c702c 100644
+--- a/examples/lightning_base.py
++++ b/examples/lightning_base.py
+@@ -30,7 +30,7 @@ from transformers.optimization import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ MODEL_MODES = {
+diff --git a/examples/movement-pruning/emmental/configuration_bert_masked.py b/examples/movement-pruning/emmental/configuration_bert_masked.py
+index 66d78b0..c0086c8 100644
+--- a/examples/movement-pruning/emmental/configuration_bert_masked.py
++++ b/examples/movement-pruning/emmental/configuration_bert_masked.py
+@@ -22,7 +22,7 @@ import logging
+ from transformers.configuration_utils import PretrainedConfig
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class MaskedBertConfig(PretrainedConfig):
+diff --git a/examples/movement-pruning/emmental/modeling_bert_masked.py b/examples/movement-pruning/emmental/modeling_bert_masked.py
+index bfa8d7b..559a3e5 100644
+--- a/examples/movement-pruning/emmental/modeling_bert_masked.py
++++ b/examples/movement-pruning/emmental/modeling_bert_masked.py
+@@ -33,7 +33,7 @@ from transformers.modeling_bert import ACT2FN, BertLayerNorm, load_tf_weights_in
+ from transformers.modeling_utils import PreTrainedModel, prune_linear_layer
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class BertEmbeddings(nn.Module):
+diff --git a/examples/movement-pruning/masked_run_glue.py b/examples/movement-pruning/masked_run_glue.py
+index 09dfc8c..8f5917f 100644
+--- a/examples/movement-pruning/masked_run_glue.py
++++ b/examples/movement-pruning/masked_run_glue.py
+@@ -51,7 +51,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MODEL_CLASSES = {
+     "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
+diff --git a/examples/movement-pruning/masked_run_squad.py b/examples/movement-pruning/masked_run_squad.py
+index 1311dd6..9324267 100644
+--- a/examples/movement-pruning/masked_run_squad.py
++++ b/examples/movement-pruning/masked_run_squad.py
+@@ -55,7 +55,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MODEL_CLASSES = {
+     "bert": (BertConfig, BertForQuestionAnswering, BertTokenizer),
+diff --git a/examples/multiple-choice/run_multiple_choice.py b/examples/multiple-choice/run_multiple_choice.py
+index f2147c4..ed74452 100644
+--- a/examples/multiple-choice/run_multiple_choice.py
++++ b/examples/multiple-choice/run_multiple_choice.py
+@@ -36,7 +36,7 @@ from transformers import (
+ from utils_multiple_choice import MultipleChoiceDataset, Split, processors
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def simple_accuracy(preds, labels):
+diff --git a/examples/multiple-choice/run_tf_multiple_choice.py b/examples/multiple-choice/run_tf_multiple_choice.py
+index 1eb19e3..e7e3279 100644
+--- a/examples/multiple-choice/run_tf_multiple_choice.py
++++ b/examples/multiple-choice/run_tf_multiple_choice.py
+@@ -36,7 +36,7 @@ from transformers import (
+ from utils_multiple_choice import Split, TFMultipleChoiceDataset, processors
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def simple_accuracy(preds, labels):
+diff --git a/examples/multiple-choice/utils_multiple_choice.py b/examples/multiple-choice/utils_multiple_choice.py
+index 784a757..c22429a 100644
+--- a/examples/multiple-choice/utils_multiple_choice.py
++++ b/examples/multiple-choice/utils_multiple_choice.py
+@@ -31,7 +31,7 @@ from filelock import FileLock
+ from transformers import PreTrainedTokenizer, is_tf_available, is_torch_available
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass(frozen=True)
+diff --git a/examples/question-answering/run_squad.py b/examples/question-answering/run_squad.py
+index 70fc04f..1b50eff 100644
+--- a/examples/question-answering/run_squad.py
++++ b/examples/question-answering/run_squad.py
+@@ -53,7 +53,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MODEL_CONFIG_CLASSES = list(MODEL_FOR_QUESTION_ANSWERING_MAPPING.keys())
+ MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
+diff --git a/examples/question-answering/run_squad_trainer.py b/examples/question-answering/run_squad_trainer.py
+index d5fc072..136a026 100644
+--- a/examples/question-answering/run_squad_trainer.py
++++ b/examples/question-answering/run_squad_trainer.py
+@@ -27,7 +27,7 @@ from transformers import SquadDataTrainingArguments as DataTrainingArguments
+ from transformers import Trainer, TrainingArguments
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/question-answering/run_tf_squad.py b/examples/question-answering/run_tf_squad.py
+index 1382e7f..9c956ba 100644
+--- a/examples/question-answering/run_tf_squad.py
++++ b/examples/question-answering/run_tf_squad.py
+@@ -35,7 +35,7 @@ from transformers import (
+ from transformers.data.processors.squad import SquadV1Processor, SquadV2Processor
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/rag/callbacks.py b/examples/rag/callbacks.py
+index 099cf2b..3883800 100644
+--- a/examples/rag/callbacks.py
++++ b/examples/rag/callbacks.py
+@@ -17,7 +17,7 @@ def count_trainable_parameters(model):
+     return params
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def get_checkpoint_callback(output_dir, metric):
+diff --git a/examples/rag/distributed_retriever.py b/examples/rag/distributed_retriever.py
+index 4fdb183..3defaa8 100644
+--- a/examples/rag/distributed_retriever.py
++++ b/examples/rag/distributed_retriever.py
+@@ -10,7 +10,7 @@ import torch.distributed as dist
+ from transformers import RagRetriever
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class RagPyTorchDistributedRetriever(RagRetriever):
+diff --git a/examples/rag/eval_rag.py b/examples/rag/eval_rag.py
+index 73913c1..6399fe3 100644
+--- a/examples/rag/eval_rag.py
++++ b/examples/rag/eval_rag.py
+@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.getcwd()))  # noqa: E402 # isort:skip
+ from utils import exact_match_score, f1_score  # noqa: E402 # isort:skip
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ logging.basicConfig(level=logging.INFO)
+ 
+ transformers_logging.set_verbosity_info()
+diff --git a/examples/rag/finetune.py b/examples/rag/finetune.py
+index 2448996..c5a413f 100644
+--- a/examples/rag/finetune.py
++++ b/examples/rag/finetune.py
+@@ -56,7 +56,7 @@ from lightning_base import BaseTransformer, add_generic_args, generic_train  # n
+ 
+ 
+ logging.basicConfig(level=logging.INFO)
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ transformers_logging.set_verbosity_info()
+ 
+diff --git a/examples/rag/use_own_knowledge_dataset.py b/examples/rag/use_own_knowledge_dataset.py
+index eb91ba2..96a58e0 100644
+--- a/examples/rag/use_own_knowledge_dataset.py
++++ b/examples/rag/use_own_knowledge_dataset.py
+@@ -20,7 +20,7 @@ from transformers import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ torch.set_grad_enabled(False)
+ device = "cuda" if torch.cuda.is_available() else "cpu"
+ 
+diff --git a/examples/rag/utils.py b/examples/rag/utils.py
+index 7bf5d7e..d3e56d1 100644
+--- a/examples/rag/utils.py
++++ b/examples/rag/utils.py
+@@ -133,7 +133,7 @@ class Seq2SeqDataset(Dataset):
+         return batch
+ 
+ 
+-logger = getLogger(__name__)
++logger = getLogger('__main__')
+ 
+ 
+ def flatten_list(summary_ids: List[List]):
+diff --git a/examples/seq2seq/bertabs/configuration_bertabs.py b/examples/seq2seq/bertabs/configuration_bertabs.py
+index 29dd463..7c3a9ce 100644
+--- a/examples/seq2seq/bertabs/configuration_bertabs.py
++++ b/examples/seq2seq/bertabs/configuration_bertabs.py
+@@ -19,7 +19,7 @@ import logging
+ from transformers import PretrainedConfig
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ BERTABS_FINETUNED_CONFIG_MAP = {
+diff --git a/examples/seq2seq/bertabs/convert_bertabs_original_pytorch_checkpoint.py b/examples/seq2seq/bertabs/convert_bertabs_original_pytorch_checkpoint.py
+index ed2bb11..7af75aa 100644
+--- a/examples/seq2seq/bertabs/convert_bertabs_original_pytorch_checkpoint.py
++++ b/examples/seq2seq/bertabs/convert_bertabs_original_pytorch_checkpoint.py
+@@ -31,7 +31,7 @@ from transformers import BertTokenizer
+ 
+ 
+ logging.basicConfig(level=logging.INFO)
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ SAMPLE_TEXT = "Hello world! cécé herlolip"
+diff --git a/examples/seq2seq/bertabs/run_summarization.py b/examples/seq2seq/bertabs/run_summarization.py
+index 33be672..dd1a868 100644
+--- a/examples/seq2seq/bertabs/run_summarization.py
++++ b/examples/seq2seq/bertabs/run_summarization.py
+@@ -21,7 +21,7 @@ from .utils_summarization import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+ 
+ 
+diff --git a/examples/seq2seq/callbacks.py b/examples/seq2seq/callbacks.py
+index c6cd201..25b6a1b 100644
+--- a/examples/seq2seq/callbacks.py
++++ b/examples/seq2seq/callbacks.py
+@@ -17,7 +17,7 @@ def count_trainable_parameters(model):
+     return params
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class Seq2SeqLoggingCallback(pl.Callback):
+diff --git a/examples/seq2seq/convert_pl_checkpoint_to_hf.py b/examples/seq2seq/convert_pl_checkpoint_to_hf.py
+index 5f3c984..857e2d7 100755
+--- a/examples/seq2seq/convert_pl_checkpoint_to_hf.py
++++ b/examples/seq2seq/convert_pl_checkpoint_to_hf.py
+@@ -11,7 +11,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+ from transformers.utils.logging import get_logger
+ 
+ 
+-logger = get_logger(__name__)
++logger = get_logger('__main__')
+ 
+ 
+ def remove_prefix(text: str, prefix: str):
+diff --git a/examples/seq2seq/finetune.py b/examples/seq2seq/finetune.py
+index d50a457..babbc23 100755
+--- a/examples/seq2seq/finetune.py
++++ b/examples/seq2seq/finetune.py
+@@ -43,7 +43,7 @@ sys.path.insert(2, str(Path(__file__).resolve().parents[1]))
+ from lightning_base import BaseTransformer, add_generic_args, generic_train  # noqa
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class SummarizationModule(BaseTransformer):
+diff --git a/examples/seq2seq/finetune_trainer.py b/examples/seq2seq/finetune_trainer.py
+index 39f5b7f..4c05b73 100644
+--- a/examples/seq2seq/finetune_trainer.py
++++ b/examples/seq2seq/finetune_trainer.py
+@@ -30,7 +30,7 @@ from utils import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/seq2seq/make_student.py b/examples/seq2seq/make_student.py
+index 2ccff5e..95ef1cf 100644
+--- a/examples/seq2seq/make_student.py
++++ b/examples/seq2seq/make_student.py
+@@ -9,7 +9,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, PreTrainedModel
+ from transformers.utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def copy_layers(src_layers: nn.ModuleList, dest_layers: nn.ModuleList, layers_to_copy: List[int]) -> None:
+diff --git a/examples/seq2seq/run_distributed_eval.py b/examples/seq2seq/run_distributed_eval.py
+index 5b9f66f..f03cccb 100755
+--- a/examples/seq2seq/run_distributed_eval.py
++++ b/examples/seq2seq/run_distributed_eval.py
+@@ -27,7 +27,7 @@ from utils import (
+ )
+ 
+ 
+-logger = getLogger(__name__)
++logger = getLogger('__main__')
+ 
+ 
+ def eval_data_dir(
+diff --git a/examples/seq2seq/run_eval.py b/examples/seq2seq/run_eval.py
+index 910d430..95e62df 100755
+--- a/examples/seq2seq/run_eval.py
++++ b/examples/seq2seq/run_eval.py
+@@ -16,7 +16,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+ from utils import calculate_bleu, calculate_rouge, chunks, parse_numeric_n_bool_cl_kwargs, use_task_specific_params
+ 
+ 
+-logger = getLogger(__name__)
++logger = getLogger('__main__')
+ 
+ 
+ DEFAULT_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+diff --git a/examples/seq2seq/seq2seq_trainer.py b/examples/seq2seq/seq2seq_trainer.py
+index bf002ee..41fefdb 100644
+--- a/examples/seq2seq/seq2seq_trainer.py
++++ b/examples/seq2seq/seq2seq_trainer.py
+@@ -27,7 +27,7 @@ except ImportError:
+     from utils import label_smoothed_nll_loss
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ arg_to_scheduler = {
+     "linear": get_linear_schedule_with_warmup,
+diff --git a/examples/seq2seq/utils.py b/examples/seq2seq/utils.py
+index 9740e75..a18bfd9 100644
+--- a/examples/seq2seq/utils.py
++++ b/examples/seq2seq/utils.py
+@@ -411,7 +411,7 @@ class DistributedSortishSampler(Sampler):
+         self.epoch = epoch
+ 
+ 
+-logger = getLogger(__name__)
++logger = getLogger('__main__')
+ 
+ 
+ def use_task_specific_params(model, task):
+diff --git a/examples/text-classification/run_glue.py b/examples/text-classification/run_glue.py
+index 9de123c..89f2d94 100644
+--- a/examples/text-classification/run_glue.py
++++ b/examples/text-classification/run_glue.py
+@@ -23,6 +23,7 @@ import sys
+ from dataclasses import dataclass, field
+ from typing import Callable, Dict, Optional
+ 
++import torch
+ import numpy as np
+ 
+ from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer, EvalPrediction, GlueDataset
+@@ -38,7 +39,7 @@ from transformers import (
+ )
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+@@ -168,11 +169,15 @@ def main():
+         compute_metrics=build_compute_metrics_fn(data_args.task_name),
+     )
+ 
++    # Show Model
++    logger.info(model)
++
+     # Training
+     if training_args.do_train:
+         trainer.train(
+             model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
+         )
++
+         trainer.save_model()
+         # For convenience, we also re-save the tokenizer to the same directory,
+         # so that you can share your model easily on huggingface.co/models =)
+diff --git a/examples/text-classification/run_pl_glue.py b/examples/text-classification/run_pl_glue.py
+index 80315ab..928a251 100644
+--- a/examples/text-classification/run_pl_glue.py
++++ b/examples/text-classification/run_pl_glue.py
+@@ -17,7 +17,7 @@ from transformers import glue_processors as processors
+ from transformers import glue_tasks_num_labels
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class GLUETransformer(BaseTransformer):
+diff --git a/examples/text-classification/run_tf_glue.py b/examples/text-classification/run_tf_glue.py
+index 5477447..0c5b501 100644
+--- a/examples/text-classification/run_tf_glue.py
++++ b/examples/text-classification/run_tf_glue.py
+@@ -62,7 +62,7 @@ def get_tfds(
+     return ds
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/text-classification/run_tf_text_classification.py b/examples/text-classification/run_tf_text_classification.py
+index cb3b75d..5cb1abb 100644
+--- a/examples/text-classification/run_tf_text_classification.py
++++ b/examples/text-classification/run_tf_text_classification.py
+@@ -128,7 +128,7 @@ def get_tfds(
+     return train_ds, val_ds, test_ds, label2id
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/text-classification/run_xnli.py b/examples/text-classification/run_xnli.py
+index 6910370..0b7f75c 100644
+--- a/examples/text-classification/run_xnli.py
++++ b/examples/text-classification/run_xnli.py
+@@ -49,7 +49,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ def set_seed(args):
+diff --git a/examples/text-generation/run_generation.py b/examples/text-generation/run_generation.py
+index ce43483..3ea315b 100644
+--- a/examples/text-generation/run_generation.py
++++ b/examples/text-generation/run_generation.py
+@@ -45,7 +45,7 @@ logging.basicConfig(
+     datefmt="%m/%d/%Y %H:%M:%S",
+     level=logging.INFO,
+ )
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MAX_LENGTH = int(10000)  # Hardcoded max length to avoid infinite loop
+ 
+diff --git a/examples/token-classification/run_ner.py b/examples/token-classification/run_ner.py
+index a298141..d435fb3 100644
+--- a/examples/token-classification/run_ner.py
++++ b/examples/token-classification/run_ner.py
+@@ -38,7 +38,7 @@ from transformers import (
+ from utils_ner import Split, TokenClassificationDataset, TokenClassificationTask
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/token-classification/run_pl_ner.py b/examples/token-classification/run_pl_ner.py
+index c82cff7..7282013 100644
+--- a/examples/token-classification/run_pl_ner.py
++++ b/examples/token-classification/run_pl_ner.py
+@@ -15,7 +15,7 @@ from lightning_base import BaseTransformer, add_generic_args, generic_train
+ from utils_ner import TokenClassificationTask
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class NERTransformer(BaseTransformer):
+diff --git a/examples/token-classification/run_tf_ner.py b/examples/token-classification/run_tf_ner.py
+index 27aa48e..63a3dad 100644
+--- a/examples/token-classification/run_tf_ner.py
++++ b/examples/token-classification/run_tf_ner.py
+@@ -36,7 +36,7 @@ from transformers import (
+ from utils_ner import Split, TFTokenClassificationDataset, TokenClassificationTask
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/examples/token-classification/tasks.py b/examples/token-classification/tasks.py
+index 409be07..ea2d847 100644
+--- a/examples/token-classification/tasks.py
++++ b/examples/token-classification/tasks.py
+@@ -7,7 +7,7 @@ from conllu import parse_incr
+ from utils_ner import InputExample, Split, TokenClassificationTask
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class NER(TokenClassificationTask):
+diff --git a/examples/token-classification/utils_ner.py b/examples/token-classification/utils_ner.py
+index 45c4229..5a6c2fa 100644
+--- a/examples/token-classification/utils_ner.py
++++ b/examples/token-classification/utils_ner.py
+@@ -26,7 +26,7 @@ from filelock import FileLock
+ from transformers import PreTrainedTokenizer, is_tf_available, is_torch_available
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/fj-misc/aarch64.multi.conf b/fj-misc/aarch64.multi.conf
+new file mode 100644
+index 0000000..1f00b79
+--- /dev/null
++++ b/fj-misc/aarch64.multi.conf
+@@ -0,0 +1,28 @@
++. ../../env.src
++
++export BERT_PATH=${PREFIX}/bert_build_pack
++export DATA_DIR=${BERT_PATH}/hostdata
++
++export DOWNLOAD_PATH=${BERT_PATH}/down
++export UPLOAD_PATH=${BERT_PATH}/up
++
++export CC="fcc -Nclang -Kfast -Knolargepage -lpthread"
++export CXX="FCC -Nclang -Kfast -Knolargepage -lpthread"
++
++export MODEL_DIR=${DATA_DIR}/transformer-models/bert-base-cased
++export GLUE_DIR=${DATA_DIR}/glue
++export TRAIN_FILE=${DATA_DIR}/wikitext-2/wiki.train.tokens
++# export TRAIN_FILE=${DATA_DIR}/wikitext-103/wiki.train.tokens
++
++################################################
++## OpenMP/OpenMPI
++################################################
++NPROC=${FLIB_NUM_PROCESS_ON_NODE:=2}
++export CORE_PER_PROC=$((48 / ${NPROC}))
++export OMP_NUM_THREADS=$((${CORE_PER_PROC}))
++export KMP_AFFINITY=granularity=fine,scatter,1,0
++export LD_PRELOAD=${PREFIX}/.local/lib/libtcmalloc_minimal.so
++export WORLD_RANK=$PMIX_RANK
++
++# LargePage
++export XOS_MMM_L_HPAGE_TYPE=none
+diff --git a/fj-misc/run_glue_multi_impl.sh b/fj-misc/run_glue_multi_impl.sh
+new file mode 100755
+index 0000000..af39802
+--- /dev/null
++++ b/fj-misc/run_glue_multi_impl.sh
+@@ -0,0 +1,28 @@
++#!/bin/bash
++
++set -ex
++
++source fj-misc/$(arch).multi.conf
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++python3 examples/text-classification/run_glue.py \
++       ${PROFILE_OPS} \
++       --no_cuda \
++       --disable_tqdm True \
++       --model_name_or_path ${MODEL_DIR} \
++       --task_name ${TASK_NAME} \
++       --do_train \
++       --data_dir ${GLUE_DIR}/${TASK_NAME} \
++       --max_seq_length 128 \
++       --per_device_train_batch_size ${BATCH_SIZE} \
++       --learning_rate 2e-5 \
++       --num_train_epochs 3.0 \
++       --output_dir ./output/${TASK_NAME} \
++       --seed 2020 \
++       --overwrite_output_dir \
++       --dataloader_num_workers ${NUM_WORKER} \
++       --local_rank ${WORLD_RANK} \
++       --dist_backend mpi \
++       --max_steps 20 \
++       --no_cuda \
++       --print_every 1
+diff --git a/fj-misc/run_language_modeling_multi_impl.sh b/fj-misc/run_language_modeling_multi_impl.sh
+new file mode 100755
+index 0000000..9f46980
+--- /dev/null
++++ b/fj-misc/run_language_modeling_multi_impl.sh
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++set -ex
++
++source fj-misc/$(arch).multi.conf
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++${NUMACTL} python examples/language-modeling/run_language_modeling.py \
++       ${PROFILE_OPS} \
++       --mlm \
++       --no_cuda \
++       --disable_tqdm True \
++       --output_dir=output/bert-base-cased \
++       --model_type=bert-base-cased \
++       --model_name_or_path=${MODEL_DIR} \
++       --per_device_train_batch_size=${BATCH_SIZE} \
++       --model_type bert \
++       --do_train \
++       --train_data_file=${TRAIN_FILE} \
++       --seed 2020 \
++       --overwrite_output_dir \
++       --dataloader_num_workers ${NUM_WORKER} \
++       --local_rank ${WORLD_RANK} \
++       --dist_backend mpi \
++       --max_steps 20 \
++       --print_every 1 \
++       --block_size 512
+diff --git a/prepare.sh b/prepare.sh
+new file mode 100755
+index 0000000..1cb3a5a
+--- /dev/null
++++ b/prepare.sh
+@@ -0,0 +1,38 @@
++#!/bin/bash
++
++set -ex
++
++# Library
++PATH_ORG=${PATH}
++LD_LIBRARY_PATH_ORG=${LD_LIBRARY_PATH}
++
++source fj-misc/aarch64.multi.conf
++
++export PATH=${PATH_ORG}
++export LD_LIBRARY_PATH=${LD_LIBRARY_PATH_ORG}
++unset LD_PRELOAD
++
++# Download Dataset
++
++## GELU
++mkdir -p ${DATA_DIR}/glue
++#python3 utils/download_glue_data.py --data_dir ${DATA_DIR}/glue --tasks all
++python3 utils/download_glue_data.py --data_dir  ${DATA_DIR}/glue --tasks MRPC
++
++## Wikitext
++
++cd ${DATA_DIR}
++curl -O https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-v1.zip
++unzip wikitext-2-v1.zip && rm -f wikitext-2-v1.zip
++
++curl -O https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-v1.zip
++unzip wikitext-103-v1.zip && rm -f wikitext-103-v1.zip
++
++# Download Model
++mkdir -p $(dirname ${MODEL_DIR})
++git clone https://huggingface.co/bert-base-cased ${MODEL_DIR}
++cd ${MODEL_DIR}
++#wget https://cdn-lfs.huggingface.co/bert-base-cased/$(grep sha256 pytorch_model.bin | cut -d ':' -f 2) \
++#     -O pytorch_model.bin
++curl https://cdn-lfs.huggingface.co/bert-base-cased/$(grep sha256 pytorch_model.bin | cut -d ':' -f 2) \
++     --output pytorch_model.bin
+diff --git a/src/transformers/__init__.py b/src/transformers/__init__.py
+index 37a7d20..09cfcb5 100755
+--- a/src/transformers/__init__.py
++++ b/src/transformers/__init__.py
+@@ -270,7 +270,7 @@ from .training_args_tf import TFTrainingArguments
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
++logger = logging.get_logger('__main__')  # pylint: disable=invalid-name
+ 
+ 
+ # Modeling
+diff --git a/src/transformers/activations.py b/src/transformers/activations.py
+index c5e2f9f..cae8a24 100644
+--- a/src/transformers/activations.py
++++ b/src/transformers/activations.py
+@@ -6,7 +6,7 @@ import torch.nn.functional as F
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def swish(x):
+diff --git a/src/transformers/benchmark/benchmark.py b/src/transformers/benchmark/benchmark.py
+index 8ad36e1..d977036 100644
+--- a/src/transformers/benchmark/benchmark.py
++++ b/src/transformers/benchmark/benchmark.py
+@@ -45,7 +45,7 @@ if is_py3nvml_available():
+     import py3nvml.py3nvml as nvml
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class PyTorchBenchmark(Benchmark):
+diff --git a/src/transformers/benchmark/benchmark_args.py b/src/transformers/benchmark/benchmark_args.py
+index 9a26b3c..0cd2d44 100644
+--- a/src/transformers/benchmark/benchmark_args.py
++++ b/src/transformers/benchmark/benchmark_args.py
+@@ -29,7 +29,7 @@ if is_torch_tpu_available():
+     import torch_xla.core.xla_model as xm
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/benchmark/benchmark_args_tf.py b/src/transformers/benchmark/benchmark_args_tf.py
+index a563615..4f93a34 100644
+--- a/src/transformers/benchmark/benchmark_args_tf.py
++++ b/src/transformers/benchmark/benchmark_args_tf.py
+@@ -26,7 +26,7 @@ if is_tf_available():
+     import tensorflow as tf
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/benchmark/benchmark_args_utils.py b/src/transformers/benchmark/benchmark_args_utils.py
+index 59bbb27..d1f0357 100644
+--- a/src/transformers/benchmark/benchmark_args_utils.py
++++ b/src/transformers/benchmark/benchmark_args_utils.py
+@@ -23,7 +23,7 @@ from typing import List
+ from ..utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def list_field(default=None, metadata=None):
+diff --git a/src/transformers/benchmark/benchmark_tf.py b/src/transformers/benchmark/benchmark_tf.py
+index b82850b..2f8ee3a 100644
+--- a/src/transformers/benchmark/benchmark_tf.py
++++ b/src/transformers/benchmark/benchmark_tf.py
+@@ -46,7 +46,7 @@ if is_tf_available():
+ if is_py3nvml_available():
+     import py3nvml.py3nvml as nvml
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def run_with_tf_optimizations(do_eager_mode: bool, use_xla: bool):
+diff --git a/src/transformers/benchmark/benchmark_utils.py b/src/transformers/benchmark/benchmark_utils.py
+index f0ff2da..59efb0c 100644
+--- a/src/transformers/benchmark/benchmark_utils.py
++++ b/src/transformers/benchmark/benchmark_utils.py
+@@ -43,7 +43,7 @@ else:
+     from signal import SIGKILL
+ 
+ 
+-logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
++logger = logging.get_logger('__main__')  # pylint: disable=invalid-name
+ 
+ 
+ _is_memory_tracing_enabled = False
+diff --git a/src/transformers/commands/run.py b/src/transformers/commands/run.py
+index ba6c6de..6dfae22 100644
+--- a/src/transformers/commands/run.py
++++ b/src/transformers/commands/run.py
+@@ -6,7 +6,7 @@ from transformers.pipelines import SUPPORTED_TASKS, Pipeline, PipelineDataFormat
+ from ..utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
++logger = logging.get_logger('__main__')  # pylint: disable=invalid-name
+ 
+ 
+ def try_infer_format_from_ext(path: str):
+diff --git a/src/transformers/configuration_bart.py b/src/transformers/configuration_bart.py
+index 08984f3..dd792cf 100644
+--- a/src/transformers/configuration_bart.py
++++ b/src/transformers/configuration_bart.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ BART_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "facebook/bart-base": "https://s3.amazonaws.com/models.huggingface.co/bert/facebook/bart-base/config.json",
+diff --git a/src/transformers/configuration_bert.py b/src/transformers/configuration_bert.py
+index 9de97e9..482ee0d 100644
+--- a/src/transformers/configuration_bert.py
++++ b/src/transformers/configuration_bert.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ BERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "bert-base-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-config.json",
+diff --git a/src/transformers/configuration_camembert.py b/src/transformers/configuration_camembert.py
+index da039c1..ef1a86b 100644
+--- a/src/transformers/configuration_camembert.py
++++ b/src/transformers/configuration_camembert.py
+@@ -19,7 +19,7 @@ from .configuration_roberta import RobertaConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ CAMEMBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "camembert-base": "https://s3.amazonaws.com/models.huggingface.co/bert/camembert-base-config.json",
+diff --git a/src/transformers/configuration_ctrl.py b/src/transformers/configuration_ctrl.py
+index 7104a8c..679f132 100644
+--- a/src/transformers/configuration_ctrl.py
++++ b/src/transformers/configuration_ctrl.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ CTRL_PRETRAINED_CONFIG_ARCHIVE_MAP = {"ctrl": "https://s3.amazonaws.com/models.huggingface.co/bert/ctrl-config.json"}
+ 
+diff --git a/src/transformers/configuration_deberta.py b/src/transformers/configuration_deberta.py
+index a11527b..abbea84 100644
+--- a/src/transformers/configuration_deberta.py
++++ b/src/transformers/configuration_deberta.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ DEBERTA_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "microsoft/deberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/microsoft/deberta-base/config.json",
+diff --git a/src/transformers/configuration_distilbert.py b/src/transformers/configuration_distilbert.py
+index 03b04c7..e2d0035 100644
+--- a/src/transformers/configuration_distilbert.py
++++ b/src/transformers/configuration_distilbert.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ DISTILBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "distilbert-base-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/distilbert-base-uncased-config.json",
+diff --git a/src/transformers/configuration_dpr.py b/src/transformers/configuration_dpr.py
+index 26f12c7..30cf573 100644
+--- a/src/transformers/configuration_dpr.py
++++ b/src/transformers/configuration_dpr.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ DPR_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "facebook/dpr-ctx_encoder-single-nq-base": "https://s3.amazonaws.com/models.huggingface.co/bert/facebook/dpr-ctx_encoder-single-nq-base/config.json",
+diff --git a/src/transformers/configuration_electra.py b/src/transformers/configuration_electra.py
+index c8cb568..edbf12c 100644
+--- a/src/transformers/configuration_electra.py
++++ b/src/transformers/configuration_electra.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ ELECTRA_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "google/electra-small-generator": "https://s3.amazonaws.com/models.huggingface.co/bert/google/electra-small-generator/config.json",
+diff --git a/src/transformers/configuration_encoder_decoder.py b/src/transformers/configuration_encoder_decoder.py
+index eff92bf..1501b31 100644
+--- a/src/transformers/configuration_encoder_decoder.py
++++ b/src/transformers/configuration_encoder_decoder.py
+@@ -20,7 +20,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class EncoderDecoderConfig(PretrainedConfig):
+diff --git a/src/transformers/configuration_flaubert.py b/src/transformers/configuration_flaubert.py
+index 711b078..d2b74a1 100644
+--- a/src/transformers/configuration_flaubert.py
++++ b/src/transformers/configuration_flaubert.py
+@@ -18,7 +18,7 @@ from .configuration_xlm import XLMConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ FLAUBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "flaubert/flaubert_small_cased": "https://s3.amazonaws.com/models.huggingface.co/bert/flaubert/flaubert_small_cased/config.json",
+diff --git a/src/transformers/configuration_fsmt.py b/src/transformers/configuration_fsmt.py
+index 747f47d..b3a4a9c 100644
+--- a/src/transformers/configuration_fsmt.py
++++ b/src/transformers/configuration_fsmt.py
+@@ -21,7 +21,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ FSMT_PRETRAINED_CONFIG_ARCHIVE_MAP = {}
+ 
+diff --git a/src/transformers/configuration_funnel.py b/src/transformers/configuration_funnel.py
+index e48e24d..c31e60a 100644
+--- a/src/transformers/configuration_funnel.py
++++ b/src/transformers/configuration_funnel.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ FUNNEL_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "funnel-transformer/small": "https://s3.amazonaws.com/models.huggingface.co/bert/funnel-transformer/small/config.json",
+diff --git a/src/transformers/configuration_gpt2.py b/src/transformers/configuration_gpt2.py
+index 6142a90..2a068b9 100644
+--- a/src/transformers/configuration_gpt2.py
++++ b/src/transformers/configuration_gpt2.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "gpt2": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-config.json",
+diff --git a/src/transformers/configuration_layoutlm.py b/src/transformers/configuration_layoutlm.py
+index 3978eb5..f34bfd7 100644
+--- a/src/transformers/configuration_layoutlm.py
++++ b/src/transformers/configuration_layoutlm.py
+@@ -19,7 +19,7 @@ from .configuration_bert import BertConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ LAYOUTLM_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "layoutlm-base-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/microsoft/layoutlm-base-uncased/config.json",
+diff --git a/src/transformers/configuration_longformer.py b/src/transformers/configuration_longformer.py
+index f04ab12..f7857dd 100644
+--- a/src/transformers/configuration_longformer.py
++++ b/src/transformers/configuration_longformer.py
+@@ -20,7 +20,7 @@ from .configuration_roberta import RobertaConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ LONGFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "allenai/longformer-base-4096": "https://s3.amazonaws.com/models.huggingface.co/bert/allenai/longformer-base-4096/config.json",
+diff --git a/src/transformers/configuration_lxmert.py b/src/transformers/configuration_lxmert.py
+index ce60c1f..2b204de 100644
+--- a/src/transformers/configuration_lxmert.py
++++ b/src/transformers/configuration_lxmert.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ LXMERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "unc-nlp/lxmert-base-uncased": "",
+diff --git a/src/transformers/configuration_mbart.py b/src/transformers/configuration_mbart.py
+index 544e33f..afe82a4 100644
+--- a/src/transformers/configuration_mbart.py
++++ b/src/transformers/configuration_mbart.py
+@@ -18,7 +18,7 @@ from .configuration_bart import BartConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ MBART_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "facebook/mbart-large-en-ro": "https://s3.amazonaws.com/models.huggingface.co/bert/facebook/mbart-large-en-ro/config.json",
+diff --git a/src/transformers/configuration_mmbt.py b/src/transformers/configuration_mmbt.py
+index cae65ab..fa6f81f 100644
+--- a/src/transformers/configuration_mmbt.py
++++ b/src/transformers/configuration_mmbt.py
+@@ -18,7 +18,7 @@
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class MMBTConfig(object):
+diff --git a/src/transformers/configuration_mobilebert.py b/src/transformers/configuration_mobilebert.py
+index 93b1243..094cacf 100644
+--- a/src/transformers/configuration_mobilebert.py
++++ b/src/transformers/configuration_mobilebert.py
+@@ -16,7 +16,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ MOBILEBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "mobilebert-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/google/mobilebert-uncased/config.json"
+diff --git a/src/transformers/configuration_openai.py b/src/transformers/configuration_openai.py
+index 87c281a..c8d78f7 100644
+--- a/src/transformers/configuration_openai.py
++++ b/src/transformers/configuration_openai.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ OPENAI_GPT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "openai-gpt": "https://s3.amazonaws.com/models.huggingface.co/bert/openai-gpt-config.json"
+diff --git a/src/transformers/configuration_pegasus.py b/src/transformers/configuration_pegasus.py
+index 5005071..d5168c9 100644
+--- a/src/transformers/configuration_pegasus.py
++++ b/src/transformers/configuration_pegasus.py
+@@ -18,7 +18,7 @@ from .configuration_bart import BartConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ # These config values do not vary between checkpoints
+ DEFAULTS = dict(
+diff --git a/src/transformers/configuration_prophetnet.py b/src/transformers/configuration_prophetnet.py
+index 85ebe3c..48a29ae 100644
+--- a/src/transformers/configuration_prophetnet.py
++++ b/src/transformers/configuration_prophetnet.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ PROPHETNET_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "microsoft/prophetnet-large-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/microsoft/prophetnet-large-uncased/config.json",
+diff --git a/src/transformers/configuration_reformer.py b/src/transformers/configuration_reformer.py
+index 4b7a732..6462b00 100755
+--- a/src/transformers/configuration_reformer.py
++++ b/src/transformers/configuration_reformer.py
+@@ -19,7 +19,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ REFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "google/reformer-crime-and-punishment": "https://cdn.huggingface.co/google/reformer-crime-and-punishment/config.json",
+diff --git a/src/transformers/configuration_retribert.py b/src/transformers/configuration_retribert.py
+index ac4ddc5..d4e86c8 100644
+--- a/src/transformers/configuration_retribert.py
++++ b/src/transformers/configuration_retribert.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ # TODO: uploadto AWS
+ RETRIBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+diff --git a/src/transformers/configuration_roberta.py b/src/transformers/configuration_roberta.py
+index 0e7c3b8..564b238 100644
+--- a/src/transformers/configuration_roberta.py
++++ b/src/transformers/configuration_roberta.py
+@@ -19,7 +19,7 @@ from .configuration_bert import BertConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ ROBERTA_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "roberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/roberta-base-config.json",
+diff --git a/src/transformers/configuration_squeezebert.py b/src/transformers/configuration_squeezebert.py
+index e83adba..89e2bd9 100644
+--- a/src/transformers/configuration_squeezebert.py
++++ b/src/transformers/configuration_squeezebert.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SQUEEZEBERT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "squeezebert/squeezebert-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/squeezebert/squeezebert-uncased/config.json",
+diff --git a/src/transformers/configuration_t5.py b/src/transformers/configuration_t5.py
+index a7b602c..dbe3f4d 100644
+--- a/src/transformers/configuration_t5.py
++++ b/src/transformers/configuration_t5.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ T5_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "t5-small": "https://s3.amazonaws.com/models.huggingface.co/bert/t5-small-config.json",
+diff --git a/src/transformers/configuration_transfo_xl.py b/src/transformers/configuration_transfo_xl.py
+index b678a780..f3c4b7f 100644
+--- a/src/transformers/configuration_transfo_xl.py
++++ b/src/transformers/configuration_transfo_xl.py
+@@ -22,7 +22,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ TRANSFO_XL_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "transfo-xl-wt103": "https://s3.amazonaws.com/models.huggingface.co/bert/transfo-xl-wt103-config.json",
+diff --git a/src/transformers/configuration_utils.py b/src/transformers/configuration_utils.py
+index c4044ae..46465eb 100755
+--- a/src/transformers/configuration_utils.py
++++ b/src/transformers/configuration_utils.py
+@@ -25,7 +25,7 @@ from .file_utils import CONFIG_NAME, cached_path, hf_bucket_url, is_remote_url
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class PretrainedConfig(object):
+diff --git a/src/transformers/configuration_xlm.py b/src/transformers/configuration_xlm.py
+index a11edd6..2059973 100644
+--- a/src/transformers/configuration_xlm.py
++++ b/src/transformers/configuration_xlm.py
+@@ -18,7 +18,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ XLM_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "xlm-mlm-en-2048": "https://s3.amazonaws.com/models.huggingface.co/bert/xlm-mlm-en-2048-config.json",
+diff --git a/src/transformers/configuration_xlm_prophetnet.py b/src/transformers/configuration_xlm_prophetnet.py
+index 1641b9c..1e0bcda 100644
+--- a/src/transformers/configuration_xlm_prophetnet.py
++++ b/src/transformers/configuration_xlm_prophetnet.py
+@@ -19,7 +19,7 @@ from .configuration_prophetnet import ProphetNetConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ XLM_PROPHETNET_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "microsoft/xprophetnet-large-wiki100-cased": "https://s3.amazonaws.com/models.huggingface.co/bert/microsoft/xprophetnet-large-wiki100-cased/config.json",
+diff --git a/src/transformers/configuration_xlm_roberta.py b/src/transformers/configuration_xlm_roberta.py
+index 17e188a..50b8c1a 100644
+--- a/src/transformers/configuration_xlm_roberta.py
++++ b/src/transformers/configuration_xlm_roberta.py
+@@ -19,7 +19,7 @@ from .configuration_roberta import RobertaConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ XLM_ROBERTA_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "xlm-roberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/xlm-roberta-base-config.json",
+diff --git a/src/transformers/configuration_xlnet.py b/src/transformers/configuration_xlnet.py
+index ba60793..0b4c4b2 100644
+--- a/src/transformers/configuration_xlnet.py
++++ b/src/transformers/configuration_xlnet.py
+@@ -21,7 +21,7 @@ from .configuration_utils import PretrainedConfig
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ XLNET_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "xlnet-base-cased": "https://s3.amazonaws.com/models.huggingface.co/bert/xlnet-base-cased-config.json",
+diff --git a/src/transformers/convert_bart_original_pytorch_checkpoint_to_pytorch.py b/src/transformers/convert_bart_original_pytorch_checkpoint_to_pytorch.py
+index c07b50f..e494fe8 100644
+--- a/src/transformers/convert_bart_original_pytorch_checkpoint_to_pytorch.py
++++ b/src/transformers/convert_bart_original_pytorch_checkpoint_to_pytorch.py
+@@ -41,7 +41,7 @@ if version.parse(fairseq.__version__) < version.parse("0.9.0"):
+ 
+ 
+ logging.set_verbosity_info()
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SAMPLE_TEXT = " Hello world! cécé herlolip"
+ 
+diff --git a/src/transformers/convert_bert_original_tf2_checkpoint_to_pytorch.py b/src/transformers/convert_bert_original_tf2_checkpoint_to_pytorch.py
+index e4e0e3f..f92a8e4 100644
+--- a/src/transformers/convert_bert_original_tf2_checkpoint_to_pytorch.py
++++ b/src/transformers/convert_bert_original_tf2_checkpoint_to_pytorch.py
+@@ -19,7 +19,7 @@ from transformers.utils import logging
+ 
+ 
+ logging.set_verbosity_info()
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def load_tf2_weights_in_bert(model, tf_checkpoint_path, config):
+diff --git a/src/transformers/convert_blenderbot_original_pytorch_checkpoint_to_pytorch.py b/src/transformers/convert_blenderbot_original_pytorch_checkpoint_to_pytorch.py
+index d31cf67..416f4be 100644
+--- a/src/transformers/convert_blenderbot_original_pytorch_checkpoint_to_pytorch.py
++++ b/src/transformers/convert_blenderbot_original_pytorch_checkpoint_to_pytorch.py
+@@ -23,7 +23,7 @@ from transformers.utils import logging
+ 
+ 
+ logging.set_verbosity_info()
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ PATTERNS = [
+     ["attention", "attn"],
+diff --git a/src/transformers/convert_prophetnet_original_pytorch_checkpoint_to_pytorch.py b/src/transformers/convert_prophetnet_original_pytorch_checkpoint_to_pytorch.py
+index e6f9e78..bcb02ff 100644
+--- a/src/transformers/convert_prophetnet_original_pytorch_checkpoint_to_pytorch.py
++++ b/src/transformers/convert_prophetnet_original_pytorch_checkpoint_to_pytorch.py
+@@ -33,7 +33,7 @@ from transformers_old.modeling_xlm_prophetnet import (
+ )
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ logging.set_verbosity_info()
+ 
+ 
+diff --git a/src/transformers/convert_roberta_original_pytorch_checkpoint_to_pytorch.py b/src/transformers/convert_roberta_original_pytorch_checkpoint_to_pytorch.py
+index dbb73db..394800d 100644
+--- a/src/transformers/convert_roberta_original_pytorch_checkpoint_to_pytorch.py
++++ b/src/transformers/convert_roberta_original_pytorch_checkpoint_to_pytorch.py
+@@ -34,7 +34,7 @@ if version.parse(fairseq.__version__) < version.parse("0.9.0"):
+ 
+ 
+ logging.set_verbosity_info()
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SAMPLE_TEXT = "Hello world! cécé herlolip"
+ 
+diff --git a/src/transformers/convert_slow_tokenizers_checkpoints_to_fast.py b/src/transformers/convert_slow_tokenizers_checkpoints_to_fast.py
+index 3245b84..f6779b6 100755
+--- a/src/transformers/convert_slow_tokenizers_checkpoints_to_fast.py
++++ b/src/transformers/convert_slow_tokenizers_checkpoints_to_fast.py
+@@ -24,7 +24,7 @@ from transformers.utils import logging
+ 
+ logging.set_verbosity_info()
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ TOKENIZER_CLASSES = {name: getattr(transformers, name + "Fast") for name in SLOW_TO_FAST_CONVERTERS}
+diff --git a/src/transformers/data/datasets/glue.py b/src/transformers/data/datasets/glue.py
+index 9b1cb01..d2094a0 100644
+--- a/src/transformers/data/datasets/glue.py
++++ b/src/transformers/data/datasets/glue.py
+@@ -15,7 +15,7 @@ from ..processors.glue import glue_convert_examples_to_features, glue_output_mod
+ from ..processors.utils import InputFeatures
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/data/datasets/language_modeling.py b/src/transformers/data/datasets/language_modeling.py
+index 17f4ae0..4cbf7c1 100644
+--- a/src/transformers/data/datasets/language_modeling.py
++++ b/src/transformers/data/datasets/language_modeling.py
+@@ -13,7 +13,7 @@ from ...tokenization_utils import PreTrainedTokenizer
+ from ...utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class TextDataset(Dataset):
+diff --git a/src/transformers/data/datasets/squad.py b/src/transformers/data/datasets/squad.py
+index e081ab1..a6d41d7 100644
+--- a/src/transformers/data/datasets/squad.py
++++ b/src/transformers/data/datasets/squad.py
+@@ -15,7 +15,7 @@ from ...utils import logging
+ from ..processors.squad import SquadFeatures, SquadV1Processor, SquadV2Processor, squad_convert_examples_to_features
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ MODEL_CONFIG_CLASSES = list(MODEL_FOR_QUESTION_ANSWERING_MAPPING.keys())
+ MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
+diff --git a/src/transformers/data/metrics/squad_metrics.py b/src/transformers/data/metrics/squad_metrics.py
+index 5ab2473..32a3373 100644
+--- a/src/transformers/data/metrics/squad_metrics.py
++++ b/src/transformers/data/metrics/squad_metrics.py
+@@ -19,7 +19,7 @@ from transformers.tokenization_bert import BasicTokenizer
+ from ...utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def normalize_answer(s):
+diff --git a/src/transformers/data/processors/glue.py b/src/transformers/data/processors/glue.py
+index a496991..99e747d 100644
+--- a/src/transformers/data/processors/glue.py
++++ b/src/transformers/data/processors/glue.py
+@@ -29,7 +29,7 @@ from .utils import DataProcessor, InputExample, InputFeatures
+ if is_tf_available():
+     import tensorflow as tf
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def glue_convert_examples_to_features(
+diff --git a/src/transformers/data/processors/squad.py b/src/transformers/data/processors/squad.py
+index 8fd2352..19cd566 100644
+--- a/src/transformers/data/processors/squad.py
++++ b/src/transformers/data/processors/squad.py
+@@ -27,7 +27,7 @@ if is_torch_available():
+ if is_tf_available():
+     import tensorflow as tf
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer, orig_answer_text):
+diff --git a/src/transformers/data/processors/utils.py b/src/transformers/data/processors/utils.py
+index a328643..c9e769c 100644
+--- a/src/transformers/data/processors/utils.py
++++ b/src/transformers/data/processors/utils.py
+@@ -24,7 +24,7 @@ from ...file_utils import is_tf_available, is_torch_available
+ from ...utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/data/processors/xnli.py b/src/transformers/data/processors/xnli.py
+index f740764..cd04a68 100644
+--- a/src/transformers/data/processors/xnli.py
++++ b/src/transformers/data/processors/xnli.py
+@@ -22,7 +22,7 @@ from ...utils import logging
+ from .utils import DataProcessor, InputExample
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class XnliProcessor(DataProcessor):
+diff --git a/src/transformers/file_utils.py b/src/transformers/file_utils.py
+index 642b650..f88c36c 100644
+--- a/src/transformers/file_utils.py
++++ b/src/transformers/file_utils.py
+@@ -32,7 +32,7 @@ from . import __version__
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
++logger = logging.get_logger('__main__')  # pylint: disable=invalid-name
+ 
+ ENV_VARS_TRUE_VALUES = {"1", "ON", "YES"}
+ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
+diff --git a/src/transformers/generation_tf_utils.py b/src/transformers/generation_tf_utils.py
+index d90b25b..2d4762b 100644
+--- a/src/transformers/generation_tf_utils.py
++++ b/src/transformers/generation_tf_utils.py
+@@ -20,7 +20,7 @@ import tensorflow as tf
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class TFGenerationMixin:
+diff --git a/src/transformers/generation_utils.py b/src/transformers/generation_utils.py
+index 627beec..878791b 100644
+--- a/src/transformers/generation_utils.py
++++ b/src/transformers/generation_utils.py
+@@ -24,7 +24,7 @@ from .file_utils import ModelOutput
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class GenerationMixin:
+diff --git a/src/transformers/integrations.py b/src/transformers/integrations.py
+index 486736f..23a28f1 100644
+--- a/src/transformers/integrations.py
++++ b/src/transformers/integrations.py
+@@ -61,7 +61,7 @@ from .trainer_utils import PREFIX_CHECKPOINT_DIR, BestRun
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # Integration functions:
+diff --git a/src/transformers/modelcard.py b/src/transformers/modelcard.py
+index 89e2301..33c8ccb 100644
+--- a/src/transformers/modelcard.py
++++ b/src/transformers/modelcard.py
+@@ -32,7 +32,7 @@ from .file_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class ModelCard:
+diff --git a/src/transformers/modeling_albert.py b/src/transformers/modeling_albert.py
+index b705a37..bb003c0 100755
+--- a/src/transformers/modeling_albert.py
++++ b/src/transformers/modeling_albert.py
+@@ -51,7 +51,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "AlbertConfig"
+ _TOKENIZER_FOR_DOC = "AlbertTokenizer"
+diff --git a/src/transformers/modeling_auto.py b/src/transformers/modeling_auto.py
+index 7369e62..15947aa 100644
+--- a/src/transformers/modeling_auto.py
++++ b/src/transformers/modeling_auto.py
+@@ -222,7 +222,7 @@ from .modeling_xlnet import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ MODEL_MAPPING = OrderedDict(
+diff --git a/src/transformers/modeling_bart.py b/src/transformers/modeling_bart.py
+index 59987fc..da8b744 100644
+--- a/src/transformers/modeling_bart.py
++++ b/src/transformers/modeling_bart.py
+@@ -45,7 +45,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "BartConfig"
+ _TOKENIZER_FOR_DOC = "BartTokenizer"
+diff --git a/src/transformers/modeling_bert.py b/src/transformers/modeling_bert.py
+index 21a8ab4..1442f10 100755
+--- a/src/transformers/modeling_bert.py
++++ b/src/transformers/modeling_bert.py
+@@ -56,7 +56,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "BertConfig"
+ _TOKENIZER_FOR_DOC = "BertTokenizer"
+diff --git a/src/transformers/modeling_bert_generation.py b/src/transformers/modeling_bert_generation.py
+index bab7a9f..f265888 100755
+--- a/src/transformers/modeling_bert_generation.py
++++ b/src/transformers/modeling_bert_generation.py
+@@ -33,7 +33,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "BertGenerationConfig"
+ _TOKENIZER_FOR_DOC = "BertGenerationTokenizer"
+diff --git a/src/transformers/modeling_camembert.py b/src/transformers/modeling_camembert.py
+index 119f367..9ef2c26 100644
+--- a/src/transformers/modeling_camembert.py
++++ b/src/transformers/modeling_camembert.py
+@@ -29,7 +29,7 @@ from .modeling_roberta import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _TOKENIZER_FOR_DOC = "CamembertTokenizer"
+ 
+diff --git a/src/transformers/modeling_ctrl.py b/src/transformers/modeling_ctrl.py
+index b839fff..a5dbf01 100644
+--- a/src/transformers/modeling_ctrl.py
++++ b/src/transformers/modeling_ctrl.py
+@@ -30,7 +30,7 @@ from .modeling_utils import Conv1D, PreTrainedModel, find_pruneable_heads_and_in
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "CTRLConfig"
+ _TOKENIZER_FOR_DOC = "CTRLTokenizer"
+diff --git a/src/transformers/modeling_deberta.py b/src/transformers/modeling_deberta.py
+index 3215ff3..6ca8da5 100644
+--- a/src/transformers/modeling_deberta.py
++++ b/src/transformers/modeling_deberta.py
+@@ -30,7 +30,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "DebertaConfig"
+ _TOKENIZER_FOR_DOC = "DebertaTokenizer"
+diff --git a/src/transformers/modeling_distilbert.py b/src/transformers/modeling_distilbert.py
+index c6b7a08..be3681c 100755
+--- a/src/transformers/modeling_distilbert.py
++++ b/src/transformers/modeling_distilbert.py
+@@ -52,7 +52,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "DistilBertConfig"
+ _TOKENIZER_FOR_DOC = "DistilBertTokenizer"
+diff --git a/src/transformers/modeling_dpr.py b/src/transformers/modeling_dpr.py
+index b6990ae..ab1e353 100644
+--- a/src/transformers/modeling_dpr.py
++++ b/src/transformers/modeling_dpr.py
+@@ -29,7 +29,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "DPRConfig"
+ 
+diff --git a/src/transformers/modeling_electra.py b/src/transformers/modeling_electra.py
+index caa4854..b21a995 100644
+--- a/src/transformers/modeling_electra.py
++++ b/src/transformers/modeling_electra.py
+@@ -51,7 +51,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "ElectraConfig"
+ _TOKENIZER_FOR_DOC = "ElectraTokenizer"
+diff --git a/src/transformers/modeling_encoder_decoder.py b/src/transformers/modeling_encoder_decoder.py
+index ea4044d..9b99c20 100644
+--- a/src/transformers/modeling_encoder_decoder.py
++++ b/src/transformers/modeling_encoder_decoder.py
+@@ -25,7 +25,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "EncoderDecoderConfig"
+ 
+diff --git a/src/transformers/modeling_flaubert.py b/src/transformers/modeling_flaubert.py
+index eadafa5..ca9c032 100644
+--- a/src/transformers/modeling_flaubert.py
++++ b/src/transformers/modeling_flaubert.py
+@@ -36,7 +36,7 @@ from .modeling_xlm import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "FlaubertConfig"
+ _TOKENIZER_FOR_DOC = "FlaubertTokenizer"
+diff --git a/src/transformers/modeling_flax_auto.py b/src/transformers/modeling_flax_auto.py
+index 22b56e2..c4b2265 100644
+--- a/src/transformers/modeling_flax_auto.py
++++ b/src/transformers/modeling_flax_auto.py
+@@ -24,7 +24,7 @@ from .modeling_flax_roberta import FlaxRobertaModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ ALL_PRETRAINED_MODEL_ARCHIVE_MAP = dict(
+diff --git a/src/transformers/modeling_flax_bert.py b/src/transformers/modeling_flax_bert.py
+index 2ca6e09..d416d18 100644
+--- a/src/transformers/modeling_flax_bert.py
++++ b/src/transformers/modeling_flax_bert.py
+@@ -28,7 +28,7 @@ from .modeling_flax_utils import FlaxPreTrainedModel, gelu
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "BertConfig"
+ _TOKENIZER_FOR_DOC = "BertTokenizer"
+diff --git a/src/transformers/modeling_flax_roberta.py b/src/transformers/modeling_flax_roberta.py
+index b6bf6e2..75d70a5 100644
+--- a/src/transformers/modeling_flax_roberta.py
++++ b/src/transformers/modeling_flax_roberta.py
+@@ -27,7 +27,7 @@ from .modeling_flax_utils import FlaxPreTrainedModel, gelu
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "RobertaConfig"
+ _TOKENIZER_FOR_DOC = "RobertaTokenizer"
+diff --git a/src/transformers/modeling_flax_utils.py b/src/transformers/modeling_flax_utils.py
+index 6b88b64..dba61db 100644
+--- a/src/transformers/modeling_flax_utils.py
++++ b/src/transformers/modeling_flax_utils.py
+@@ -30,7 +30,7 @@ from .file_utils import WEIGHTS_NAME, cached_path, hf_bucket_url, is_remote_url
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @jax.jit
+diff --git a/src/transformers/modeling_fsmt.py b/src/transformers/modeling_fsmt.py
+index a11e4a5..4631f09 100644
+--- a/src/transformers/modeling_fsmt.py
++++ b/src/transformers/modeling_fsmt.py
+@@ -51,7 +51,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "FSMTConfig"
+ _TOKENIZER_FOR_DOC = "FSMTTokenizer"
+diff --git a/src/transformers/modeling_funnel.py b/src/transformers/modeling_funnel.py
+index ec86490..0daf902 100644
+--- a/src/transformers/modeling_funnel.py
++++ b/src/transformers/modeling_funnel.py
+@@ -45,7 +45,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "FunnelConfig"
+ _TOKENIZER_FOR_DOC = "FunnelTokenizer"
+diff --git a/src/transformers/modeling_gpt2.py b/src/transformers/modeling_gpt2.py
+index 83b2d48..a232481 100644
+--- a/src/transformers/modeling_gpt2.py
++++ b/src/transformers/modeling_gpt2.py
+@@ -44,7 +44,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "GPT2Config"
+ _TOKENIZER_FOR_DOC = "GPT2Tokenizer"
+diff --git a/src/transformers/modeling_layoutlm.py b/src/transformers/modeling_layoutlm.py
+index a52a9eb..1125b2a 100644
+--- a/src/transformers/modeling_layoutlm.py
++++ b/src/transformers/modeling_layoutlm.py
+@@ -34,7 +34,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "LayoutLMConfig"
+ _TOKENIZER_FOR_DOC = "LayoutLMTokenizer"
+diff --git a/src/transformers/modeling_longformer.py b/src/transformers/modeling_longformer.py
+index 5fd5469..96f86e4 100755
+--- a/src/transformers/modeling_longformer.py
++++ b/src/transformers/modeling_longformer.py
+@@ -48,7 +48,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "LongformerConfig"
+ _TOKENIZER_FOR_DOC = "LongformerTokenizer"
+diff --git a/src/transformers/modeling_lxmert.py b/src/transformers/modeling_lxmert.py
+index 98ab0b9..2b99b90 100644
+--- a/src/transformers/modeling_lxmert.py
++++ b/src/transformers/modeling_lxmert.py
+@@ -37,7 +37,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "LxmertConfig"
+ _TOKENIZER_FOR_DOC = "LxmertTokenizer"
+diff --git a/src/transformers/modeling_mmbt.py b/src/transformers/modeling_mmbt.py
+index f7853c1..721c7d8 100644
+--- a/src/transformers/modeling_mmbt.py
++++ b/src/transformers/modeling_mmbt.py
+@@ -26,7 +26,7 @@ from .modeling_utils import ModuleUtilsMixin
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "MMBTConfig"
+ 
+diff --git a/src/transformers/modeling_mobilebert.py b/src/transformers/modeling_mobilebert.py
+index c3ab7d5..3b62d40 100644
+--- a/src/transformers/modeling_mobilebert.py
++++ b/src/transformers/modeling_mobilebert.py
+@@ -54,7 +54,7 @@ from .modeling_utils import PreTrainedModel, find_pruneable_heads_and_indices, p
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "MobileBertConfig"
+ _TOKENIZER_FOR_DOC = "MobileBertTokenizer"
+diff --git a/src/transformers/modeling_openai.py b/src/transformers/modeling_openai.py
+index 4f449c6..471e1b7 100644
+--- a/src/transformers/modeling_openai.py
++++ b/src/transformers/modeling_openai.py
+@@ -47,7 +47,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "OpenAIGPTConfig"
+ _TOKENIZER_FOR_DOC = "OpenAIGPTTokenizer"
+diff --git a/src/transformers/modeling_prophetnet.py b/src/transformers/modeling_prophetnet.py
+index 47ea468..91e53a2 100644
+--- a/src/transformers/modeling_prophetnet.py
++++ b/src/transformers/modeling_prophetnet.py
+@@ -31,7 +31,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "ProphenetConfig"
+ _TOKENIZER_FOR_DOC = "ProphetNetTokenizer"
+diff --git a/src/transformers/modeling_rag.py b/src/transformers/modeling_rag.py
+index d09df68..4c4f30a 100644
+--- a/src/transformers/modeling_rag.py
++++ b/src/transformers/modeling_rag.py
+@@ -28,7 +28,7 @@ from .retrieval_rag import RagRetriever
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "RagConfig"
+ 
+diff --git a/src/transformers/modeling_reformer.py b/src/transformers/modeling_reformer.py
+index 7ac4e73..369a4e1 100755
+--- a/src/transformers/modeling_reformer.py
++++ b/src/transformers/modeling_reformer.py
+@@ -43,7 +43,7 @@ from .modeling_utils import PreTrainedModel, apply_chunking_to_forward
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "ReformerConfig"
+ _TOKENIZER_FOR_DOC = "ReformerTokenizer"
+diff --git a/src/transformers/modeling_retribert.py b/src/transformers/modeling_retribert.py
+index 38f24c9..738b9f7 100644
+--- a/src/transformers/modeling_retribert.py
++++ b/src/transformers/modeling_retribert.py
+@@ -30,7 +30,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ RETRIBERT_PRETRAINED_MODEL_ARCHIVE_LIST = [
+     "yjernite/retribert-base-uncased",
+diff --git a/src/transformers/modeling_roberta.py b/src/transformers/modeling_roberta.py
+index 3a39067..fb66fe1 100644
+--- a/src/transformers/modeling_roberta.py
++++ b/src/transformers/modeling_roberta.py
+@@ -49,7 +49,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "RobertaConfig"
+ _TOKENIZER_FOR_DOC = "RobertaTokenizer"
+diff --git a/src/transformers/modeling_squeezebert.py b/src/transformers/modeling_squeezebert.py
+index 5ca780a..aa6e0f7 100644
+--- a/src/transformers/modeling_squeezebert.py
++++ b/src/transformers/modeling_squeezebert.py
+@@ -37,7 +37,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "SqueezeBertConfig"
+ _TOKENIZER_FOR_DOC = "SqueezeBertTokenizer"
+diff --git a/src/transformers/modeling_t5.py b/src/transformers/modeling_t5.py
+index 8e3c3f9..7f37f53 100644
+--- a/src/transformers/modeling_t5.py
++++ b/src/transformers/modeling_t5.py
+@@ -38,7 +38,7 @@ from .modeling_utils import PreTrainedModel, find_pruneable_heads_and_indices, p
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "T5Config"
+ _TOKENIZER_FOR_DOC = "T5Tokenizer"
+diff --git a/src/transformers/modeling_tf_albert.py b/src/transformers/modeling_tf_albert.py
+index 4594451..ec46015 100644
+--- a/src/transformers/modeling_tf_albert.py
++++ b/src/transformers/modeling_tf_albert.py
+@@ -55,7 +55,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "AlbertConfig"
+ _TOKENIZER_FOR_DOC = "AlbertTokenizer"
+diff --git a/src/transformers/modeling_tf_auto.py b/src/transformers/modeling_tf_auto.py
+index f8f073b..5f2288c 100644
+--- a/src/transformers/modeling_tf_auto.py
++++ b/src/transformers/modeling_tf_auto.py
+@@ -153,7 +153,7 @@ from .modeling_tf_xlnet import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ TF_MODEL_MAPPING = OrderedDict(
+diff --git a/src/transformers/modeling_tf_bert.py b/src/transformers/modeling_tf_bert.py
+index f1dcab7..acd4cdc 100644
+--- a/src/transformers/modeling_tf_bert.py
++++ b/src/transformers/modeling_tf_bert.py
+@@ -58,7 +58,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "BertConfig"
+ _TOKENIZER_FOR_DOC = "BertTokenizer"
+diff --git a/src/transformers/modeling_tf_camembert.py b/src/transformers/modeling_tf_camembert.py
+index 8d5e646..d2b7124 100644
+--- a/src/transformers/modeling_tf_camembert.py
++++ b/src/transformers/modeling_tf_camembert.py
+@@ -28,7 +28,7 @@ from .modeling_tf_roberta import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ TF_CAMEMBERT_PRETRAINED_MODEL_ARCHIVE_LIST = [
+     # See all CamemBERT models at https://huggingface.co/models?filter=camembert
+diff --git a/src/transformers/modeling_tf_ctrl.py b/src/transformers/modeling_tf_ctrl.py
+index 35583cc..cb83282 100644
+--- a/src/transformers/modeling_tf_ctrl.py
++++ b/src/transformers/modeling_tf_ctrl.py
+@@ -33,7 +33,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "CTRLConfig"
+ _TOKENIZER_FOR_DOC = "CTRLTokenizer"
+diff --git a/src/transformers/modeling_tf_distilbert.py b/src/transformers/modeling_tf_distilbert.py
+index a6d1893..e9e9427 100644
+--- a/src/transformers/modeling_tf_distilbert.py
++++ b/src/transformers/modeling_tf_distilbert.py
+@@ -50,7 +50,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "DistilBertConfig"
+ _TOKENIZER_FOR_DOC = "DistilBertTokenizer"
+diff --git a/src/transformers/modeling_tf_electra.py b/src/transformers/modeling_tf_electra.py
+index 49e775a..bb9bbbd 100644
+--- a/src/transformers/modeling_tf_electra.py
++++ b/src/transformers/modeling_tf_electra.py
+@@ -38,7 +38,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "ElectraConfig"
+ _TOKENIZER_FOR_DOC = "ElectraTokenizer"
+diff --git a/src/transformers/modeling_tf_flaubert.py b/src/transformers/modeling_tf_flaubert.py
+index 1e277ea..0b0b3eb 100644
+--- a/src/transformers/modeling_tf_flaubert.py
++++ b/src/transformers/modeling_tf_flaubert.py
+@@ -37,7 +37,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "FlaubertConfig"
+ _TOKENIZER_FOR_DOC = "FlaubertTokenizer"
+diff --git a/src/transformers/modeling_tf_funnel.py b/src/transformers/modeling_tf_funnel.py
+index a81e27d..e921b64 100644
+--- a/src/transformers/modeling_tf_funnel.py
++++ b/src/transformers/modeling_tf_funnel.py
+@@ -53,7 +53,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "FunnelConfig"
+ _TOKENIZER_FOR_DOC = "FunnelTokenizer"
+diff --git a/src/transformers/modeling_tf_gpt2.py b/src/transformers/modeling_tf_gpt2.py
+index 2f6a602..958e2b7 100644
+--- a/src/transformers/modeling_tf_gpt2.py
++++ b/src/transformers/modeling_tf_gpt2.py
+@@ -45,7 +45,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "GPT2Config"
+ _TOKENIZER_FOR_DOC = "GPT2Tokenizer"
+diff --git a/src/transformers/modeling_tf_longformer.py b/src/transformers/modeling_tf_longformer.py
+index 9757a0a..abd4c8e 100644
+--- a/src/transformers/modeling_tf_longformer.py
++++ b/src/transformers/modeling_tf_longformer.py
+@@ -38,7 +38,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "LongformerConfig"
+ _TOKENIZER_FOR_DOC = "LongformerTokenizer"
+diff --git a/src/transformers/modeling_tf_lxmert.py b/src/transformers/modeling_tf_lxmert.py
+index 3501452..459d98f 100644
+--- a/src/transformers/modeling_tf_lxmert.py
++++ b/src/transformers/modeling_tf_lxmert.py
+@@ -36,7 +36,7 @@ from .tokenization_utils_base import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ _CONFIG_FOR_DOC = "LxmertConfig"
+diff --git a/src/transformers/modeling_tf_mobilebert.py b/src/transformers/modeling_tf_mobilebert.py
+index 7ae12be..a648536 100644
+--- a/src/transformers/modeling_tf_mobilebert.py
++++ b/src/transformers/modeling_tf_mobilebert.py
+@@ -56,7 +56,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "MobileBertConfig"
+ _TOKENIZER_FOR_DOC = "MobileBertTokenizer"
+diff --git a/src/transformers/modeling_tf_openai.py b/src/transformers/modeling_tf_openai.py
+index 16a4cd0..a00bf2c 100644
+--- a/src/transformers/modeling_tf_openai.py
++++ b/src/transformers/modeling_tf_openai.py
+@@ -45,7 +45,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "OpenAIGPTConfig"
+ _TOKENIZER_FOR_DOC = "OpenAIGPTTokenizer"
+diff --git a/src/transformers/modeling_tf_pytorch_utils.py b/src/transformers/modeling_tf_pytorch_utils.py
+index 713b426..0d97f8a 100644
+--- a/src/transformers/modeling_tf_pytorch_utils.py
++++ b/src/transformers/modeling_tf_pytorch_utils.py
+@@ -24,7 +24,7 @@ import numpy
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def convert_tf_weight_name_to_pt_weight_name(tf_name, start_prefix_to_remove=""):
+diff --git a/src/transformers/modeling_tf_roberta.py b/src/transformers/modeling_tf_roberta.py
+index a06163c..ff0b26d 100644
+--- a/src/transformers/modeling_tf_roberta.py
++++ b/src/transformers/modeling_tf_roberta.py
+@@ -50,7 +50,7 @@ from .tokenization_utils_base import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "RobertaConfig"
+ _TOKENIZER_FOR_DOC = "RobertaTokenizer"
+diff --git a/src/transformers/modeling_tf_t5.py b/src/transformers/modeling_tf_t5.py
+index c3e6802..2819125 100644
+--- a/src/transformers/modeling_tf_t5.py
++++ b/src/transformers/modeling_tf_t5.py
+@@ -44,7 +44,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "T5Config"
+ _TOKENIZER_FOR_DOC = "T5Tokenizer"
+diff --git a/src/transformers/modeling_tf_transfo_xl.py b/src/transformers/modeling_tf_transfo_xl.py
+index 616b645..74f0325 100644
+--- a/src/transformers/modeling_tf_transfo_xl.py
++++ b/src/transformers/modeling_tf_transfo_xl.py
+@@ -29,7 +29,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "TransfoXLConfig"
+ _TOKENIZER_FOR_DOC = "TransfoXLTokenizer"
+diff --git a/src/transformers/modeling_tf_utils.py b/src/transformers/modeling_tf_utils.py
+index 68140a4..c3b3e84 100644
+--- a/src/transformers/modeling_tf_utils.py
++++ b/src/transformers/modeling_tf_utils.py
+@@ -32,7 +32,7 @@ from .generation_tf_utils import TFGenerationMixin
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class TFModelUtilsMixin:
+diff --git a/src/transformers/modeling_tf_xlm.py b/src/transformers/modeling_tf_xlm.py
+index 511a5b5..eaf9eeb 100644
+--- a/src/transformers/modeling_tf_xlm.py
++++ b/src/transformers/modeling_tf_xlm.py
+@@ -56,7 +56,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XLMConfig"
+ _TOKENIZER_FOR_DOC = "XLMTokenizer"
+diff --git a/src/transformers/modeling_tf_xlm_roberta.py b/src/transformers/modeling_tf_xlm_roberta.py
+index e7ae781..da26225 100644
+--- a/src/transformers/modeling_tf_xlm_roberta.py
++++ b/src/transformers/modeling_tf_xlm_roberta.py
+@@ -28,7 +28,7 @@ from .modeling_tf_roberta import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ TF_XLM_ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST = [
+     # See all XLM-RoBERTa models at https://huggingface.co/models?filter=xlm-roberta
+diff --git a/src/transformers/modeling_tf_xlnet.py b/src/transformers/modeling_tf_xlnet.py
+index b20e465..ed9c885 100644
+--- a/src/transformers/modeling_tf_xlnet.py
++++ b/src/transformers/modeling_tf_xlnet.py
+@@ -49,7 +49,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XLNetConfig"
+ _TOKENIZER_FOR_DOC = "XLNetTokenizer"
+diff --git a/src/transformers/modeling_transfo_xl.py b/src/transformers/modeling_transfo_xl.py
+index f63e853..2ec8951 100644
+--- a/src/transformers/modeling_transfo_xl.py
++++ b/src/transformers/modeling_transfo_xl.py
+@@ -32,7 +32,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "TransfoXLConfig"
+ _TOKENIZER_FOR_DOC = "TransfoXLTokenizer"
+diff --git a/src/transformers/modeling_utils.py b/src/transformers/modeling_utils.py
+index 04a65ae..fb86754 100755
+--- a/src/transformers/modeling_utils.py
++++ b/src/transformers/modeling_utils.py
+@@ -44,7 +44,7 @@ from .generation_utils import GenerationMixin
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ try:
+     from torch.nn import Identity
+diff --git a/src/transformers/modeling_xlm.py b/src/transformers/modeling_xlm.py
+index e674cb3..a1aa470 100755
+--- a/src/transformers/modeling_xlm.py
++++ b/src/transformers/modeling_xlm.py
+@@ -56,7 +56,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XLMConfig"
+ _TOKENIZER_FOR_DOC = "XLMTokenizer"
+diff --git a/src/transformers/modeling_xlm_prophetnet.py b/src/transformers/modeling_xlm_prophetnet.py
+index d8db0d7..586a98b 100644
+--- a/src/transformers/modeling_xlm_prophetnet.py
++++ b/src/transformers/modeling_xlm_prophetnet.py
+@@ -25,7 +25,7 @@ from .modeling_prophetnet import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _TOKENIZER_FOR_DOC = "XLMProphetNetTokenizer"
+ 
+diff --git a/src/transformers/modeling_xlm_roberta.py b/src/transformers/modeling_xlm_roberta.py
+index 4557597..93fdce2 100644
+--- a/src/transformers/modeling_xlm_roberta.py
++++ b/src/transformers/modeling_xlm_roberta.py
+@@ -29,7 +29,7 @@ from .modeling_roberta import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ XLM_ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST = [
+     "xlm-roberta-base",
+diff --git a/src/transformers/modeling_xlnet.py b/src/transformers/modeling_xlnet.py
+index e226d74..afc9168 100755
+--- a/src/transformers/modeling_xlnet.py
++++ b/src/transformers/modeling_xlnet.py
+@@ -45,7 +45,7 @@ from .modeling_utils import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XLNetConfig"
+ _TOKENIZER_FOR_DOC = "XLNetTokenizer"
+diff --git a/src/transformers/optimization.py b/src/transformers/optimization.py
+index 297e3e7..4e97c35 100644
+--- a/src/transformers/optimization.py
++++ b/src/transformers/optimization.py
+@@ -24,7 +24,7 @@ from torch.optim.lr_scheduler import LambdaLR
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def get_constant_schedule(optimizer: Optimizer, last_epoch: int = -1):
+diff --git a/src/transformers/pipelines.py b/src/transformers/pipelines.py
+index 6bb42f8..3887181 100755
+--- a/src/transformers/pipelines.py
++++ b/src/transformers/pipelines.py
+@@ -82,7 +82,7 @@ if TYPE_CHECKING:
+     from .modeling_utils import PreTrainedModel
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def get_framework(model):
+diff --git a/src/transformers/retrieval_rag.py b/src/transformers/retrieval_rag.py
+index bf5f389..9994d4b 100644
+--- a/src/transformers/retrieval_rag.py
++++ b/src/transformers/retrieval_rag.py
+@@ -42,7 +42,7 @@ if is_faiss_available():
+     import faiss
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ LEGACY_INDEX_PATH = "https://storage.googleapis.com/huggingface-nlp/datasets/wiki_dpr/"
+diff --git a/src/transformers/tokenization_albert.py b/src/transformers/tokenization_albert.py
+index a0e00ba..71b54ab 100644
+--- a/src/transformers/tokenization_albert.py
++++ b/src/transformers/tokenization_albert.py
+@@ -26,7 +26,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ VOCAB_FILES_NAMES = {"vocab_file": "spiece.model"}
+ 
+ PRETRAINED_VOCAB_FILES_MAP = {
+diff --git a/src/transformers/tokenization_albert_fast.py b/src/transformers/tokenization_albert_fast.py
+index 0de7658..e22b4fa 100644
+--- a/src/transformers/tokenization_albert_fast.py
++++ b/src/transformers/tokenization_albert_fast.py
+@@ -29,7 +29,7 @@ if is_sentencepiece_available():
+ else:
+     AlbertTokenizer = None
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ VOCAB_FILES_NAMES = {"vocab_file": "spiece.model", "tokenizer_file": "tokenizer.json"}
+ 
+ PRETRAINED_VOCAB_FILES_MAP = {
+diff --git a/src/transformers/tokenization_auto.py b/src/transformers/tokenization_auto.py
+index 24d391b..043ce20 100644
+--- a/src/transformers/tokenization_auto.py
++++ b/src/transformers/tokenization_auto.py
+@@ -162,7 +162,7 @@ else:
+     XLMRobertaTokenizerFast = None
+     XLNetTokenizerFast = None
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ TOKENIZER_MAPPING = OrderedDict(
+diff --git a/src/transformers/tokenization_bart.py b/src/transformers/tokenization_bart.py
+index 47fdb12..2b8bcce 100644
+--- a/src/transformers/tokenization_bart.py
++++ b/src/transformers/tokenization_bart.py
+@@ -20,7 +20,7 @@ from .tokenization_utils_base import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # vocab and merges same as roberta
+diff --git a/src/transformers/tokenization_bart_fast.py b/src/transformers/tokenization_bart_fast.py
+index d860283..9bcba1d 100644
+--- a/src/transformers/tokenization_bart_fast.py
++++ b/src/transformers/tokenization_bart_fast.py
+@@ -21,7 +21,7 @@ from .tokenization_utils_base import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # vocab and merges same as roberta
+diff --git a/src/transformers/tokenization_bert.py b/src/transformers/tokenization_bert.py
+index dbcc117..8f9680a 100644
+--- a/src/transformers/tokenization_bert.py
++++ b/src/transformers/tokenization_bert.py
+@@ -24,7 +24,7 @@ from .tokenization_utils import PreTrainedTokenizer, _is_control, _is_punctuatio
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_bert_fast.py b/src/transformers/tokenization_bert_fast.py
+index 9a9769a..c8013fe 100644
+--- a/src/transformers/tokenization_bert_fast.py
++++ b/src/transformers/tokenization_bert_fast.py
+@@ -24,7 +24,7 @@ from .tokenization_utils_fast import PreTrainedTokenizerFast
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_bert_generation.py b/src/transformers/tokenization_bert_generation.py
+index fe7b749..c112a9b 100644
+--- a/src/transformers/tokenization_bert_generation.py
++++ b/src/transformers/tokenization_bert_generation.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "spiece.model"}
+ 
+diff --git a/src/transformers/tokenization_bert_japanese.py b/src/transformers/tokenization_bert_japanese.py
+index 0248e33..94235f6 100644
+--- a/src/transformers/tokenization_bert_japanese.py
++++ b/src/transformers/tokenization_bert_japanese.py
+@@ -25,7 +25,7 @@ from .tokenization_bert import BasicTokenizer, BertTokenizer, WordpieceTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_bertweet.py b/src/transformers/tokenization_bertweet.py
+index d846cb6..ea0d9f4 100644
+--- a/src/transformers/tokenization_bertweet.py
++++ b/src/transformers/tokenization_bertweet.py
+@@ -28,7 +28,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.txt",
+diff --git a/src/transformers/tokenization_blenderbot.py b/src/transformers/tokenization_blenderbot.py
+index 6d3dc35..e1ec5de 100644
+--- a/src/transformers/tokenization_blenderbot.py
++++ b/src/transformers/tokenization_blenderbot.py
+@@ -26,7 +26,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ VOCAB_FILES_NAMES = {
+diff --git a/src/transformers/tokenization_camembert.py b/src/transformers/tokenization_camembert.py
+index 908cdc3..3c0de6b 100644
+--- a/src/transformers/tokenization_camembert.py
++++ b/src/transformers/tokenization_camembert.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "sentencepiece.bpe.model"}
+ 
+diff --git a/src/transformers/tokenization_camembert_fast.py b/src/transformers/tokenization_camembert_fast.py
+index 179695a..8d5d38f 100644
+--- a/src/transformers/tokenization_camembert_fast.py
++++ b/src/transformers/tokenization_camembert_fast.py
+@@ -30,7 +30,7 @@ else:
+     CamembertTokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "sentencepiece.bpe.model", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_ctrl.py b/src/transformers/tokenization_ctrl.py
+index 7c07825..3aa33e3 100644
+--- a/src/transformers/tokenization_ctrl.py
++++ b/src/transformers/tokenization_ctrl.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_deberta.py b/src/transformers/tokenization_deberta.py
+index 130b7da..ba7200c 100644
+--- a/src/transformers/tokenization_deberta.py
++++ b/src/transformers/tokenization_deberta.py
+@@ -36,7 +36,7 @@ except ImportError:
+     raise ImportError("Please install regex with: pip install regex")
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "bpe_encoder.bin"}
+ 
+diff --git a/src/transformers/tokenization_distilbert.py b/src/transformers/tokenization_distilbert.py
+index f7136b3..171b266 100644
+--- a/src/transformers/tokenization_distilbert.py
++++ b/src/transformers/tokenization_distilbert.py
+@@ -18,7 +18,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_distilbert_fast.py b/src/transformers/tokenization_distilbert_fast.py
+index 5ba84cd..f9bfd83 100644
+--- a/src/transformers/tokenization_distilbert_fast.py
++++ b/src/transformers/tokenization_distilbert_fast.py
+@@ -19,7 +19,7 @@ from .tokenization_distilbert import DistilBertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_dpr.py b/src/transformers/tokenization_dpr.py
+index 0b8d321..4dccc2e 100644
+--- a/src/transformers/tokenization_dpr.py
++++ b/src/transformers/tokenization_dpr.py
+@@ -24,7 +24,7 @@ from .tokenization_utils_base import BatchEncoding, TensorType
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_dpr_fast.py b/src/transformers/tokenization_dpr_fast.py
+index 6571fa0..0467b23 100644
+--- a/src/transformers/tokenization_dpr_fast.py
++++ b/src/transformers/tokenization_dpr_fast.py
+@@ -25,7 +25,7 @@ from .tokenization_utils_base import BatchEncoding, TensorType
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_flaubert.py b/src/transformers/tokenization_flaubert.py
+index 182ad34..ba156be 100644
+--- a/src/transformers/tokenization_flaubert.py
++++ b/src/transformers/tokenization_flaubert.py
+@@ -23,7 +23,7 @@ from .tokenization_xlm import XLMTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_fsmt.py b/src/transformers/tokenization_fsmt.py
+index 7efbb7d..62bf58f 100644
+--- a/src/transformers/tokenization_fsmt.py
++++ b/src/transformers/tokenization_fsmt.py
+@@ -29,7 +29,7 @@ from .tokenization_utils_base import PREPARE_SEQ2SEQ_BATCH_DOCSTRING
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "src_vocab_file": "vocab-src.json",
+diff --git a/src/transformers/tokenization_funnel.py b/src/transformers/tokenization_funnel.py
+index b9df503..454351f 100644
+--- a/src/transformers/tokenization_funnel.py
++++ b/src/transformers/tokenization_funnel.py
+@@ -20,7 +20,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_funnel_fast.py b/src/transformers/tokenization_funnel_fast.py
+index 29a4245..81c6ae1 100644
+--- a/src/transformers/tokenization_funnel_fast.py
++++ b/src/transformers/tokenization_funnel_fast.py
+@@ -21,7 +21,7 @@ from .tokenization_funnel import FunnelTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_gpt2.py b/src/transformers/tokenization_gpt2.py
+index 9655733..dfdc3ae 100644
+--- a/src/transformers/tokenization_gpt2.py
++++ b/src/transformers/tokenization_gpt2.py
+@@ -27,7 +27,7 @@ from .tokenization_utils import AddedToken, PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_gpt2_fast.py b/src/transformers/tokenization_gpt2_fast.py
+index cb4a6df..197ba4e 100644
+--- a/src/transformers/tokenization_gpt2_fast.py
++++ b/src/transformers/tokenization_gpt2_fast.py
+@@ -27,7 +27,7 @@ from .tokenization_utils_fast import PreTrainedTokenizerFast
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.json", "merges_file": "merges.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_herbert.py b/src/transformers/tokenization_herbert.py
+index 09ba806..6cddcf7 100644
+--- a/src/transformers/tokenization_herbert.py
++++ b/src/transformers/tokenization_herbert.py
+@@ -18,7 +18,7 @@ from .tokenization_xlm import XLMTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_herbert_fast.py b/src/transformers/tokenization_herbert_fast.py
+index 299d876..a34c927 100644
+--- a/src/transformers/tokenization_herbert_fast.py
++++ b/src/transformers/tokenization_herbert_fast.py
+@@ -25,7 +25,7 @@ from .tokenization_utils_fast import PreTrainedTokenizerFast
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_layoutlm.py b/src/transformers/tokenization_layoutlm.py
+index 0a3c3e7..6a544f3 100644
+--- a/src/transformers/tokenization_layoutlm.py
++++ b/src/transformers/tokenization_layoutlm.py
+@@ -19,7 +19,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_layoutlm_fast.py b/src/transformers/tokenization_layoutlm_fast.py
+index 5353710..b858759 100644
+--- a/src/transformers/tokenization_layoutlm_fast.py
++++ b/src/transformers/tokenization_layoutlm_fast.py
+@@ -20,7 +20,7 @@ from .tokenization_layoutlm import LayoutLMTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_longformer.py b/src/transformers/tokenization_longformer.py
+index f6157e4..e927c4d 100644
+--- a/src/transformers/tokenization_longformer.py
++++ b/src/transformers/tokenization_longformer.py
+@@ -17,7 +17,7 @@ from .tokenization_roberta import RobertaTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # vocab and merges same as roberta
+diff --git a/src/transformers/tokenization_longformer_fast.py b/src/transformers/tokenization_longformer_fast.py
+index 8e4dff4..102dcb6 100644
+--- a/src/transformers/tokenization_longformer_fast.py
++++ b/src/transformers/tokenization_longformer_fast.py
+@@ -18,7 +18,7 @@ from .tokenization_roberta_fast import RobertaTokenizerFast
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # vocab and merges same as roberta
+diff --git a/src/transformers/tokenization_mbart.py b/src/transformers/tokenization_mbart.py
+index 916f95c..3ed1172 100644
+--- a/src/transformers/tokenization_mbart.py
++++ b/src/transformers/tokenization_mbart.py
+@@ -22,7 +22,7 @@ from .tokenization_xlm_roberta import XLMRobertaTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _all_mbart_models = ["facebook/mbart-large-en-ro", "facebook/mbart-large-cc25"]
+ SPM_URL = "https://s3.amazonaws.com/models.huggingface.co/bert/facebook/mbart-large-en-ro/sentence.bpe.model"
+diff --git a/src/transformers/tokenization_mbart_fast.py b/src/transformers/tokenization_mbart_fast.py
+index 5ed2cbd..9b2eda4 100644
+--- a/src/transformers/tokenization_mbart_fast.py
++++ b/src/transformers/tokenization_mbart_fast.py
+@@ -30,7 +30,7 @@ else:
+     MBartTokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _all_mbart_models = ["facebook/mbart-large-en-ro", "facebook/mbart-large-cc25"]
+ SPM_URL = "https://s3.amazonaws.com/models.huggingface.co/bert/facebook/mbart-large-en-ro/sentence.bpe.model"
+diff --git a/src/transformers/tokenization_mobilebert.py b/src/transformers/tokenization_mobilebert.py
+index 90cc6f4..a0381c3 100644
+--- a/src/transformers/tokenization_mobilebert.py
++++ b/src/transformers/tokenization_mobilebert.py
+@@ -17,7 +17,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_mobilebert_fast.py b/src/transformers/tokenization_mobilebert_fast.py
+index 63dca58..9189f22 100644
+--- a/src/transformers/tokenization_mobilebert_fast.py
++++ b/src/transformers/tokenization_mobilebert_fast.py
+@@ -18,7 +18,7 @@ from .tokenization_mobilebert import MobileBertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_openai.py b/src/transformers/tokenization_openai.py
+index b3ebc1a..2d9c0c8 100644
+--- a/src/transformers/tokenization_openai.py
++++ b/src/transformers/tokenization_openai.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_openai_fast.py b/src/transformers/tokenization_openai_fast.py
+index 8b18b3d..34d2b87 100644
+--- a/src/transformers/tokenization_openai_fast.py
++++ b/src/transformers/tokenization_openai_fast.py
+@@ -22,7 +22,7 @@ from .tokenization_utils_fast import PreTrainedTokenizerFast
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.json", "merges_file": "merges.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_phobert.py b/src/transformers/tokenization_phobert.py
+index 7b7418b..bb31892 100644
+--- a/src/transformers/tokenization_phobert.py
++++ b/src/transformers/tokenization_phobert.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.txt",
+diff --git a/src/transformers/tokenization_prophetnet.py b/src/transformers/tokenization_prophetnet.py
+index ca6288a..f98414a 100644
+--- a/src/transformers/tokenization_prophetnet.py
++++ b/src/transformers/tokenization_prophetnet.py
+@@ -22,7 +22,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "prophetnet.tokenizer"}
+ 
+diff --git a/src/transformers/tokenization_rag.py b/src/transformers/tokenization_rag.py
+index ca133b9..f7a2556 100644
+--- a/src/transformers/tokenization_rag.py
++++ b/src/transformers/tokenization_rag.py
+@@ -22,7 +22,7 @@ from .tokenization_utils_base import PREPARE_SEQ2SEQ_BATCH_DOCSTRING, BatchEncod
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class RagTokenizer:
+diff --git a/src/transformers/tokenization_reformer.py b/src/transformers/tokenization_reformer.py
+index 2c2abf8..c4bff42 100644
+--- a/src/transformers/tokenization_reformer.py
++++ b/src/transformers/tokenization_reformer.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SPIECE_UNDERLINE = "▁"
+ 
+diff --git a/src/transformers/tokenization_reformer_fast.py b/src/transformers/tokenization_reformer_fast.py
+index 0a6beec..69530f0 100644
+--- a/src/transformers/tokenization_reformer_fast.py
++++ b/src/transformers/tokenization_reformer_fast.py
+@@ -30,7 +30,7 @@ else:
+     ReformerTokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SPIECE_UNDERLINE = "▁"
+ 
+diff --git a/src/transformers/tokenization_retribert.py b/src/transformers/tokenization_retribert.py
+index 9da6e2a..7387f12 100644
+--- a/src/transformers/tokenization_retribert.py
++++ b/src/transformers/tokenization_retribert.py
+@@ -18,7 +18,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_retribert_fast.py b/src/transformers/tokenization_retribert_fast.py
+index 1d9cf5f..26d10e3 100644
+--- a/src/transformers/tokenization_retribert_fast.py
++++ b/src/transformers/tokenization_retribert_fast.py
+@@ -19,7 +19,7 @@ from .tokenization_retribert import RetriBertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_roberta.py b/src/transformers/tokenization_roberta.py
+index 79e585c..525b4fb 100644
+--- a/src/transformers/tokenization_roberta.py
++++ b/src/transformers/tokenization_roberta.py
+@@ -22,7 +22,7 @@ from .tokenization_utils import AddedToken
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_roberta_fast.py b/src/transformers/tokenization_roberta_fast.py
+index 89bf299..c533e4f 100644
+--- a/src/transformers/tokenization_roberta_fast.py
++++ b/src/transformers/tokenization_roberta_fast.py
+@@ -21,7 +21,7 @@ from .tokenization_roberta import RobertaTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.json", "merges_file": "merges.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_squeezebert.py b/src/transformers/tokenization_squeezebert.py
+index 285be79..852975a 100644
+--- a/src/transformers/tokenization_squeezebert.py
++++ b/src/transformers/tokenization_squeezebert.py
+@@ -18,7 +18,7 @@ from .tokenization_bert import BertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}
+ 
+diff --git a/src/transformers/tokenization_squeezebert_fast.py b/src/transformers/tokenization_squeezebert_fast.py
+index 677b7e4..1d5885f 100644
+--- a/src/transformers/tokenization_squeezebert_fast.py
++++ b/src/transformers/tokenization_squeezebert_fast.py
+@@ -19,7 +19,7 @@ from .tokenization_squeezebert import SqueezeBertTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_t5.py b/src/transformers/tokenization_t5.py
+index 1502d32..12a45e2 100644
+--- a/src/transformers/tokenization_t5.py
++++ b/src/transformers/tokenization_t5.py
+@@ -29,7 +29,7 @@ from .tokenization_utils_base import PREPARE_SEQ2SEQ_BATCH_DOCSTRING
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ ####################################################
+ # Mapping from the keyword arguments names of Tokenizer `__init__`
+diff --git a/src/transformers/tokenization_t5_fast.py b/src/transformers/tokenization_t5_fast.py
+index b972b43..0e98c23 100644
+--- a/src/transformers/tokenization_t5_fast.py
++++ b/src/transformers/tokenization_t5_fast.py
+@@ -32,7 +32,7 @@ else:
+     T5Tokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ ####################################################
+ # Mapping from the keyword arguments names of Tokenizer `__init__`
+diff --git a/src/transformers/tokenization_transfo_xl.py b/src/transformers/tokenization_transfo_xl.py
+index e1b4c99..9037d0b 100644
+--- a/src/transformers/tokenization_transfo_xl.py
++++ b/src/transformers/tokenization_transfo_xl.py
+@@ -38,7 +38,7 @@ if is_torch_available():
+     import torch
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "pretrained_vocab_file": "vocab.pkl",
+diff --git a/src/transformers/tokenization_utils.py b/src/transformers/tokenization_utils.py
+index 6a2bc7a..5388cef 100644
+--- a/src/transformers/tokenization_utils.py
++++ b/src/transformers/tokenization_utils.py
+@@ -42,7 +42,7 @@ from .tokenization_utils_base import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ # Slow tokenizers are saved in a vocabulary plus three separated files
+ SPECIAL_TOKENS_MAP_FILE = "special_tokens_map.json"
+diff --git a/src/transformers/tokenization_utils_base.py b/src/transformers/tokenization_utils_base.py
+index 2ec3614..1e523d4 100644
+--- a/src/transformers/tokenization_utils_base.py
++++ b/src/transformers/tokenization_utils_base.py
+@@ -78,7 +78,7 @@ else:
+         pass
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VERY_LARGE_INTEGER = int(1e30)  # This is used to set the max input length for a model with infinite size input
+ LARGE_INTEGER = int(1e20)  # This is used when we need something big but slightly smaller than VERY_LARGE_INTEGER
+diff --git a/src/transformers/tokenization_utils_fast.py b/src/transformers/tokenization_utils_fast.py
+index 6ee3c8a..01a0731 100644
+--- a/src/transformers/tokenization_utils_fast.py
++++ b/src/transformers/tokenization_utils_fast.py
+@@ -45,7 +45,7 @@ from .tokenization_utils_base import (
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ # Fast tokenizers (provided by HuggingFace tokenizer's library) can be saved in a single file
+diff --git a/src/transformers/tokenization_xlm.py b/src/transformers/tokenization_xlm.py
+index 76a36f3..a7c729f 100644
+--- a/src/transformers/tokenization_xlm.py
++++ b/src/transformers/tokenization_xlm.py
+@@ -28,7 +28,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {
+     "vocab_file": "vocab.json",
+diff --git a/src/transformers/tokenization_xlm_prophetnet.py b/src/transformers/tokenization_xlm_prophetnet.py
+index a7e5d2f..7f15788 100644
+--- a/src/transformers/tokenization_xlm_prophetnet.py
++++ b/src/transformers/tokenization_xlm_prophetnet.py
+@@ -22,7 +22,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SPIECE_UNDERLINE = "▁"
+ 
+diff --git a/src/transformers/tokenization_xlm_roberta.py b/src/transformers/tokenization_xlm_roberta.py
+index 0fa07d2..ef9e5a4 100644
+--- a/src/transformers/tokenization_xlm_roberta.py
++++ b/src/transformers/tokenization_xlm_roberta.py
+@@ -25,7 +25,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ SPIECE_UNDERLINE = "▁"
+ 
+diff --git a/src/transformers/tokenization_xlm_roberta_fast.py b/src/transformers/tokenization_xlm_roberta_fast.py
+index a477c64..75ab343 100644
+--- a/src/transformers/tokenization_xlm_roberta_fast.py
++++ b/src/transformers/tokenization_xlm_roberta_fast.py
+@@ -30,7 +30,7 @@ else:
+     XLMRobertaTokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "sentencepiece.bpe.model", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/tokenization_xlnet.py b/src/transformers/tokenization_xlnet.py
+index d41f7a5..8b6a82a 100644
+--- a/src/transformers/tokenization_xlnet.py
++++ b/src/transformers/tokenization_xlnet.py
+@@ -27,7 +27,7 @@ from .tokenization_utils import PreTrainedTokenizer
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "spiece.model"}
+ 
+diff --git a/src/transformers/tokenization_xlnet_fast.py b/src/transformers/tokenization_xlnet_fast.py
+index ca762e3..dfdcc7a 100644
+--- a/src/transformers/tokenization_xlnet_fast.py
++++ b/src/transformers/tokenization_xlnet_fast.py
+@@ -30,7 +30,7 @@ else:
+     XLNetTokenizer = None
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ VOCAB_FILES_NAMES = {"vocab_file": "spiece.model", "tokenizer_file": "tokenizer.json"}
+ 
+diff --git a/src/transformers/trainer.py b/src/transformers/trainer.py
+index 318c5a6..4f24281 100755
+--- a/src/transformers/trainer.py
++++ b/src/transformers/trainer.py
+@@ -20,6 +20,8 @@ import collections
+ import inspect
+ import math
+ import os
++import sys
++import time
+ import re
+ import shutil
+ import warnings
+@@ -144,7 +146,7 @@ if is_optuna_available():
+ if is_ray_available():
+     from ray import tune
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class Trainer:
+@@ -645,7 +647,17 @@ class Trainer:
+ 
+         # Distributed training (should be after apex fp16 initialization)
+         if self.args.local_rank != -1:
+-            model = torch.nn.parallel.DistributedDataParallel(
++            if self.args.no_cuda:
++                model = torch.nn.parallel.DistributedDataParallel(
++                    model,
++                    find_unused_parameters=(
++                        not getattr(model.config, "gradient_checkpointing", False)
++                        if isinstance(model, PreTrainedModel)
++                        else True
++                    ),
++                )
++            else:
++                model = torch.nn.parallel.DistributedDataParallel(
+                 model,
+                 device_ids=[self.args.local_rank],
+                 output_device=self.args.local_rank,
+@@ -715,6 +727,8 @@ class Trainer:
+         model.zero_grad()
+ 
+         self.control = self.callback_handler.on_train_begin(self.args, self.state, self.control)
++        prof_ctr, prof_start, prof_end = 0, 0, 0
++        epoch_dl_overhead, epoch_dl_start, epoch_dl_end = 0, time.time(), 0
+ 
+         for epoch in range(epochs_trained, num_train_epochs):
+             if isinstance(train_dataloader, DataLoader) and isinstance(train_dataloader.sampler, DistributedSampler):
+@@ -735,8 +749,21 @@ class Trainer:
+             steps_in_epoch = len(epoch_iterator) if train_dataset_is_sized else self.args.max_steps
+             self.control = self.callback_handler.on_epoch_begin(self.args, self.state, self.control)
+ 
++            epoch_dl_end = time.time()
++            epoch_dl_overhead += epoch_dl_end - epoch_dl_start
++
+             for step, inputs in enumerate(epoch_iterator):
+ 
++                if prof_ctr == self.args.profile_start:
++                    prof_start = time.time()
++                    if self.args.trace:
++                        prof = torch.autograd.profiler.profile(
++                            use_cuda=torch.cuda.is_available(),
++                            record_shapes=self.args.with_shape,
++                            with_stack=self.args.with_stack
++                        )
++                        prof.__enter__()
++
+                 # Skip past any already trained steps if resuming training
+                 if steps_trained_in_current_epoch > 0:
+                     steps_trained_in_current_epoch -= 1
+@@ -750,10 +777,11 @@ class Trainer:
+                     and self.args.local_rank != -1
+                     and _use_ddp_no_sync
+                 ):
+-                    with model.no_sync():
++                    with model.no_sync(), torch.autograd.profiler.record_function("training_step"):
+                         tr_loss += self.training_step(model, inputs)
+                 else:
+-                    tr_loss += self.training_step(model, inputs)
++                    with torch.autograd.profiler.record_function("training_step"):
++                        tr_loss += self.training_step(model, inputs)
+                 self._total_flos += self.floating_point_ops(inputs)
+ 
+                 if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
+@@ -784,10 +812,26 @@ class Trainer:
+                     self.control = self.callback_handler.on_step_end(self.args, self.state, self.control)
+ 
+                     self._maybe_log_save_evalute(tr_loss, model, trial, epoch)
++                    if step % self.args.print_every == 0:
++                        logger.info(f"step = {step:4d}, loss = {tr_loss.item():3.5f}")
++
++                prof_ctr += 1
++                if prof_ctr == self.args.profile_end:
++                    prof_end = time.time()
++                    if self.args.trace:
++                        prof.__exit__(*sys.exc_info())
++                        logger.info(prof.key_averages(
++                            group_by_input_shape=self.args.with_shape,
++                            group_by_stack_n=self.args.group_by_stack_n,
++                        ).table(sort_by="self_cpu_time_total"))
++                        if self.args.local_rank == 0 or self.args.local_rank == -1:
++                            prof.export_chrome_trace("profile.json")
++                            logger.info("Generate profile : profile.json")
+ 
+                 if self.control.should_epoch_stop or self.control.should_training_stop:
+                     break
+ 
++            epoch_dl_start = time.time()
+             self.control = self.callback_handler.on_epoch_end(self.args, self.state, self.control)
+             self._maybe_log_save_evalute(tr_loss, model, trial, epoch)
+ 
+@@ -800,6 +844,7 @@ class Trainer:
+                         "You enabled PyTorch/XLA debug metrics but you don't have a TPU "
+                         "configured. Check your training configuration if this is unexpected."
+                     )
++
+             if self.control.should_training_stop:
+                 break
+ 
+@@ -807,6 +852,15 @@ class Trainer:
+             # Clean the state at the end of training
+             delattr(self, "_past")
+ 
++        duration = prof_end - prof_start
++        num_profile_step = self.args.profile_end - self.args.profile_start + 1
++        logger.info(
++            f"Averages: {duration / num_profile_step:.4f} s/iter "
++            f"{total_train_batch_size / duration * num_profile_step:.4f} batch/s"
++        )
++        logger.info(
++            f"Epoch Overhead: {epoch_dl_overhead:.4f} s "
++        )
+         logger.info("\n\nTraining completed. Do not forget to share your model on huggingface.co/models =)\n\n")
+         if self.args.load_best_model_at_end and self.state.best_model_checkpoint is not None:
+             logger.info(
+diff --git a/src/transformers/trainer_callback.py b/src/transformers/trainer_callback.py
+index c3057f8..43ebb7f 100644
+--- a/src/transformers/trainer_callback.py
++++ b/src/transformers/trainer_callback.py
+@@ -28,7 +28,7 @@ from .training_args import TrainingArguments
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/trainer_pt_utils.py b/src/transformers/trainer_pt_utils.py
+index 45ff9c8..a719fff 100644
+--- a/src/transformers/trainer_pt_utils.py
++++ b/src/transformers/trainer_pt_utils.py
+@@ -35,7 +35,7 @@ if is_torch_tpu_available():
+ 
+ PT_LR_SCHEDULER_WARNING = "Please also save or load the state of the optimzer when saving or loading the scheduler."
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def nested_concat(tensors, new_tensors, dim=0):
+diff --git a/src/transformers/trainer_tf.py b/src/transformers/trainer_tf.py
+index 791b9ab..584f90b 100644
+--- a/src/transformers/trainer_tf.py
++++ b/src/transformers/trainer_tf.py
+@@ -25,7 +25,7 @@ if is_wandb_available():
+ if is_comet_available():
+     import comet_ml
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ class TFTrainer:
+diff --git a/src/transformers/training_args.py b/src/transformers/training_args.py
+index b86a1cb..6f9b252 100644
+--- a/src/transformers/training_args.py
++++ b/src/transformers/training_args.py
+@@ -18,7 +18,7 @@ if is_torch_tpu_available():
+     import torch_xla.core.xla_model as xm
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ def default_logdir() -> str:
+@@ -278,6 +278,9 @@ class TrainingArguments:
+         },
+     )
+     local_rank: int = field(default=-1, metadata={"help": "For distributed training: local_rank"})
++    dist_backend: str = field(
++        default="nccl",
++        metadata={"help": ("For distributed training backend selected in ['nccl', 'mpi'].")},)
+ 
+     tpu_num_cores: Optional[int] = field(
+         default=None, metadata={"help": "TPU: Number of TPU cores (automatically passed by launcher script)"}
+@@ -329,6 +332,32 @@ class TrainingArguments:
+         default=None, metadata={"help": "Whether the `metric_for_best_model` should be maximized or not."}
+     )
+ 
++    trace: bool = field(
++        default=None, metadata={"help": "Trace PyTorch API."}
++    )
++    with_shape: bool = field(
++        default=False, metadata={"help": "Record input tensor shape."}
++    )
++    with_stack: bool = field(
++        default=False, metadata={"help": "Record function call stack."}
++    )
++    group_by_stack_n: int = field(
++        default=0,
++        metadata={"help": "Num call stack."},
++    )
++    profile_start: int = field(
++        default=10,
++        metadata={"help": "Start profile step."},
++    )
++    profile_end: int = field(
++        default=19,
++        metadata={"help": "End profile step."},
++    )
++    print_every: int = field(
++        default=1,
++        metadata={"help": "Print step and loss every N."},
++    )
++
+     def __post_init__(self):
+         if self.disable_tqdm is None:
+             self.disable_tqdm = logger.getEffectiveLevel() > logging.WARN
+@@ -386,6 +415,8 @@ class TrainingArguments:
+         logger.info("PyTorch: setting up devices")
+         if self.no_cuda:
+             device = torch.device("cpu")
++            if self.local_rank != -1:
++                torch.distributed.init_process_group(backend=self.dist_backend)
+             n_gpu = 0
+         elif is_torch_tpu_available():
+             device = xm.xla_device()
+@@ -402,7 +433,7 @@ class TrainingArguments:
+         else:
+             # Here, we'll use torch.distributed.
+             # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+-            torch.distributed.init_process_group(backend="nccl")
++            torch.distributed.init_process_group(backend=self.dist_backend)
+             device = torch.device("cuda", self.local_rank)
+             n_gpu = 1
+ 
+diff --git a/src/transformers/training_args_tf.py b/src/transformers/training_args_tf.py
+index 2a99071..a3aac4c 100644
+--- a/src/transformers/training_args_tf.py
++++ b/src/transformers/training_args_tf.py
+@@ -7,7 +7,7 @@ from .training_args import TrainingArguments
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ if is_tf_available():
+     import tensorflow as tf
+diff --git a/submit_bert_lm.sh b/submit_bert_lm.sh
+new file mode 100644
+index 0000000..5d46016
+--- /dev/null
++++ b/submit_bert_lm.sh
+@@ -0,0 +1,34 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=01:00:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export NUM_WORKER=${NUM_WORKER:=0}
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++mpirun -x BATCH_SIZE=2 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
++mpirun -x BATCH_SIZE=4 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
++mpirun -x BATCH_SIZE=8 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
+diff --git a/submit_bert_mrpc.sh b/submit_bert_mrpc.sh
+new file mode 100644
+index 0000000..4d16953
+--- /dev/null
++++ b/submit_bert_mrpc.sh
+@@ -0,0 +1,35 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=01:00:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export TASK_NAME=${TASK_NAME:="MRPC"}
++export NUM_WORKER=${NUM_WORKER:=0}
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++mpirun -x BATCH_SIZE=16 -np 2 ./fj-misc/run_glue_multi_impl.sh
++mpirun -x BATCH_SIZE=32 -np 2 ./fj-misc/run_glue_multi_impl.sh
++mpirun -x BATCH_SIZE=64 -np 2 ./fj-misc/run_glue_multi_impl.sh
+diff --git a/templates/adding_a_new_example_script/run_xxx.py b/templates/adding_a_new_example_script/run_xxx.py
+index 2cab2a5..bf3de3a 100644
+--- a/templates/adding_a_new_example_script/run_xxx.py
++++ b/templates/adding_a_new_example_script/run_xxx.py
+@@ -58,7 +58,7 @@ except ImportError:
+     from tensorboardX import SummaryWriter
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ MODEL_CONFIG_CLASSES = list(MODEL_FOR_QUESTION_ANSWERING_MAPPING.keys())
+ MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
+diff --git a/templates/adding_a_new_example_script/utils_xxx.py b/templates/adding_a_new_example_script/utils_xxx.py
+index 48967b3..9aac9b3 100644
+--- a/templates/adding_a_new_example_script/utils_xxx.py
++++ b/templates/adding_a_new_example_script/utils_xxx.py
+@@ -26,7 +26,7 @@ from transformers.tokenization_bert import BasicTokenizer, whitespace_tokenize
+ from utils_squad_evaluate import find_all_best_thresh_v2, get_raw_scores, make_qid_to_has_ans
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ 
+ class SquadExample(object):
+diff --git a/templates/adding_a_new_model/configuration_xxx.py b/templates/adding_a_new_model/configuration_xxx.py
+index 34dc225..0e547f7 100644
+--- a/templates/adding_a_new_model/configuration_xxx.py
++++ b/templates/adding_a_new_model/configuration_xxx.py
+@@ -21,7 +21,7 @@ from typing import Callable, Union
+ from .configuration_utils import PretrainedConfig
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ XXX_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+     "xxx-base-uncased": "https://s3.amazonaws.com/models.huggingface.co/bert/xxx-base-uncased-config.json",
+diff --git a/templates/adding_a_new_model/modeling_tf_xxx.py b/templates/adding_a_new_model/modeling_tf_xxx.py
+index 7135b29..b44c0bb 100644
+--- a/templates/adding_a_new_model/modeling_tf_xxx.py
++++ b/templates/adding_a_new_model/modeling_tf_xxx.py
+@@ -51,7 +51,7 @@ from .tokenization_utils import BatchEncoding
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XXXConfig"
+ _TOKENIZER_FOR_DOC = "XxxTokenizer"
+diff --git a/templates/adding_a_new_model/modeling_xxx.py b/templates/adding_a_new_model/modeling_xxx.py
+index b563445..f2c566d 100644
+--- a/templates/adding_a_new_model/modeling_xxx.py
++++ b/templates/adding_a_new_model/modeling_xxx.py
+@@ -39,7 +39,7 @@ from .modeling_utils import PreTrainedModel
+ from .utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ _CONFIG_FOR_DOC = "XXXConfig"
+ _TOKENIZER_FOR_DOC = "XXXTokenizer"
+diff --git a/templates/adding_a_new_model/tokenization_xxx.py b/templates/adding_a_new_model/tokenization_xxx.py
+index 94b9eba..a33bce4 100644
+--- a/templates/adding_a_new_model/tokenization_xxx.py
++++ b/templates/adding_a_new_model/tokenization_xxx.py
+@@ -23,7 +23,7 @@ from typing import List, Optional, Tuple
+ from .tokenization_utils import PreTrainedTokenizer
+ 
+ 
+-logger = logging.getLogger(__name__)
++logger = logging.getLogger('__main__')
+ 
+ ####################################################
+ # In this template, replace all the XXX (various casings) with your model name
+diff --git a/tests/test_trainer_distributed.py b/tests/test_trainer_distributed.py
+index d9b9f74..404f1e6 100644
+--- a/tests/test_trainer_distributed.py
++++ b/tests/test_trainer_distributed.py
+@@ -20,7 +20,7 @@ from transformers import EvalPrediction, HfArgumentParser, TrainingArguments, is
+ from transformers.utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ if is_torch_available():
+diff --git a/tests/test_trainer_tpu.py b/tests/test_trainer_tpu.py
+index 6a522fc..6abb7f4 100644
+--- a/tests/test_trainer_tpu.py
++++ b/tests/test_trainer_tpu.py
+@@ -12,7 +12,7 @@ from transformers import EvalPrediction, HfArgumentParser, TrainingArguments, is
+ from transformers.utils import logging
+ 
+ 
+-logger = logging.get_logger(__name__)
++logger = logging.get_logger('__main__')
+ 
+ 
+ if is_torch_available():
