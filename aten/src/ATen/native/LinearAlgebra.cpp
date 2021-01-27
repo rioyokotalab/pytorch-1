@@ -394,6 +394,12 @@ Tensor& mm_cpu_out(Tensor & result, const Tensor & self, const Tensor & mat2) {
   TORCH_CHECK(self.dim() == 2, "self must be a matrix");
   TORCH_CHECK(mat2.dim() == 2, "mat2 must be a matrix");
   native::resize_(result, {self.sizes()[0], mat2.sizes()[1]});
+  if (at::globalContext().enabledAutoHalfGemm() && self.scalar_type() == kFloat) {
+    Tensor half_self = self.to(at::kHalf);
+    Tensor half_result = at::empty_like(result, result.options().dtype(ScalarType::Half));
+    addmm_cpu_out(half_result, half_result, half_self, mat2.to(at::kHalf), 0, 1);
+    return result.copy_(half_result);
+  }
   return addmm_cpu_out(result, result, self, mat2, 0, 1);
 }
 
@@ -401,6 +407,12 @@ Tensor mm_cpu(const Tensor & self, const Tensor & mat2) {
   TORCH_CHECK(self.dim() == 2, "self must be a matrix");
   TORCH_CHECK(mat2.dim() == 2, "mat2 must be a matrix");
   Tensor result = at::empty({self.sizes()[0], mat2.sizes()[1]}, self.options());
+  if (at::globalContext().enabledAutoHalfGemm() && self.scalar_type() == kFloat) {
+    Tensor half_self = self.to(at::kHalf);
+    Tensor half_result = at::empty_like(result, result.options().dtype(ScalarType::Half));
+    addmm_cpu_out(half_result, half_result, half_self, mat2.to(at::kHalf), 0, 1);
+    return result.copy_(half_result);
+  }
   return addmm_cpu_out(result, result, self, mat2, 0, 1);
 }
 

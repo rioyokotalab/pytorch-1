@@ -187,9 +187,15 @@ static inline void baddbmm_blas_template(const Tensor& res, const Tensor& mat1, 
 
 Tensor& _baddbmm_blas_(Tensor& self, const Tensor& batch1, const Tensor& batch2, Scalar beta, Scalar alpha) {
   // checks are done in native/LinearAlgebra.cpp
-  AT_DISPATCH_FLOATING_TYPES(self.scalar_type(), "baddbmm__blas", [&] {
+#if defined(__FUJITSU) || defined(__CLANG_FUJITSU)
+  AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::Half, self.scalar_type(), "_baddbmm_blas_", [&] {
       baddbmm_blas_template<scalar_t>(self, batch1, batch2, beta, alpha);
-    });
+  });
+#else
+  AT_DISPATCH_FLOATING_TYPES(self.scalar_type(), "_baddbmm_blas_", [&] {
+      baddbmm_blas_template<scalar_t>(self, batch1, batch2, beta, alpha);
+  });
+#endif
 
   return self;
 }

@@ -8,6 +8,9 @@ extern "C" void dgemm_(char *transa, char *transb, int *m, int *n, int *k, doubl
 extern "C" void sgemm_(char *transa, char *transb, int *m, int *n, int *k, float *alpha, const float *a, int *lda, const float *b, int *ldb, float *beta, float *c, int *ldc);
 extern "C" void cgemm_(char *transa, char *transb, int *m, int *n, int *k, void *alpha, const void *a, int *lda, const void *b, int *ldb, void *beta, void *c, int *ldc);
 extern "C" void zgemm_(char *transa, char *transb, int *m, int *n, int *k, void *alpha, const void *a, int *lda, const void *b, int *ldb, void *beta, void *c, int *ldc);
+#if defined(__FUJITSU) || defined(__CLANG_FUJITSU)
+extern "C" void fjblas_gemm_r16_(char *transa, char *transb, int *m, int *n, int *k, void *alpha, const void *a, int *lda, const void *b, int *ldb, void *beta, void *c, int *ldc);
+#endif
 #endif  // AT_BUILD_WITH_BLAS()
 
 #ifdef USE_FBGEMM
@@ -146,6 +149,38 @@ void gemm(
       at::kCPU, at::kFloat,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
+
+#if defined(__FUJITSU) || defined(__CLANG_FUJITSU)
+void gemm(
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    const at::Half alpha,
+    const at::Half *a, int64_t lda,
+    const at::Half *b, int64_t ldb,
+    const at::Half beta,
+    at::Half *c, int64_t ldc) {
+  internal::normalize_last_dims(transa, transb, m, n, k, &lda, &ldb, &ldc);
+#if AT_BUILD_WITH_BLAS()
+  if (use_blas_gemm(transa, transb, m, n, k, lda, ldb, ldc)) {
+    int m_ = m, n_ = n, k_ = k, lda_ = lda, ldb_ = ldb, ldc_ = ldc;
+    char transa_ = to_blas(transa), transb_ = to_blas(transb);
+    at::Half alpha_ = alpha, beta_ = beta;
+    fjblas_gemm_r16_(
+        &transa_, &transb_,
+        &m_, &n_, &k_,
+        &alpha_,
+        a, &lda_,
+        b, &ldb_,
+        &beta_,
+        c, &ldc_);
+    return;
+  }
+#endif
+  gemm_stub(
+      at::kCPU, at::kHalf,
+      transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+}
+#endif
 
 void gemm(
     TransposeType transa, TransposeType transb,

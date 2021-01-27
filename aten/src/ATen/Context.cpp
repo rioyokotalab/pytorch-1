@@ -51,6 +51,23 @@ void Context::setUserEnabledMkldnn(bool e) {
   enabled_mkldnn = e;
 }
 
+bool Context::enabledAutoHalfGemm() const {
+#if !defined(__FUJITSU) && !defined(__CLANG_FUJITSU)
+  return false;
+#else
+  return enabled_auto_half_gemm;
+#endif
+}
+
+void Context::setEnabledAutoHalfGemm(bool e) {
+#if !defined(__FUJITSU) && !defined(__CLANG_FUJITSU)
+  TORCH_WARN_ONCE("torch.set_enabled_auto_half_gemm is only "
+		  "supported when building in FCC.");
+#else
+  enabled_auto_half_gemm = e;
+#endif
+}
+
 bool Context::deterministicCuDNN() const {
   return deterministic_cudnn;
 }

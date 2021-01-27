@@ -67,6 +67,17 @@ void gemm(
     float beta,
     float *c, int64_t ldc);
 
+#if defined(__FUJITSU) || defined(__CLANG_FUJITSU)
+void gemm(
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    const at::Half alpha,
+    const at::Half *a, int64_t lda,
+    const at::Half *b, int64_t ldb,
+    const at::Half beta,
+    at::Half *c, int64_t ldc);
+#endif
+
 void gemm(
     TransposeType transa, TransposeType transb,
     int64_t m, int64_t n, int64_t k,
