@@ -405,6 +405,12 @@ def is_deterministic():
     """
     return _C._get_deterministic()
 
+def set_enabled_auto_half_gemm(b):
+    _C._set_enabled_auto_half_gemm(b)
+
+def get_enabled_auto_half_gemm():
+    return _C._get_enabled_auto_half_gemm()
+
 ################################################################################
 # Define Storage and Tensor classes
 ################################################################################

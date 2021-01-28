@@ -436,6 +436,20 @@ PyObject *THPModule_userEnabledMkldnn(PyObject *_unused, PyObject *noargs)
   else Py_RETURN_FALSE;
 }
 
+PyObject *THPModule_setEnabledAutoHalfGemm(PyObject *_unused, PyObject *arg)
+{
+  THPUtils_assert(PyBool_Check(arg), "set_enabled_auto_half_gemm expects a bool, "
+          "but got %s", THPUtils_typename(arg));
+  at::globalContext().setEnabledAutoHalfGemm(arg == Py_True);
+  Py_RETURN_NONE;
+}
+
+PyObject *THPModule_enabledAutoHalfGemm(PyObject *_unused, PyObject *noargs)
+{
+  if (at::globalContext().enabledAutoHalfGemm()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
 PyObject *THPModule_setDeterministicCuDNN(PyObject *_unused, PyObject *arg)
 {
   THPUtils_assert(PyBool_Check(arg), "set_deterministic_cudnn expects a bool, "
@@ -597,6 +611,8 @@ static PyMethodDef TorchMethods[] = {
   {"_set_cudnn_enabled", (PyCFunction)THPModule_setUserEnabledCuDNN, METH_O,  nullptr},
   {"_get_mkldnn_enabled", (PyCFunction)THPModule_userEnabledMkldnn, METH_NOARGS,     nullptr},
   {"_set_mkldnn_enabled", (PyCFunction)THPModule_setUserEnabledMkldnn, METH_O,  nullptr},
+  {"_get_enabled_auto_half_gemm", (PyCFunction)THPModule_enabledAutoHalfGemm, METH_NOARGS,     nullptr},
+  {"_set_enabled_auto_half_gemm", (PyCFunction)THPModule_setEnabledAutoHalfGemm, METH_O,  nullptr},
   {"_get_cudnn_allow_tf32", (PyCFunction)THPModule_allowTF32CuDNN, METH_NOARGS,     nullptr},
   {"_set_cudnn_allow_tf32", (PyCFunction)THPModule_setAllowTF32CuDNN, METH_O,  nullptr},
   {"_get_cudnn_benchmark", (PyCFunction)THPModule_benchmarkCuDNN, METH_NOARGS,     nullptr},

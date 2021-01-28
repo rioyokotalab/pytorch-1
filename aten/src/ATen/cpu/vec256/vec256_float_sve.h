@@ -392,6 +392,30 @@ inline void convert(const float* src, float* dst, int64_t n) {
 }
 
 template <>
+inline void convert(const float *src, at::Half *dst, int64_t n) {
+#pragma unroll
+  for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
+    svbool_t pg_16 = svwhilelt_b16(i, n);
+    svbool_t pg_32 = svwhilelt_b32(i, n);
+    svfloat16_t src_vec = svuzp1_f16(svcvt_f16_f32_x(ptrue, svldnt1_f32(pg_32, src + i)),
+				     svdup_n_f16(0.0));
+    svst1_f16(pg_16, reinterpret_cast<float16_t*>(dst) + i, src_vec);
+  }
+}
+
+template <>
+inline void convert(const at::Half *src, float *dst, int64_t n) {
+#pragma unroll
+  for (int64_t i = 0; i < n; i += Vec256<float>::size()) {
+    svbool_t pg_16 = svwhilelt_b16(i, n);
+    svbool_t pg_32 = svwhilelt_b32(i, n);
+    svfloat16_t src_vec = svzip1_f16(svldnt1_f16(pg_16, reinterpret_cast<const float16_t*>(src) + i),
+				     svdup_n_f16(0.0));
+    svst1_f32(pg_32, dst + i, svcvt_f32_f16_x(ptrue, src_vec));
+  }
+}
+
+template <>
 Vec256<float> inline fmadd(const Vec256<float>& a, const Vec256<float>& b, const Vec256<float>& c) {
   return svmad_f32_x(ptrue, a, b, c);
 }

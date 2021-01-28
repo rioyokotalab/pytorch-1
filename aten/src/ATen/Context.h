@@ -112,6 +112,8 @@ class CAFFE2_API Context {
   void setBenchmarkCuDNN(bool);
   bool deterministicCuDNN() const;
   void setDeterministicCuDNN(bool);
+  bool enabledAutoHalfGemm() const;
+  void setEnabledAutoHalfGemm(bool e);
 
   // Note [Enabling Deterministic Operations]
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,6 +217,7 @@ class CAFFE2_API Context {
   bool allow_tf32_cudnn = true;
   bool allow_tf32_cublas = true;
   bool enabled_mkldnn = true;
+  bool enabled_auto_half_gemm = false;
   #ifdef C10_MOBILE
   bool release_original_weights = true;
   #else
