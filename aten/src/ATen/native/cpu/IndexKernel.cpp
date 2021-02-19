@@ -3,10 +3,15 @@
 #include <cmath>
 #include <iostream>
 #include <ATen/Dispatch.h>
+#include <ATen/LegacyTHFunctionsCPU.h>
 #include <ATen/native/TensorIterator.h>
 #include <ATen/Parallel.h>
 #include <ATen/cpu/vec256/vec256.h>
 #include <ATen/native/cpu/AtomicAddFloat.h>
+
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+#include <arm_sve.h>
+#endif
 
 namespace at { namespace native {
 namespace {
@@ -241,7 +246,81 @@ void masked_select_kernel(TensorIterator& iter, int64_t result_stride) {
     });
 }
 
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+#define NONZERO_OUT_1D_S32_SVE_TEMPLATE(stype, vtype, bit_stype, zero_value)            \
+template <typename scalar_t,						                \
+	  typename std::enable_if<std::is_same<scalar_t, stype>::value, int>::type = 0> \
+void nonzero_out_1d_template(Tensor & result, const Tensor & self) {                    \
+  const int64_t numel = self.numel();                                                   \
+  Tensor result_buf =                                                                   \
+    at::empty({numel, 1}, self.options().dtype(at::kInt));                              \
+  int64_t total_index = 0;                                                              \
+  vtype zero = svdup_n_##bit_stype##32(zero_value);                                     \
+  svint32_t zero_s32 = svdup_n_s32(0);                                                  \
+  const scalar_t* self_ptr = self.data_ptr<scalar_t>();                                 \
+  int32_t* result_buf_ptr = result_buf.data_ptr<int32_t>();                             \
+  for (int64_t i = 0; i < numel; i += svcntw()) {                                       \
+    svbool_t pg = svwhilelt_b32(i, numel);                                              \
+    svbool_t mask =                                                                     \
+      svcmpne_##bit_stype##32(pg, svld1_##bit_stype##32(pg, self_ptr + i), zero);       \
+    svint32_t index_base = svindex_s32(i, 1);                                           \
+    svint32_t index = svcompact_s32(mask, index_base);                                  \
+    int64_t nonzero = (int64_t)svcntp_b32(pg, mask);                                    \
+    pg = svwhilelt_b32(0ull, nonzero);                                                  \
+    svst1_s32(pg, result_buf_ptr + total_index, index);                                 \
+    total_index += nonzero;                                                             \
+  }                                                                                     \
+  result_buf.resize_({total_index, 1});                                                 \
+  result.resize_({total_index, 1});                                                     \
+  result.copy_(result_buf);                                                             \
+}
+
+NONZERO_OUT_1D_S32_SVE_TEMPLATE(float, svfloat32_t, f, 0.f)
+NONZERO_OUT_1D_S32_SVE_TEMPLATE(int32_t, svint32_t, s, 0)
+#endif
+
 } // anonymous namespace
+
+Tensor& nonzero_out_cpu(Tensor & result, const Tensor & self) {
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+  if (4096 < self.numel() && self.numel() < 2147483647) {
+    if (self.is_contiguous() && self.dim() == 1) {
+      if (self.scalar_type() == kBool || self.scalar_type() == kByte ||
+	  self.scalar_type() == kChar || self.scalar_type() == kShort ||
+	  self.scalar_type() == kInt) {
+	nonzero_out_1d_template<int32_t>(result, self.to(at::kInt));
+	return result;
+      } else if(self.scalar_type() == kFloat) {
+	nonzero_out_1d_template<float>(result, self);
+	return result;
+      }
+    }
+  }
+#endif
+  return at::native::legacy::cpu::_th_nonzero_out(result, self);
+}
+
+Tensor nonzero_cpu(const Tensor & self) {
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+  if (4096 < self.numel() && self.numel() < 2147483647) {
+    if (self.is_contiguous() && self.dim() == 1) {
+      Tensor result = at::empty({}, self.options().dtype(at::kLong));
+      if (self.scalar_type() == kBool || self.scalar_type() == kByte ||
+          self.scalar_type() == kChar || self.scalar_type() == kShort ||
+	  self.scalar_type() == kInt) {
+	Tensor result = at::empty({}, self.options().dtype(at::kLong));
+        nonzero_out_1d_template<int32_t>(result, self.to(at::kInt));
+        return result;
+      } else if(self.scalar_type() == kFloat) {
+	Tensor result = at::empty({}, self.options().dtype(at::kLong));
+	nonzero_out_1d_template<float>(result, self);
+        return result;
+      }
+    }
+  }
+#endif
+  return at::native::legacy::cpu::_th_nonzero(self);
+}
 
 REGISTER_DISPATCH(index_stub, &index_kernel);
 REGISTER_DISPATCH(index_put_stub, &index_put_kernel);
