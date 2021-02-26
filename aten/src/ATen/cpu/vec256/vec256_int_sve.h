@@ -261,10 +261,16 @@ Vec256<int8_t> inline operator/(const Vec256<int8_t>& a, const Vec256<int8_t>& b
 
 template <>
 inline void convert(const int32_t *src, int64_t *dst, int64_t n) {
+  const int64_t fraction = n % Vec256<int64_t>::size();
+  svbool_t pg_32 = svwhilelt_b32(0ull, Vec256<int64_t>::size());
+  svbool_t pg_64 = svwhilelt_b64(0ull, Vec256<int64_t>::size());
 #pragma unroll
-  for (int64_t i = 0; i < n; i += Vec256<int64_t>::size()) {
-    svbool_t pg_32 = svwhilelt_b32(i, n);
-    svbool_t pg_64 = svwhilelt_b64(i, n);
+  for (int64_t i = 0; i < n - fraction; i += Vec256<int64_t>::size())
+    svst1_s64(pg_64, dst + i, svunpklo_s64(svldnt1_s32(pg_32, src + i)));
+#pragma unroll
+  for (int64_t i = n - fraction; i < n; i += Vec256<int64_t>::size()) {
+    pg_32 = svwhilelt_b32(i, n);
+    pg_64 = svwhilelt_b64(i, n);
     svst1_s64(pg_64, dst + i, svunpklo_s64(svldnt1_s32(pg_32, src + i)));
   }
 }
