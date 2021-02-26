@@ -107,21 +107,34 @@ static void sort_kernel(
       int64_t dim_size
     ) {
       using scalar_t = typename std::remove_pointer<decltype(values)>::type;
-      auto values_accessor = StridedRandomAccessor<scalar_t>(
-        values, values_dim_stride);
-      auto indices_accessor = StridedRandomAccessor<int64_t>(
-        indices, indices_dim_stride);
-      auto composite_accessor = CompositeRandomAccessorCPU<
-        decltype(values_accessor), decltype(indices_accessor)
-      >(values_accessor, indices_accessor);
-      
-      if (descending) {
-        std::sort(composite_accessor, composite_accessor + dim_size,
-          KeyValueCompDesc<scalar_t>());
-      }
-      else {
-        std::sort(composite_accessor, composite_accessor + dim_size,
-          KeyValueCompAsc<scalar_t>());
+      if (values_dim_stride == 1 && indices_dim_stride == 1) {
+        auto composite_accessor = CompositeRandomAccessorCPU<
+          decltype(values), decltype(indices)
+        >(values, indices);
+
+        if (descending) {
+          std::sort(composite_accessor, composite_accessor + dim_size,
+            KeyValueCompDesc<scalar_t>());
+        } else {
+          std::sort(composite_accessor, composite_accessor + dim_size,
+            KeyValueCompAsc<scalar_t>());
+        }
+      } else {
+	auto values_accessor = StridedRandomAccessor<scalar_t>(
+          values, values_dim_stride);
+	auto indices_accessor = StridedRandomAccessor<int64_t>(
+          indices, indices_dim_stride);
+	auto composite_accessor = CompositeRandomAccessorCPU<
+          decltype(values_accessor), decltype(indices_accessor)
+        >(values_accessor, indices_accessor);
+
+	if (descending) {
+	  std::sort(composite_accessor, composite_accessor + dim_size,
+            KeyValueCompDesc<scalar_t>());
+	} else {
+	  std::sort(composite_accessor, composite_accessor + dim_size,
+            KeyValueCompAsc<scalar_t>());
+	}
       }
     }
   );
