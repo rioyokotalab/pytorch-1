@@ -829,6 +829,18 @@ TensorIterator TensorIterator::binary_op(Tensor& out, const Tensor& a,
      .build();
 }
 
+TensorIterator TensorIterator::binary_scalar_op(Tensor& out, const Tensor& a) {
+  return TensorIteratorConfig()
+     .set_check_mem_overlap(true)
+     .add_output(out)
+     .add_input(a)
+     .allow_cpu_scalars(true)
+     .promote_inputs_to_common_dtype(true)
+     .cast_common_dtype_to_outputs(true)
+     .enforce_safe_casting_to_output(true)
+     .build();
+}
+
 // Helper to construct a binary op that promotes integer inputs to float.
 TensorIterator TensorIterator::binary_float_op(Tensor& out, const Tensor& a,
     const Tensor& b) {
@@ -837,6 +849,19 @@ TensorIterator TensorIterator::binary_float_op(Tensor& out, const Tensor& a,
      .add_output(out)
      .add_input(a)
      .add_input(b)
+     .allow_cpu_scalars(true)
+     .promote_inputs_to_common_dtype(true)
+     .cast_common_dtype_to_outputs(true)
+     .enforce_safe_casting_to_output(true)
+     .promote_integer_inputs_to_float(true)
+     .build();
+}
+
+TensorIterator TensorIterator::binary_float_scalar_op(Tensor& out, const Tensor& a) {
+  return TensorIteratorConfig()
+     .set_check_mem_overlap(true)
+     .add_output(out)
+     .add_input(a)
      .allow_cpu_scalars(true)
      .promote_inputs_to_common_dtype(true)
      .cast_common_dtype_to_outputs(true)

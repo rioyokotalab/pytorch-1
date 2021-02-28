@@ -14,10 +14,14 @@ namespace at {
 namespace native {
 
 DEFINE_DISPATCH(add_stub);
+DEFINE_DISPATCH(add_scalar_stub);
 DEFINE_DISPATCH(add_clamp_stub);
 DEFINE_DISPATCH(sub_stub);
+DEFINE_DISPATCH(sub_scalar_stub);
 DEFINE_DISPATCH(mul_stub);
+DEFINE_DISPATCH(mul_scalar_stub);
 DEFINE_DISPATCH(div_stub);
+DEFINE_DISPATCH(div_scalar_stub);
 DEFINE_DISPATCH(remainder_stub);
 DEFINE_DISPATCH(atan2_stub);
 DEFINE_DISPATCH(bitwise_and_stub);
@@ -55,9 +59,28 @@ static Tensor wrapped_scalar_tensor(Scalar scalar) {
   return tensor;
 }
 
+static bool is_scalar_kernel_support(const Tensor& self, const Tensor& other) {
+  if (other.dim() != 0 || other.numel() != 1) {
+    return false;
+  }
+  if (!canCast(other.scalar_type(), self.scalar_type())) {
+    return false;
+  }
+  if (self.device().type() == kCPU) {
+    return true;
+  }
+  return false;
+}
+
 Tensor& add_out(Tensor& result, const Tensor& self, const Tensor& other, Scalar alpha) {
   if (self.is_mkldnn()) {
     return native::mkldnn_add_out(result, self, other, alpha);
+  }
+  if (is_scalar_kernel_support(self, other)) {
+    auto iter = TensorIterator::binary_scalar_op(result, self);
+    alpha_check(iter.dtype(), alpha);
+    add_scalar_stub(iter.device_type(), iter, other.item(), alpha);
+    return result;
   }
   auto iter = TensorIterator::binary_op(result, self, other);
   alpha_check(iter.dtype(), alpha);
@@ -125,6 +148,11 @@ Tensor& add_relu_(Tensor& self, const Tensor& other, Scalar alpha) {
 }
 
 Tensor& div_out(Tensor& result, const Tensor& self, const Tensor& other) {
+  if (is_scalar_kernel_support(self, other)) {
+    auto iter = TensorIterator::binary_float_scalar_op(result, self);
+    div_scalar_stub(iter.device_type(), iter, other.item());
+    return result;
+  }
   auto iter = TensorIterator::binary_float_op(result, self, other);
   div_stub(iter.device_type(), iter);
   return result;
@@ -247,6 +275,11 @@ Tensor& mul_out(Tensor& result, const Tensor& self, const Tensor& other) {
   if (self.is_mkldnn()) {
     return native::mkldnn_mul_out(result, self, other);
   }
+  if (is_scalar_kernel_support(self, other)) {
+    auto iter = TensorIterator::binary_scalar_op(result, self);
+    mul_scalar_stub(iter.device_type(), iter, other.item());
+    return result;
+  }
   auto iter = TensorIterator::binary_op(result, self, other);
   mul_stub(iter.device_type(), iter);
   return result;
@@ -294,6 +327,12 @@ Tensor& multiply_(Tensor& self, Scalar other) {
 
 Tensor& sub_out(Tensor& result, const Tensor& self, const Tensor& other, Scalar alpha) {
   sub_check(self, other);
+  if (is_scalar_kernel_support(self, other)) {
+    auto iter = TensorIterator::binary_scalar_op(result, self);
+    alpha_check(iter.dtype(), alpha);
+    sub_scalar_stub(iter.device_type(), iter, other.item(), alpha);
+    return result;
+  }
   auto iter = TensorIterator::binary_op(result, self, other);
   alpha_check(iter.dtype(), alpha);
   sub_stub(iter.device_type(), iter, alpha);

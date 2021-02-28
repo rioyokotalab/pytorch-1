@@ -40,6 +40,28 @@ void add_kernel(TensorIterator& iter, Scalar alpha_scalar) {
   }
 }
 
+void add_scalar_kernel(TensorIterator& iter, Scalar other, Scalar alpha_scalar) {
+  if (iter.dtype() == ScalarType::Bool) {
+    using scalar_t = bool;
+    auto alpha = alpha_scalar.to<scalar_t>();
+    auto b = other.to<scalar_t>();
+    cpu_kernel(iter,
+        [=](scalar_t a) __ubsan_ignore_undefined__ -> scalar_t { return a + alpha * b; });
+  } else {
+    AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND2(kBFloat16, kHalf, iter.dtype(), "add_scalar_cpu/sub_scalar_cpu", [&]() {
+      auto alpha = alpha_scalar.to<scalar_t>();
+      auto alpha_vec = Vec256<scalar_t>(alpha);
+      auto b = other.to<scalar_t>();
+      auto b_vec = Vec256<scalar_t>(b);
+      cpu_kernel_vec(iter,
+        [=](scalar_t a) __ubsan_ignore_undefined__ -> scalar_t { return a + alpha * b; },
+        [=](Vec256<scalar_t> a) __ubsan_ignore_undefined__ {
+          return vec256::fmadd(b_vec, alpha_vec, a);
+        });
+    });
+  }
+}
+
 void add_clamp_kernel(TensorIterator& iter, Scalar alpha_scalar, Scalar min_val, Scalar max_val) {
   AT_DISPATCH_ALL_TYPES(iter.dtype(), "add_clamp_cpu", [&]() {
     auto alpha = alpha_scalar.to<scalar_t>();
@@ -78,6 +100,10 @@ void sub_kernel(TensorIterator& iter, Scalar alpha_scalar) __ubsan_ignore_undefi
   add_kernel(iter, -alpha_scalar);
 }
 
+void sub_scalar_kernel(TensorIterator& iter, Scalar other, Scalar alpha_scalar) __ubsan_ignore_undefined__ {
+  add_scalar_kernel(iter, other, -alpha_scalar);
+}
+
 void mul_kernel(TensorIterator& iter) {
   if (iter.dtype() == ScalarType::Bool) {
     cpu_kernel(iter, [=](bool a, bool b) -> bool { return a && b; });
@@ -87,6 +113,23 @@ void mul_kernel(TensorIterator& iter) {
         [=](scalar_t a, scalar_t b) -> scalar_t { return a * b; },
         [=](Vec256<scalar_t> a, Vec256<scalar_t> b) {
           return a * b;
+        });
+    });
+  }
+}
+
+void mul_scalar_kernel(TensorIterator& iter, Scalar other) {
+  if (iter.dtype() == ScalarType::Bool) {
+    auto b = other.to<bool>();
+    cpu_kernel(iter, [=](bool a) -> bool { return a && b; });
+  } else {
+    AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND2(kBFloat16, kHalf, iter.dtype(), "mul_scalar_cpu", [&]() {
+      const scalar_t b = other.to<scalar_t>();
+      const Vec256<scalar_t> b_vec(b);
+      cpu_kernel_vec(iter,
+        [=](scalar_t a) -> scalar_t { return a * b; },
+        [=](Vec256<scalar_t> a) {
+          return a * b_vec;
         });
     });
   }
@@ -110,6 +153,32 @@ void div_kernel(TensorIterator& iter) {
         },
         [](Vec256<scalar_t> a, Vec256<scalar_t> b) {
           return a / b;
+        });
+    });
+  }
+}
+
+void div_scalar_kernel(TensorIterator& iter, Scalar other) {
+  if (isIntegralType(iter.dtype(), /*includeBool*/ false)) {
+    // There's no SIMD integer division, so don't try to vectorize it.
+    // TODO: if the divisor is a scalar, rewrite as multiplication by a constant.
+    AT_DISPATCH_INTEGRAL_TYPES(iter.dtype(), "div_scalar_cpu", [&]() {
+      auto b = other.to<scalar_t>();
+      cpu_kernel(iter, [=](scalar_t a) -> scalar_t {
+        TORCH_CHECK(b != 0, "ZeroDivisionError");
+        return a / b;
+      });
+    });
+  } else {
+    AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND2(kBFloat16, kHalf, iter.dtype(), "div_scalar_cpu", [&]() {
+      const scalar_t b = other.to<scalar_t>();
+      const Vec256<scalar_t> b_vec(b);
+      cpu_kernel_vec(iter,
+        [=](scalar_t a) __ubsan_ignore_float_divide_by_zero__ -> scalar_t {
+          return a / b;
+        },
+        [=](Vec256<scalar_t> a) {
+          return a / b_vec;
         });
     });
   }
@@ -776,10 +845,14 @@ void heaviside_kernel(TensorIterator& iter) {
 } // namespace
 
 REGISTER_DISPATCH(add_stub, &add_kernel);
+REGISTER_DISPATCH(add_scalar_stub, &add_scalar_kernel);
 REGISTER_DISPATCH(add_clamp_stub, &add_clamp_kernel);
 REGISTER_DISPATCH(sub_stub, &sub_kernel);
+REGISTER_DISPATCH(sub_scalar_stub, &sub_scalar_kernel);
 REGISTER_DISPATCH(mul_stub, &mul_kernel);
+REGISTER_DISPATCH(mul_scalar_stub, &mul_scalar_kernel);
 REGISTER_DISPATCH(div_stub, &div_kernel);
+REGISTER_DISPATCH(div_scalar_stub, &div_scalar_kernel);
 REGISTER_DISPATCH(remainder_stub, &remainder_kernel);
 REGISTER_DISPATCH(atan2_stub, &atan2_kernel);
 REGISTER_DISPATCH(bitwise_and_stub, &bitwise_and_kernel);

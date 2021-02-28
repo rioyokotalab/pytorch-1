@@ -27,15 +27,21 @@ inline void sub_check(const Tensor& self, const Tensor& other) {
 
 using binary_fn_alpha = void(*)(TensorIterator&, Scalar alpha);
 using binary_fn_beta = void(*)(TensorIterator&, double beta);
+using binary_fn_scalar = void(*)(TensorIterator&, Scalar other);
+using binary_fn_scalar_alpha = void(*)(TensorIterator&, Scalar other, Scalar alpha);
 using binary_fn = void(*)(TensorIterator&);
 using binary_clamp_fn_alpha =
     void(*)(TensorIterator&, Scalar alpha, Scalar min_val, Scalar max_val);
 
 DECLARE_DISPATCH(binary_fn_alpha, add_stub);
+DECLARE_DISPATCH(binary_fn_scalar_alpha, add_scalar_stub);
 DECLARE_DISPATCH(binary_clamp_fn_alpha, add_clamp_stub);
 DECLARE_DISPATCH(binary_fn_alpha, sub_stub);
+DECLARE_DISPATCH(binary_fn_scalar_alpha, sub_scalar_stub);
 DECLARE_DISPATCH(binary_fn, mul_stub);
+DECLARE_DISPATCH(binary_fn_scalar, mul_scalar_stub);
 DECLARE_DISPATCH(binary_fn, div_stub);
+DECLARE_DISPATCH(binary_fn_scalar, div_scalar_stub);
 DECLARE_DISPATCH(binary_fn, remainder_stub);
 DECLARE_DISPATCH(binary_fn, atan2_stub);
 DECLARE_DISPATCH(binary_fn, bitwise_and_stub);
