@@ -12,21 +12,53 @@ namespace {
 
 #if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 static inline bool is_vec_copy_support(const TensorIterator& iter) {
-  if (!iter.is_contiguous()) {
+  const int64_t numel = iter.numel();
+  auto dst_dtype = iter.dtype(0);
+  auto src_dtype = iter.dtype(1);
+
+  if (!iter.is_contiguous())
     return false;
-  }
-  if (iter.dtype(0) == ScalarType::Float) {
-    if (iter.numel() > 256 && iter.dtype(1) == ScalarType::Half) {
-      return true;
-    }
-  } else if (iter.dtype(0) == ScalarType::Half) {
-    if (iter.numel() > 256 && iter.dtype(1) == ScalarType::Float) {
-      return true;
-    }
-  } else if (iter.dtype(0) == ScalarType::Long) {
-    if (iter.numel() > 4096 && iter.dtype(1) == ScalarType::Int) {
-      return true;
-    }
+  switch (dst_dtype) {
+    case ScalarType::Float:
+      if (numel > 256 && src_dtype == ScalarType::Half) {
+	return true;
+      } else if (numel > 4096 && src_dtype == ScalarType::Long) {
+	return true;
+      } else if (numel > 8192 && src_dtype == ScalarType::Int) {
+	return true;
+      } else if (numel > 4096 && src_dtype == ScalarType::Bool) {
+	if (elementSize(ScalarType::Bool) != 1)
+          return false;
+	return true;
+      }
+      break;
+    case ScalarType::Half:
+      if (numel > 256 && src_dtype == ScalarType::Float) {
+	return true;
+      }
+      break;
+    case ScalarType::Long:
+      if (numel > 4096 && src_dtype == ScalarType::Int) {
+	return true;
+      } else if (numel > 32768 && src_dtype == ScalarType::Bool) {
+	if (elementSize(ScalarType::Bool) != 1)
+          return false;
+	return true;
+      }
+      break;
+    case ScalarType::Int:
+      if (numel > 8192 && src_dtype == ScalarType::Bool) {
+	if (elementSize(ScalarType::Bool) != 1)
+	  return false;
+	return true;
+      }
+      break;
+    case ScalarType::Bool:
+      if (elementSize(ScalarType::Bool) != 1)
+	return false;
+      if (numel > 4096 && src_dtype == ScalarType::Byte)
+	return true;
+      break;
   }
   return false;
 }

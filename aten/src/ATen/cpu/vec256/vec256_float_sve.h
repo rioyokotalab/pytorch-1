@@ -416,6 +416,32 @@ inline void convert(const at::Half *src, float *dst, int64_t n) {
 }
 
 template <>
+inline void convert(const bool *src, float *dst, int64_t n) {
+  const int64_t fraction = n % Vec256<float>::size();
+  svbool_t pg_8 = svwhilelt_b8(0ull, Vec256<float>::size());
+  svbool_t pg_32 = svwhilelt_b32(0ull, Vec256<float>::size());
+  svuint32_t zero_u32 = svdup_n_u32(0);
+  svfloat32_t zero_f32 = svdup_n_f32(0.f);
+  svfloat32_t one_f32 = svdup_n_f32(1.f);
+#pragma unroll
+  for (int64_t i = 0; i < n - fraction; i += Vec256<float>::size()) {
+    svuint8_t src_vec_u8 = svldnt1_u8(pg_8, reinterpret_cast<const uint8_t*>(src) + i);
+    svuint32_t src_vec_u32 = svunpklo_u32(svunpklo_u16(src_vec_u8));
+    svbool_t mask = svcmpne_u32(pg_32, src_vec_u32, zero_u32);
+    svst1_f32(pg_32, dst + i, svsel_f32(mask, one_f32, zero_f32));
+  }
+#pragma unroll
+  for (int64_t i = n - fraction; i < n; i += Vec256<float>::size()) {
+    pg_8 = svwhilelt_b8(i, n);
+    pg_32 = svwhilelt_b32(i, n);
+    svuint8_t src_vec_u8 = svldnt1_u8(pg_8, reinterpret_cast<const uint8_t*>(src) + i);
+    svuint32_t src_vec_u32 = svunpklo_u32(svunpklo_u16(src_vec_u8));
+    svbool_t mask = svcmpne_u32(pg_32, src_vec_u32, zero_u32);
+    svst1_f32(pg_32, dst + i, svsel_f32(mask, one_f32, zero_f32));
+  }
+}
+
+template <>
 Vec256<float> inline fmadd(const Vec256<float>& a, const Vec256<float>& b, const Vec256<float>& c) {
   return svmad_f32_x(ptrue, a, b, c);
 }
