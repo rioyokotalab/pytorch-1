@@ -250,7 +250,7 @@ void masked_select_kernel(TensorIterator& iter, int64_t result_stride) {
 #define NONZERO_OUT_1D_S32_SVE_TEMPLATE(stype, vtype, bit_stype, zero_value)                \
 template <typename scalar_t,						                    \
 	  typename std::enable_if<std::is_same<scalar_t, stype>::value, int>::type = 0>     \
-void nonzero_out_1d_template(Tensor & result, const Tensor & self) {                        \
+void nonzero_out_1d_impl(Tensor & result, const Tensor & self) {                            \
   TORCH_CHECK(result.dtype() == kLong, "output indices must be of scalar type Long");       \
   const int64_t numel = self.numel();                                                       \
   Tensor result_buf =                                                                       \
@@ -290,50 +290,34 @@ void nonzero_out_1d_template(Tensor & result, const Tensor & self) {            
 
 NONZERO_OUT_1D_S32_SVE_TEMPLATE(float, svfloat32_t, f, 0.f)
 NONZERO_OUT_1D_S32_SVE_TEMPLATE(int32_t, svint32_t, s, 0)
-#endif
+#else
+template <typename scalar_t>
+void nonzero_out_1d_impl(Tensor &, const Tensor &) {
+}
+#endif // defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 
-} // anonymous namespace
-
-Tensor& nonzero_out_cpu(Tensor & result, const Tensor & self) {
-#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
-  if (4096 < self.numel() && self.numel() <= INT32_MAX) {
+Tensor& _nonzero_(Tensor & result, const Tensor & self) {
+  if (self.numel() <= INT32_MAX) {
     if (self.is_contiguous() && self.dim() == 1) {
       if (self.scalar_type() != kLong && isIntegralType(self.scalar_type(), true)) {
-	nonzero_out_1d_template<int32_t>(result, self.to(at::kInt));
-	return result;
+        nonzero_out_1d_impl<int32_t>(result, self.to(at::kInt));
+        return result;
       } else if(self.scalar_type() == kFloat) {
-	nonzero_out_1d_template<float>(result, self);
-	return result;
+        nonzero_out_1d_impl<float>(result, self);
+        return result;
       }
     }
   }
-#endif
   return at::native::legacy::cpu::_th_nonzero_out(result, self);
 }
 
-Tensor nonzero_cpu(const Tensor & self) {
-#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
-  if (4096 < self.numel() && self.numel() <= INT32_MAX) {
-    if (self.is_contiguous() && self.dim() == 1) {
-      if (self.scalar_type() != kLong && isIntegralType(self.scalar_type(), true)) {
-	Tensor result = at::empty({}, self.options().dtype(at::kLong));
-        nonzero_out_1d_template<int32_t>(result, self.to(at::kInt));
-        return result;
-      } else if(self.scalar_type() == kFloat) {
-	Tensor result = at::empty({}, self.options().dtype(at::kLong));
-	nonzero_out_1d_template<float>(result, self);
-        return result;
-      }
-    }
-  }
-#endif
-  return at::native::legacy::cpu::_th_nonzero(self);
-}
+} // anonymous namespace
 
 REGISTER_DISPATCH(index_stub, &index_kernel);
 REGISTER_DISPATCH(index_put_stub, &index_put_kernel);
 REGISTER_DISPATCH(masked_fill_stub, &masked_fill_kernel);
 REGISTER_DISPATCH(masked_select_serial_stub, &masked_select_serial_kernel);
 REGISTER_DISPATCH(masked_select_stub, &masked_select_kernel);
+REGISTER_DISPATCH(nonzero_stub, &_nonzero_);
 
 }} // namespace at::native

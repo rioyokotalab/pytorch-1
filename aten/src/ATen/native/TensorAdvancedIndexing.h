@@ -27,6 +27,7 @@ using scatter_reduce_fn = void(*)(Tensor& self, const int64_t dim, const Tensor&
                                   const Tensor& src, const SCATTER_GATHER_OP& reduce);
 using scatter_scalar_reduce_fn = void(*)(Tensor& self, const int64_t dim, const Tensor& index,
                                          Scalar& value, const SCATTER_GATHER_OP& reduce);
+using nonzero_fn = Tensor& (*)(Tensor&, const Tensor&);
 
 DECLARE_DISPATCH(index_fn, index_stub);
 DECLARE_DISPATCH(index_put_fn, index_put_stub);
@@ -41,6 +42,8 @@ DECLARE_DISPATCH(scatter_fill_fn, scatter_fill_stub);
 DECLARE_DISPATCH(scatter_add_fn, scatter_add_stub);
 DECLARE_DISPATCH(scatter_reduce_fn, scatter_reduce_stub);
 DECLARE_DISPATCH(scatter_scalar_reduce_fn, scatter_scalar_reduce_stub);
+
+DECLARE_DISPATCH(nonzero_fn, nonzero_stub);
 
 TORCH_API Tensor& index_out(Tensor& result, const Tensor & self, TensorList indices);
 

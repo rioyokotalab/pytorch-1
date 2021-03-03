@@ -52,6 +52,7 @@
 #include <ATen/native/IndexingUtils.h>
 
 #include <ATen/ATen.h>
+#include <ATen/LegacyTHFunctionsCPU.h>
 #include <ATen/NativeFunctions.h>
 #include <ATen/ExpandUtils.h>
 #include <ATen/MemoryOverlap.h>
@@ -81,6 +82,8 @@ DEFINE_DISPATCH(scatter_fill_stub);
 DEFINE_DISPATCH(scatter_add_stub);
 DEFINE_DISPATCH(scatter_reduce_stub);
 DEFINE_DISPATCH(scatter_scalar_reduce_stub);
+
+DEFINE_DISPATCH(nonzero_stub);
 
 static bool all_strides_match(TensorList tensors) {
   TORCH_CHECK(tensors.size() >= 1);
@@ -852,6 +855,26 @@ std::vector<Tensor> nonzero_numpy(const Tensor& self) {
   }
 
   return self.nonzero().unbind(1);
+}
+
+Tensor& nonzero_out_cpu(Tensor & result, const Tensor & self) {
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+  if (4096 < self.numel()) {
+    return nonzero_stub(self.device().type(), result, self);
+  }
+#endif
+  return at::native::legacy::cpu::_th_nonzero_out(result, self);
+}
+
+Tensor nonzero_cpu(const Tensor & self) {
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
+  if (4096 < self.numel()) {
+    Tensor result = at::empty({}, self.options().dtype(at::kLong));
+    nonzero_stub(self.device().type(), result, self);
+    return result;
+  }
+#endif
+  return at::native::legacy::cpu::_th_nonzero(self);
 }
 
 }} // at::native
