@@ -12,7 +12,7 @@
 #include <ATen/native/ReduceOpsUtils.h>
 #include <ATen/native/cpu/Loops.h>
 
-#if defined(__ARM_FEATURE_SVE)
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 #include <arm_sve.h>
 #endif
 
@@ -73,7 +73,7 @@ static inline void compare_base_kernel(Tensor& result1, Tensor& result2,
   }
 }
 
-#if defined(__ARM_FEATURE_SVE)
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 static void min_kernel_impl(
     Tensor& result,
     Tensor& indice,
@@ -90,7 +90,8 @@ static void min_kernel_impl(
     compare_base_kernel<scalar_t>(result, indice, self, wrap_dim, keepdim, [&] (
       scalar_t* result_data, int64_t* indice_data,
       const scalar_t* self_data, auto self_dim_stride) {
-        if (self.scalar_type() == ScalarType::Float && self_dim_stride == 1 && 4294967295 > self_dim_size) {
+        if (self.scalar_type() == ScalarType::Float && self_dim_stride == 1 &&
+	    self_dim_size <= UINT32_MAX) {
           svfloat32_t min_number_acc = svdup_n_f32(*reinterpret_cast<const float*>(self_data));
           svuint32_t min_index_acc = svdup_n_u32(0);
           const svfloat32_t zero = svdup_n_f32(0.f);
@@ -171,9 +172,9 @@ static void min_kernel_impl(
     );
   });
 }
-#endif // __ARM_FEATURE_SVE
+#endif // defined(__GNUC__) && defined(__ARM_FEATURE_SVE
 
-#if defined(__ARM_FEATURE_SVE)
+#if defined(__GNUC__) && defined(__ARM_FEATURE_SVE)
 static void max_kernel_impl(
     Tensor& result,
     Tensor& indice,
@@ -190,7 +191,8 @@ static void max_kernel_impl(
     compare_base_kernel<scalar_t>(result, indice, self, wrap_dim, keepdim, [&] (
       scalar_t* result_data, int64_t* indice_data,
       const scalar_t* self_data, auto self_dim_stride) {
-	if (self.scalar_type() == ScalarType::Float && self_dim_stride == 1 && 4294967295 > self_dim_size) {
+	if (self.scalar_type() == ScalarType::Float && self_dim_stride == 1 &&
+	    self_dim_size <= UINT32_MAX) {
 	  svfloat32_t max_number_acc = svdup_n_f32(*reinterpret_cast<const float*>(self_data));
 	  svuint32_t max_index_acc = svdup_n_u32(0);
 	  const svfloat32_t zero = svdup_n_f32(0.f);
@@ -271,7 +273,7 @@ static void max_kernel_impl(
     );
   });
 }
-#endif // __ARM_FEATURE_SVE
+#endif // defined(__GNUC__) && defined(__ARM_FEATURE_SVE
 
 static void _aminmax_kernel_impl(
     Tensor& min_result,
