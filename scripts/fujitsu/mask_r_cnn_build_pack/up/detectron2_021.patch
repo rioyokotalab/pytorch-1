@@ -1,0 +1,491 @@
+diff --git a/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml b/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml
+index d50fb86..48c8942 100644
+--- a/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml
++++ b/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml
+@@ -1,6 +1,5 @@
+ _BASE_: "../Base-RCNN-FPN.yaml"
+ MODEL:
+-  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+   MASK_ON: True
+   RESNETS:
+     DEPTH: 50
+diff --git a/detectron2/engine/defaults.py b/detectron2/engine/defaults.py
+index bdb9666..05e69de 100644
+--- a/detectron2/engine/defaults.py
++++ b/detectron2/engine/defaults.py
+@@ -94,11 +94,34 @@ Run on multiple machines:
+         "https://pytorch.org/docs/stable/distributed.html for details.",
+     )
+     parser.add_argument(
++        "--dist-backend",
++        default="NCCL",
++        choices=["NCCL", "MPI"],
++        help="pytorch distributed backend. See "
++        "https://pytorch.org/docs/stable/distributed.html for details.",
++    )
++
++    parser.add_argument(
+         "opts",
+         help="Modify config options using the command-line",
+         default=None,
+         nargs=argparse.REMAINDER,
+     )
++    parser.add_argument(
++        '--trace', action='store_true',
++        help="Trace with autograd profiler. This option is enabled only single process")
++    parser.add_argument(
++        '--with-shape', action='store_true',
++        help="Tracing API with shape.")
++    parser.add_argument(
++        '--profile-start', type=int, default=10,
++        help="Start profile step.")
++    parser.add_argument(
++        '--profile-end', type=int, default=19,
++        help="End profile step.")
++    parser.add_argument(
++        '--mkldnn-input', action='store_true',
++        help="Use MKL-DNN Input..")
+     return parser
+
+
+@@ -276,9 +299,14 @@ class DefaultTrainer(SimpleTrainer):
+
+         # For training, wrap with DDP. But don't need this for inference.
+         if comm.get_world_size() > 1:
+-            model = DistributedDataParallel(
+-                model, device_ids=[comm.get_local_rank()], broadcast_buffers=False
+-            )
++            if cfg.MODEL.DEVICE == "cpu":
++                model = DistributedDataParallel(
++                    model, broadcast_buffers=False
++                )
++            else:
++                model = DistributedDataParallel(
++                    model, device_ids=[comm.get_local_rank()], broadcast_buffers=False
++                )
+         super().__init__(model, data_loader, optimizer)
+
+         self.scheduler = self.build_lr_scheduler(cfg, optimizer)
+@@ -345,8 +373,12 @@ class DefaultTrainer(SimpleTrainer):
+         # be saved by checkpointer.
+         # This is not always the best: if checkpointing has a different frequency,
+         # some checkpoints may have more precise statistics than others.
+-        if comm.is_main_process():
+-            ret.append(hooks.PeriodicCheckpointer(self.checkpointer, cfg.SOLVER.CHECKPOINT_PERIOD))
++
++        #######################################
++        # FJ-DEV : DISABLE CHECKPOINT
++        #######################################
++        # if comm.is_main_process():
++            # ret.append(hooks.PeriodicCheckpointer(self.checkpointer, cfg.SOLVER.CHECKPOINT_PERIOD))
+
+         def test_and_save_results():
+             self._last_eval_results = self.test(self.cfg, self.model)
+@@ -354,11 +386,18 @@ class DefaultTrainer(SimpleTrainer):
+
+         # Do evaluation after checkpointer, because then if it fails,
+         # we can use the saved checkpoint to debug.
+-        ret.append(hooks.EvalHook(cfg.TEST.EVAL_PERIOD, test_and_save_results))
++        #######################################
++        # FJ-DEV : DISABLE EVALATION
++        #######################################
++        # ret.append(hooks.EvalHook(cfg.TEST.EVAL_PERIOD, test_and_save_results))
+
+         if comm.is_main_process():
++            #######################################
++            # FJ-DEV : PRINT PERIOD=1
++            #######################################
+             # run writers in the end, so that evaluation metrics are written
+-            ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
++            # ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
++            ret.append(hooks.PeriodicWriter([CommonMetricPrinter(self.max_iter)], period=1))
+         return ret
+
+     def build_writers(self):
+diff --git a/detectron2/engine/launch.py b/detectron2/engine/launch.py
+index 60c2ffd..5445c0a 100644
+--- a/detectron2/engine/launch.py
++++ b/detectron2/engine/launch.py
+@@ -65,12 +65,16 @@ def launch(main_func, num_gpus_per_machine, num_machines=1, machine_rank=0, dist
+ def _distributed_worker(
+     local_rank, main_func, world_size, num_gpus_per_machine, machine_rank, dist_url, args
+ ):
+-    assert torch.cuda.is_available(), "cuda is not available. Please check your installation."
+     global_rank = machine_rank * num_gpus_per_machine + local_rank
+     try:
+-        dist.init_process_group(
+-            backend="NCCL", init_method=dist_url, world_size=world_size, rank=global_rank
+-        )
++        if args[0].dist_backend == "MPI":
++            dist.init_process_group(backend="MPI")
++        else:
++            assert torch.cuda.is_available(), "cuda is not available. Please check your installation."
++            dist.init_process_group(
++                backend="NCCL", init_method=dist_url, world_size=world_size, rank=global_rank
++            )
++
+     except Exception as e:
+         logger = logging.getLogger(__name__)
+         logger.error("Process group URL: {}".format(dist_url))
+@@ -79,8 +83,11 @@ def _distributed_worker(
+     # See: https://github.com/facebookresearch/maskrcnn-benchmark/issues/172
+     comm.synchronize()
+
+-    assert num_gpus_per_machine <= torch.cuda.device_count()
+-    torch.cuda.set_device(local_rank)
++    if args[0].dist_backend == "MPI":
++        assert num_gpus_per_machine == 1
++    else:
++        assert num_gpus_per_machine <= torch.cuda.device_count()
++        torch.cuda.set_device(local_rank)
+
+     # Setup the local process group (which contains ranks within the same machine)
+     assert comm._LOCAL_PROCESS_GROUP is None
+diff --git a/detectron2/engine/train_loop.py b/detectron2/engine/train_loop.py
+index 3c1b181..aca3ded 100644
+--- a/detectron2/engine/train_loop.py
++++ b/detectron2/engine/train_loop.py
+@@ -5,8 +5,10 @@ import contextlib
+ import logging
+ import numpy as np
+ import time
++import sys
+ import weakref
+ import torch
++from torch.autograd.profiler import profile, record_function
+
+ import detectron2.utils.comm as comm
+ from detectron2.utils.events import EventStorage
+@@ -102,6 +104,11 @@ class TrainerBase:
+
+     def __init__(self):
+         self._hooks = []
++        self.enable_profile = False
++        self.with_shape = False
++        self.profile_start = 0
++        self.profile_end = 0
++        self.total_batch_size = None
+
+     def register_hooks(self, hooks):
+         """
+@@ -131,14 +138,47 @@ class TrainerBase:
+
+         self.iter = self.start_iter = start_iter
+         self.max_iter = max_iter
++        prof_start, prof_end = 0, 0
+
+         with EventStorage(start_iter) as self.storage:
+             try:
+                 self.before_train()
+                 for self.iter in range(start_iter, max_iter):
+-                    self.before_step()
+-                    self.run_step()
+-                    self.after_step()
++                    if self.iter == self.profile_start:
++                        prof_start = time.time()
++                        if self.enable_profile:
++                            prof = profile(record_shapes=self.with_shape)
++                            prof.__enter__()
++                    if self.enable_profile:
++                        with record_function("before_step"):
++                            self.before_step()
++                        with record_function("run_step"):
++                            self.run_step()
++                        with record_function("after_step"):
++                            self.after_step()
++                    else:
++                        self.before_step()
++                        self.run_step()
++                        self.after_step()
++                    if self.iter == self.profile_end:
++                        prof_end = time.time()
++                        if self.enable_profile:
++                            prof.__exit__(*sys.exc_info())
++
++                if self.enable_profile and comm.is_main_process():
++                    # TODO : Support multi process
++                    logger.info(prof.key_averages().table(sort_by="self_cpu_time_total"))
++                    prof.export_chrome_trace("mask-r-cnn.json")
++
++                if self.iter >= self.profile_end and comm.is_main_process():
++                    avg = (prof_end - prof_start) / (self.profile_end - self.profile_start + 1)
++                    thp = self.total_batch_size / avg
++                    logger.info(f"Averages: {avg:.4f} s/iter {thp:.4f} image/s")
++
++                # self.iter == max_iter can be used by `after_train` to
++                # tell whether the training successfully finished or failed
++                # due to exceptions.
++                self.iter += 1
+             except Exception:
+                 logger.exception("Exception during training:")
+                 raise
+diff --git a/detectron2/layers/batch_norm.py b/detectron2/layers/batch_norm.py
+index acfd632..39daf31 100644
+--- a/detectron2/layers/batch_norm.py
++++ b/detectron2/layers/batch_norm.py
+@@ -43,14 +43,38 @@ class FrozenBatchNorm2d(nn.Module):
+         self.register_buffer("running_var", torch.ones(num_features) - eps)
+
+     def forward(self, x):
++        # When gradients are needed, F.batch_norm will use extra memory
++        # because its backward op computes gradients for weight/bias as well.
++        #######################################
++        # FJ-DEV : Support MKLDNN INPUT
++        #######################################
+         if x.requires_grad:
+-            # When gradients are needed, F.batch_norm will use extra memory
+-            # because its backward op computes gradients for weight/bias as well.
+-            scale = self.weight * (self.running_var + self.eps).rsqrt()
+-            bias = self.bias - self.running_mean * scale
+-            scale = scale.reshape(1, -1, 1, 1)
+-            bias = bias.reshape(1, -1, 1, 1)
+-            return x * scale + bias
++            if x.is_mkldnn:
++                # It's faster to use the MKL-DNN, despite extra computation
++                # and memory for its backward.
++                # scale = self.weight * (self.running_var + self.eps).rsqrt()
++                # bias = self.bias - self.running_mean * scale
++                # scale = scale.reshape(1, -1, 1, 1)
++                # bias = bias.reshape(1, -1, 1, 1)
++                # return (x.to_dense() * scale + bias).to_mkldnn()
++                # return x * scale.to_mkldnn() + bias.to_mkldnn()
++
++                # Note : Values are slightly different
++                return F.batch_norm(
++                    x,
++                    self.running_mean,
++                    self.running_var,
++                    self.weight,
++                    self.bias,
++                    training=True,
++                    eps=self.eps,
++                )
++            else:
++                scale = self.weight * (self.running_var + self.eps).rsqrt()
++                bias = self.bias - self.running_mean * scale
++                scale = scale.reshape(1, -1, 1, 1)
++                bias = bias.reshape(1, -1, 1, 1)
++                return x * scale + bias
+         else:
+             # When gradients are not needed, F.batch_norm is a single fused op
+             # and provide more optimization opportunities.
+diff --git a/detectron2/modeling/backbone/fpn.py b/detectron2/modeling/backbone/fpn.py
+index a0a97ca..fb8daf5 100644
+--- a/detectron2/modeling/backbone/fpn.py
++++ b/detectron2/modeling/backbone/fpn.py
+@@ -128,7 +128,15 @@ class FPN(Backbone):
+         for features, lateral_conv, output_conv in zip(
+             x[1:], self.lateral_convs[1:], self.output_convs[1:]
+         ):
+-            top_down_features = F.interpolate(prev_features, scale_factor=2, mode="nearest")
++            #######################################
++            # FJ-DEV : Support MKLDNN INPUT
++            #######################################
++            if prev_features.is_mkldnn:
++                top_down_features = F.interpolate(prev_features.to_dense(),
++                                                  scale_factor=2,
++                                                  mode="nearest").to_mkldnn()
++            else:
++                top_down_features = F.interpolate(prev_features, scale_factor=2, mode="nearest")
+             lateral_features = lateral_conv(features)
+             prev_features = lateral_features + top_down_features
+             if self._fuse_type == "avg":
+diff --git a/detectron2/modeling/meta_arch/rcnn.py b/detectron2/modeling/meta_arch/rcnn.py
+index 8a5cd2e..70d0790 100644
+--- a/detectron2/modeling/meta_arch/rcnn.py
++++ b/detectron2/modeling/meta_arch/rcnn.py
+@@ -19,6 +19,7 @@ from .build import META_ARCH_REGISTRY
+
+ __all__ = ["GeneralizedRCNN", "ProposalNetwork"]
+
++use_mkldnn_input = False
+
+ @META_ARCH_REGISTRY.register()
+ class GeneralizedRCNN(nn.Module):
+@@ -154,7 +155,16 @@ class GeneralizedRCNN(nn.Module):
+         else:
+             gt_instances = None
+
+-        features = self.backbone(images.tensor)
++        #######################################
++        # FJ-DEV : Support MKLDNN INPUT
++        #######################################
++        if use_mkldnn_input:
++            features = self.backbone(images.tensor.to_mkldnn())
++            for key in features:
++                if features[key].is_mkldnn:
++                    features[key] = features[key].to_dense()
++        else:
++            features = self.backbone(images.tensor)
+
+         if self.proposal_generator:
+             proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
+diff --git a/detectron2/utils/comm.py b/detectron2/utils/comm.py
+index 8cc7b3d..783d549 100644
+--- a/detectron2/utils/comm.py
++++ b/detectron2/utils/comm.py
+@@ -93,8 +93,8 @@ def _get_global_gloo_group():
+
+ def _serialize_to_tensor(data, group):
+     backend = dist.get_backend(group)
+-    assert backend in ["gloo", "nccl"]
+-    device = torch.device("cpu" if backend == "gloo" else "cuda")
++    assert backend in ["gloo", "nccl", "mpi"]
++    device = torch.device("cpu" if backend == "gloo" or backend == "mpi" else "cuda")
+
+     buffer = pickle.dumps(data)
+     if len(buffer) > 1024 ** 3:
+diff --git a/detectron2/utils/env.py b/detectron2/utils/env.py
+index e3ffb13..caf2a8e 100644
+--- a/detectron2/utils/env.py
++++ b/detectron2/utils/env.py
+@@ -37,6 +37,8 @@ def seed_all_rng(seed=None):
+     torch.set_rng_state(torch.manual_seed(seed).get_state())
+     random.seed(seed)
+
++torch.backends.cudnn.enabled=False
++torch.backends.cudnn.deterministic=True
+
+ # from https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+ def _import_file(module_name, file_path, make_importable=False):
+diff --git a/fj-misc/aarch64.multi.conf b/fj-misc/aarch64.multi.conf
+new file mode 100644
+index 0000000..804e8ed
+--- /dev/null
++++ b/fj-misc/aarch64.multi.conf
+@@ -0,0 +1,16 @@
++################################################
++# OpenMP/OpenMPI
++################################################
++NPROC=${FLIB_NUM_PROCESS_ON_NODE:=2}
++export CORE_PER_PROC=$((48 / ${NPROC}))
++export OMP_NUM_THREADS=$((${CORE_PER_PROC}))
++export OMP_PROC_BIND=spread
++export OMP_DISPLAY_ENV=true
++export OMP_WAIT_POLICY=active
++export WORLD_RANK=$PMIX_RANK
++export WORLD_SIZE=$OMPI_MCA_orte_ess_num_procs
++
++################################################
++# LargePage
++################################################
++export XOS_MMM_L_HPAGE_TYPE=none
+diff --git a/fj-misc/run_mask-r-cnn_multi_impl.sh b/fj-misc/run_mask-r-cnn_multi_impl.sh
+new file mode 100755
+index 0000000..3dcf3bd
+--- /dev/null
++++ b/fj-misc/run_mask-r-cnn_multi_impl.sh
+@@ -0,0 +1,18 @@
++#!/bin/bash
++set -ex
++pushd "$(cd $(dirname $0); pwd)/.." 1>/dev/null
++source fj-misc/$(arch).multi.conf
++
++python3 tools/train_net.py \
++	${PROFILE_OPS} \
++	${MKLDNN_INPUT} \
++	--machine-rank ${WORLD_RANK} --num-machines ${WORLD_SIZE} \
++	--dist-backend MPI \
++	--config-file configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml \
++	SOLVER.IMS_PER_BATCH ${BATCH_SIZE} \
++	SOLVER.MAX_ITER 20 \
++	MODEL.DEVICE cpu \
++	MODEL.WEIGHTS ${DETECTRON2_WEIGHTS}/R-50.pkl \
++	DATALOADER.NUM_WORKERS ${NUM_WORKER} \
++	SEED 2020 \
++	SOLVER.BASE_LR 0.0025
+diff --git a/submit_mask_r_cnn.sh b/submit_mask_r_cnn.sh
+new file mode 100644
+index 0000000..d601f69
+--- /dev/null
++++ b/submit_mask_r_cnn.sh
+@@ -0,0 +1,39 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=00:10:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++. ../../env.src # pytorch/scripts/fujitsu/env.src
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export LD_PRELOAD=${PREFIX}/.local/lib/libtcmalloc_minimal.so
++export MASK_RCNN_PATH=${PREFIX}/mask_r_cnn_build_pack
++export DETECTRON2_DATASETS=${MASK_RCNN_PATH}/dataset
++export DETECTRON2_WEIGHTS=${MASK_RCNN_PATH}/weights
++export MKLDNN_INPUT="--mkldnn-input"
++export PROFILE_OPS=""
++export NUM_WORKER=0
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++mpirun -x BATCH_SIZE=4 -np 2 ./fj-misc/run_mask-r-cnn_multi_impl.sh
+diff --git a/tools/train_net.py b/tools/train_net.py
+index ad568c0..c4153b5 100755
+--- a/tools/train_net.py
++++ b/tools/train_net.py
+@@ -19,7 +19,9 @@ You may want to write your own script with your datasets and other customization
+ import logging
+ import os
+ from collections import OrderedDict
+-import torch
++import torch; torch.manual_seed(0)
++import numpy as np; np.random.seed(0)
++import random; random.seed(0)
+
+ import detectron2.utils.comm as comm
+ from detectron2.checkpoint import DetectionCheckpointer
+@@ -38,7 +40,7 @@ from detectron2.evaluation import (
+     verify_results,
+ )
+ from detectron2.modeling import GeneralizedRCNNWithTTA
+-
++from detectron2.modeling.meta_arch import rcnn
+
+ class Trainer(DefaultTrainer):
+     """
+@@ -131,6 +133,9 @@ def setup(args):
+ def main(args):
+     cfg = setup(args)
+
++    if args.mkldnn_input:
++        rcnn.use_mkldnn_input = True
++
+     if args.eval_only:
+         model = Trainer.build_model(cfg)
+         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
+@@ -149,6 +154,15 @@ def main(args):
+     subclassing the trainer.
+     """
+     trainer = Trainer(cfg)
++    if args.trace:
++        trainer.enable_profile = True
++        if args.with_shape:
++            trainer.enable_profile = True
++
++    trainer.profile_start = args.profile_start
++    trainer.profile_end = args.profile_end
++    trainer.total_batch_size = cfg.SOLVER.IMS_PER_BATCH
++
+     trainer.resume_or_load(resume=args.resume)
+     if cfg.TEST.AUG.ENABLED:
+         trainer.register_hooks(

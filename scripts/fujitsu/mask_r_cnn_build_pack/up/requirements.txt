@@ -1,0 +1,15 @@
+cloudpickle==1.6.0
+cycler==0.10.0
+fvcore==0.1.3.post20210227
+iopath==0.1.4
+kiwisolver==1.3.1
+mock==4.0.3
+oauthlib==3.1.0
+portalocker==2.2.1
+pydot==1.4.2
+python_dateutil==2.8.1
+pyparsing==2.4.7
+tabulate==0.8.9
+termcolor==1.1.0
+yacs==0.1.8
+certifi==2020.06.20
