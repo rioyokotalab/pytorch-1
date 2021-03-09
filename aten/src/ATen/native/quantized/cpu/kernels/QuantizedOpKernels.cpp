@@ -2016,25 +2016,95 @@ void q_batch_norm_kernel(
 
 }
 
+// Stochastic rounding from x to FlexFp(ebits, mbits, ebias) 
+//   with random value of rnd (-0.5 <= rnd <= 0.5).
+static inline
+float fake_convert_fp(float x, float rnd, int ebits, int mbits, int ebias)
+{
+  if (x == 0.0f || std::isinf(x) || std::isnan(x)) {
+    return x;
+  } else {
+    // Round to Nearest Even Algorithm
+    //printf("[DEBUG] ebits=%d,mbits=%d,ebias=%d,x=%f\n",ebits,mbits,ebias,x);
+    const int FP32_EBITS = 8;
+    const int FP32_MBITS = 23;
+#   define BIAS(ebits)     ((1 << ((ebits) -1)) -1)
+    uint32_t e_min = BIAS(FP32_EBITS) - BIAS(ebits) + ebias;
+    uint32_t e_max = e_min + (1 << ebits) -1;
+    //printf("[DEBUG] e_min/max = %d/%d\n", e_min, e_max);
+    union {
+      uint32_t i;
+      float    f;
+    } t, u;
+    u.f = x;
+
+    uint32_t us = (u.i & (1<< (FP32_EBITS+FP32_MBITS))) != 0;
+    uint32_t ue = (u.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
+    if (ue < e_min) ue = e_min;
+    u.i = (us << (FP32_EBITS+FP32_MBITS)) | (ue << FP32_MBITS);
+    u.f /= float(1 << mbits); // unit val of the exponent.
+
+    t.f = x + u.f * (rnd + 0.5); // stochastic rounding on mbits.
+    //printf("[DEBUG] x = 0x%08x\n", t.i);
+
+    uint32_t s = us;
+    uint32_t e = (t.i >> FP32_MBITS) & ((1 << FP32_EBITS) -1);
+
+    if (e < e_min) {
+      // subnormal (denormalized) number
+      mbits -= (e_min - e);
+      if (mbits < 0) {
+        //round to zero (e = 0, m = 0)
+        t.i = (s << (FP32_EBITS+FP32_MBITS));
+        return t.f;
+      }
+    }
+
+    uint32_t m  = t.i & (((1 << mbits) - 1) << (FP32_MBITS - mbits));
+    if (e > e_max) {
+      // saturated toward Inf
+      e = e_max; m = ((1 << mbits) -1) << (FP32_MBITS - mbits);
+    }
+
+    t.i = (s << (FP32_EBITS+FP32_MBITS)) | (e << FP32_MBITS) | m;
+    //printf("[DEBUG] y = 0x%08x\n", t.i);
+    return t.f;
+  }
+}
+
 void fake_quantize_tensor_kernel(
     Tensor& output,
     const Tensor& input,
     float sc,
     int64_t z_point,
     int64_t quant_min,
-    int64_t quant_max) {
-  float inv_scale = 1.0f / sc;
-  auto iter = TensorIterator::unary_op(output, input);
-  cpu_kernel(iter, [&](float self) -> float {
-    return (std::fmin(
+    int64_t quant_max,
+    bool train) {
+  //Moved by Fujitsu//  float inv_scale = 1.0f / sc;
+  // uniform(-.5, .5) random values for stochastic rounding. (Added by Fujitsu)
+  Tensor rnd = train ? input.new_empty(input.sizes()).uniform_(-.5, .5).detach_() :
+                       input.new_full(input.sizes(), 0.).detach_();
+  auto iter = TensorIterator::binary_op(output, input, rnd);
+  if (std::isnan(sc)) {// scale==NaN means FlexFp by Fujitsu
+    cpu_kernel(iter, [&](float self, float rnd) -> float {
+      return fake_convert_fp(self, rnd, (z_point>>8) & 0xff,
+			   z_point & 0xff,
+			   (signed char)((z_point>>16) & 0xff));
+    });
+  } else {
+    float inv_scale = 1.0f / sc;
+    cpu_kernel(iter, [&](float self, float rnd) -> float {
+      return (std::fmin(
                 std::fmax(
+                    // use stochastic rounding (by Flab)
                     static_cast<int64_t>(
-                        z_point + std::nearbyint(self * inv_scale)),
+                        z_point + std::nearbyint(self * inv_scale + rnd)),
                     quant_min),
                 quant_max) -
             z_point) *
         sc;
-  });
+    });
+  }
 }
 
 void fake_quantize_grad_tensor_kernel(
@@ -2105,16 +2175,22 @@ void fake_quant_per_channel_cpu(
     TensorIterator& iter,
     int64_t quant_min,
     int64_t quant_max) {
-  cpu_kernel(iter, [=](float self, float scale, int64_t zero_point) -> float {
-    float inv_scale = 1.0f / scale;
-    return (std::fmin(
+  cpu_kernel(iter, [=](float self, float rnd, float scale, int64_t zero_point) -> float {
+    if (std::isnan(scale)) { // scale==NaN means FlexFp by Fujitsu
+      return fake_convert_fp(self, rnd, (zero_point>>8) & 0xff,
+			     zero_point & 0xff,
+			     (signed char)((zero_point>>16) & 0xff));
+    } else {
+      float inv_scale = 1.0f / scale;
+      return (std::fmin(
                 std::fmax(
                     static_cast<int64_t>(
-                        zero_point + std::nearbyint(self * inv_scale)),
+                        zero_point + std::nearbyint(self * inv_scale +rnd)),
                     quant_min),
                 quant_max) -
             zero_point) *
         scale;
+    }
   });
 }
 
@@ -2128,7 +2204,7 @@ void fake_quant_grad_per_channel_cpu(
         int64_t xq =
             static_cast<int64_t>(zero_point + std::nearbyint(x * inv_scale));
         return dy * (xq >= quant_min && xq <= quant_max);
-      });
+   });
 }
 
 void fake_quantize_learnable_channel_grad_kernel_cpu(

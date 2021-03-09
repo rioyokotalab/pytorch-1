@@ -89,20 +89,104 @@ def get_default_qconfig(backend='fbgemm'):
         qconfig = default_qconfig
     return qconfig
 
-def get_default_qat_qconfig(backend='fbgemm'):
+def get_default_qat_qconfig(backend='fbgemm', grad_observer=None):
     # Histogram observer is too slow for quantization aware training
     if backend == 'fbgemm':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
+                                                            grad_observer=grad_observer.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric),
                                                             reduce_range=True),
-                          weight=default_per_channel_weight_fake_quant)
+                          weight=default_per_channel_weight_fake_quant.with_args(grad_observer=grad_observer))
     elif backend == 'qnnpack':
         qconfig = QConfig(activation=FakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
                                                             quant_min=0,
                                                             quant_max=255,
+                                                            grad_observer=grad_observer.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric),
                                                             reduce_range=False),
-                          weight=default_weight_fake_quant)
+                          weight=default_weight_fake_quant.with_args(grad_observer=grad_observer))
     else:
         qconfig = default_qat_qconfig
     return qconfig
+
+def get_default_per_channel_qat_qconfig(activation_ch_axis=1, use_moving_average=True, qat='qint_per_channel'):
+    pertn_obs_cls = MovingAverageMinMaxObserver if use_moving_average \
+              else MinMaxObserver
+    perch_obs_cls = MovingAveragePerChannelMinMaxObserver if use_moving_average \
+              else PerChannelMinMaxObserver
+
+    if qat == 'qint_per_channel_weight_only_bwd_ci':
+        wgt_grad_axis = 1 #Ci
+    else:
+        wgt_grad_axis = 0 #Co
+
+    if qat == 'qint_per_channel_activation_only' or qat == 'qint_per_channel':
+        act_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis)
+        act_grad_obs = perch_obs_cls.with_args(ch_axis=activation_ch_axis, dtype=torch.qint8, qscheme=torch.per_channel_symmetric)
+    elif qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci':
+        act_obs = pertn_obs_cls
+        act_grad_obs = pertn_obs_cls.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric)
+
+    if qat == 'qint_per_channel_weight_only' or qat == 'qint_per_channel_weight_only_bwd_ci' or qat == 'qint_per_channel':
+        wgt_obs = perch_obs_cls.with_args(ch_axis=0)
+        wgt_grad_obs = perch_obs_cls.with_args(ch_axis=wgt_grad_axis)
+        wgt_qscheme = torch.per_channel_symmetric
+    elif qat == 'qint_per_channel_activation_only':
+        wgt_obs = pertn_obs_cls
+        wgt_grad_obs = pertn_obs_cls
+        wgt_qscheme = torch.per_tensor_symmetric
+
+    return QConfig(activation=FakeQuantize.with_args(
+                         observer=act_obs,
+                         quant_min=0,
+                         quant_max=255,
+                         grad_observer=act_grad_obs,
+                         reduce_range=True),
+                   weight=FakeQuantize.with_args(
+                         observer=wgt_obs,
+                         quant_min=-128,
+                         quant_max=127,
+                         dtype=torch.qint8,
+                         qscheme=wgt_qscheme,
+                         grad_observer=wgt_grad_obs,
+                         ))
+
+def get_flexfp_qat_qconfig(fpfmt, grad_fpfmt=None):
+    observer = (FlexFpDynBiasObserver if len(fpfmt) < 3 or fpfmt[2]==None else
+                FlexFpObserver)
+    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 or grad_fpfmt[2]==None else
+                     FlexFpObserver)
+    return QConfig(activation=FakeQuantize.with_args(observer=observer,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         grad_observer=grad_observer,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt),
+                   weight=FakeQuantize.with_args(observer=observer,
+                         quant_min=torch.iinfo(torch.int32).min,
+                         quant_max=torch.iinfo(torch.int32).max,
+                         dtype=torch.int32,
+                         grad_observer=grad_observer,
+                         fpfmt=fpfmt, grad_fpfmt=grad_fpfmt))
+
+def get_flexfp_dynbias_qat_qconfig(fpfmt, grad_fpfmt=None):
+    '''Obsoleted by get_flexfp_qat_qconfig()'''
+    return get_flexfp_qat_qconfig(fpfmt, grad_fpfmt)
+
+def get_qint_grad_flexfp_qat_qconfig(grad_fpfmt):
+    grad_observer = (FlexFpDynBiasObserver if len(grad_fpfmt) < 3 or grad_fpfmt[2]==None else
+                     FlexFpObserver)
+    return QConfig(activation=FakeQuantize.with_args(
+                       observer=MovingAverageMinMaxObserver,
+                       quant_min=0,
+                       quant_max=255,
+                       dtype=torch.quint8,
+                       grad_observer=grad_observer,
+                       grad_fpfmt=grad_fpfmt),
+                   weight=FakeQuantize.with_args(
+                       observer=MovingAverageMinMaxObserver,
+                       quant_min=-128,
+                       quant_max= 127,
+                       dtype=torch.qint8,
+                       grad_observer=grad_observer,
+                       grad_fpfmt=grad_fpfmt))

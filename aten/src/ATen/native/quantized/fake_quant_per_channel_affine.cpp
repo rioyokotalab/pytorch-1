@@ -34,7 +34,8 @@ Tensor fake_quantize_per_channel_affine(
     const Tensor& zero_point,
     int64_t axis,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
   TORCH_CHECK(self.scalar_type() == ScalarType::Float);
   TORCH_CHECK(scale.scalar_type() == ScalarType::Float,
               "Scale must be Float, found ", scale.scalar_type());
@@ -49,15 +50,17 @@ Tensor fake_quantize_per_channel_affine(
       scale.numel() == self.size(axis),
       "dimensions of scale and zero-point are not consistent with input tensor")
 
-  TORCH_CHECK(
-      quant_min <= quant_max,
-      "`quant_min` should be less than or \
-        equal to `quant_max`.");
+  if (! at::isnan(scale).any().is_nonzero()) {// scale==NaN means FlexFp by Fujitsu
+    TORCH_CHECK(
+        quant_min <= quant_max,
+        "`quant_min` should be less than or \
+          equal to `quant_max`.");
 
-  TORCH_CHECK(
-      at::min(zero_point).item().toLong() >= quant_min &&
-          at::max(zero_point).item().toLong() <= quant_max,
-      "`zero_point` must be between `quant_min` and `quant_max`.");
+    TORCH_CHECK(
+        at::min(zero_point).item().toLong() >= quant_min &&
+            at::max(zero_point).item().toLong() <= quant_max,
+        "`zero_point` must be between `quant_min` and `quant_max`.");
+  }
 
   TORCH_CHECK(
       axis >= 0 && axis <= self.dim(),
@@ -68,10 +71,14 @@ Tensor fake_quantize_per_channel_affine(
   std::vector<int64_t> expected_shape(self.dim(), 1);
   expected_shape[axis] = self.size(axis);
 
+  // uniform(-.5, .5) random values for stochastic rounding. (Added by Fujitsu)
+  Tensor rnd = train ? self.new_empty(self.sizes()).uniform_(-.5, .5).detach_() :
+                       self.new_full(self.sizes(), 0.).detach_();
   TensorIterator iter = TensorIteratorConfig()
     .check_all_same_dtype(false)
     .add_output(Y)
     .add_input(self)
+    .add_input(rnd)
     .add_input(native::_unsafe_view(scale, expected_shape))
     .add_input(native::_unsafe_view(zero_point, expected_shape))
     .build();
@@ -182,7 +189,7 @@ Tensor _fake_quantize_learnable_per_channel_affine(
     int64_t quant_max) {
   Tensor zero_point_rounded = zero_point.to(at::kLong);
   return native::fake_quantize_per_channel_affine(
-    self, scale, zero_point_rounded, axis, quant_min, quant_max);
+    self, scale, zero_point_rounded, axis, quant_min, quant_max, false/*train: added by Fujitsu*/);
 }
 
 std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_channel_affine_backward(

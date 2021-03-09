@@ -6,6 +6,7 @@ from typing import List, Tuple, Optional, Dict, Union
 from collections import OrderedDict
 import torch
 import torch.nn as nn
+import math
 import re
 
 def _with_args(cls_or_self, **kwargs):
@@ -607,24 +608,28 @@ class PerChannelMinMaxObserver(_ObserverBase):
         max_vals = self.max_vals
         x_dim = x.size()
 
-        new_axis_list = [i for i in range(len(x_dim))]  # noqa: C416
-        new_axis_list[self.ch_axis] = 0
-        new_axis_list[0] = self.ch_axis
-        y = x.permute(new_axis_list)
-        # Need to match dtype of min/max because the updates to buffers
-        # are done in place and types need to match for comparisons
-        y = y.to(self.min_vals.dtype)
-        y = torch.flatten(y, start_dim=1)
+        d = x
+        u = x
+        if self.ch_axis < len(x_dim)-1:
+            d = d.flatten(start_dim=self.ch_axis+1).min(dim=self.ch_axis+1)[0]
+            u = u.flatten(start_dim=self.ch_axis+1).max(dim=self.ch_axis+1)[0]
+        if self.ch_axis > 0:
+            d = d.flatten(end_dim=self.ch_axis-1).min(dim=0)[0]
+            u = u.flatten(end_dim=self.ch_axis-1).max(dim=0)[0]
+
         if min_vals.numel() == 0 or max_vals.numel() == 0:
-            min_vals, max_vals = torch._aminmax(y, 1)
+            min_vals = d
+            max_vals = u
         else:
-            min_vals_cur, max_vals_cur = torch._aminmax(y, 1)
-            min_vals = torch.min(min_vals_cur, min_vals)
-            max_vals = torch.max(max_vals_cur, max_vals)
-        self.min_vals.resize_(min_vals.shape)
-        self.max_vals.resize_(max_vals.shape)
-        self.min_vals.copy_(min_vals)
-        self.max_vals.copy_(max_vals)
+            min_vals = torch.min(d, min_vals)
+            max_vals = torch.max(u, max_vals)
+        # Reverted for DDP by Fujitsu
+        self.min_vals = min_vals
+        self.max_vals = max_vals
+        #self.min_vals.resize_(min_vals.shape)
+        #self.max_vals.resize_(max_vals.shape)
+        #self.min_vals.copy_(min_vals)
+        #self.max_vals.copy_(max_vals)
         return x_orig
 
     @torch.jit.export
@@ -714,21 +719,28 @@ class MovingAveragePerChannelMinMaxObserver(PerChannelMinMaxObserver):
         max_vals = self.max_vals
         x_dim = x.size()
 
-        new_axis_list = [i for i in range(len(x_dim))]  # noqa: C416
-        new_axis_list[self.ch_axis] = 0
-        new_axis_list[0] = self.ch_axis
-        y = x.permute(new_axis_list)
-        y = torch.flatten(y, start_dim=1)
+        d = x
+        u = x
+        if self.ch_axis < len(x_dim)-1:
+            d = d.flatten(start_dim=self.ch_axis+1).min(dim=self.ch_axis+1)[0]
+            u = u.flatten(start_dim=self.ch_axis+1).max(dim=self.ch_axis+1)[0]
+        if self.ch_axis > 0:
+            d = d.flatten(end_dim=self.ch_axis-1).min(dim=0)[0]
+            u = u.flatten(end_dim=self.ch_axis-1).max(dim=0)[0]
+
         if min_vals.numel() == 0 or max_vals.numel() == 0:
-            min_vals, max_vals = torch._aminmax(y, 1)
+            min_vals = d
+            max_vals = u
         else:
-            min_vals_cur, max_vals_cur = torch._aminmax(y, 1)
-            min_vals = min_vals + self.averaging_constant * (min_vals_cur - min_vals)
-            max_vals = max_vals + self.averaging_constant * (max_vals_cur - max_vals)
-        self.min_vals.resize_(min_vals.shape)
-        self.max_vals.resize_(max_vals.shape)
-        self.min_vals.copy_(min_vals)
-        self.max_vals.copy_(max_vals)
+            min_vals = min_vals + self.averaging_constant * (d - min_vals)
+            max_vals = max_vals + self.averaging_constant * (u - max_vals)
+        # Reverted for DDP by Fujitsu
+        self.min_vals = min_vals
+        self.max_vals = max_vals
+        #self.min_vals.resize_(min_vals.shape)
+        #self.max_vals.resize_(max_vals.shape)
+        #self.min_vals.copy_(min_vals)
+        #self.max_vals.copy_(max_vals)
         return x_orig
 
 class HistogramObserver(_ObserverBase):
@@ -946,10 +958,13 @@ class HistogramObserver(_ObserverBase):
         is_uninitialized = min_val == float('inf') and max_val == float('-inf')
         if is_uninitialized or same_values:
             min_val, max_val = torch._aminmax(x)
-            self.min_val.resize_(min_val.shape)
-            self.min_val.copy_(min_val)
-            self.max_val.resize_(max_val.shape)
-            self.max_val.copy_(max_val)
+            # Reverted for DDP by Fujitsu
+            self.min_val = min_val
+            self.max_val = max_val
+            #self.min_val.resize_(min_val.shape)
+            #self.min_val.copy_(min_val)
+            #self.max_val.resize_(max_val.shape)
+            #self.max_val.copy_(max_val)
             torch.histc(x, self.bins, min=min_val, max=max_val, out=self.histogram)
         else:
             new_min, new_max = torch._aminmax(x)
@@ -972,12 +987,16 @@ class HistogramObserver(_ObserverBase):
                     start_idx,
                     self.bins)
 
-            self.histogram.resize_(combined_histogram.shape)
-            self.histogram.copy_(combined_histogram)
-            self.min_val.resize_(combined_min.shape)
-            self.min_val.copy_(combined_min)
-            self.max_val.resize_(combined_max.shape)
-            self.max_val.copy_(combined_max)
+            # Reverted for DDP by Fujitsu
+            self.histogram = combined_histogram
+            self.min_val = combined_min
+            self.max_val = combined_max
+            #self.histogram.resize_(combined_histogram.shape)
+            #self.histogram.copy_(combined_histogram)
+            #self.min_val.resize_(combined_min.shape)
+            #self.min_val.copy_(combined_min)
+            #self.max_val.resize_(combined_max.shape)
+            #self.max_val.copy_(combined_max)
         return x_orig
 
     @torch.jit.export
@@ -1024,7 +1043,8 @@ class HistogramObserver(_ObserverBase):
             key = prefix + name
             if key in state_dict:
                 val = state_dict[key]
-                setattr(self, name, val)
+                device = getattr(self, name).device
+                setattr(self, name, val.to(device))
             elif strict:
                 missing_keys.append(key)
         super(HistogramObserver, self)._load_from_state_dict(state_dict, prefix, local_metadata, strict,
@@ -1172,6 +1192,77 @@ def load_observer_state_dict(mod, obs_dict):
     for k in unexpected_keys:
         if 'observer' in k or 'activation_post_process' in k:
             raise Exception("Unexpected keys for observer {} in state_dict".format(k))
+
+class FlexFpObserver(ObserverBase):
+    r"""
+    The module is mainly for Flexible Floating Point Train & Test.
+
+    Args:
+        dtype: Quantized data type
+        fpfmt = (ebits, mbits, ebias)
+         : Tuple of (exponent_bits, manttissa_bits, exponent_bias)
+    *Note*
+    + {ebits, mbits, ebias} must be 8-bit integer.
+    + FlexFpObserver.calc_qparams() returns scale=NaN, and zero_point, where
+      zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
+    """
+
+    def __init__(self, fpfmt, dtype=torch.int32):
+        super(FlexFpObserver, self).__init__(dtype)
+        self.qscheme = torch.per_tensor_symmetric  # Work-Around for qat
+        self.ebits, self.mbits, self.ebias = fpfmt
+        assert self.ebits <= 8 and self.mbits <= 23 \
+            and -126 <= self.ebias <= 127, (
+                "FP Format must be comatible with FP32: "
+                "ebits<=8, mbits<=23, -126<=ebias<=127")
+
+    def forward(self, x):
+        # do nothing
+        return x
+
+    @torch.jit.export
+    def calculate_qparams(self):
+        scale = math.nan  # NaN means "Flexible Floating Point"
+        zero_point = (self.ebias & 0xff)<<16 |(self.ebits & 0xff)<< 8 \
+                     |(self.mbits & 0xff)<< 0
+        return torch.tensor([scale]), torch.tensor([zero_point])
+
+import struct
+class FlexFpDynBiasObserver(FlexFpObserver):
+    r"""
+    The module is mainly for Flexible Floating Point w/ the dynamic ebias.
+
+    Args:
+        dtype: Quantized data type
+        fpfmt = (ebits, mbits)
+         : Tuple of (exponent_bits, manttissa_bits)
+    *Note*
+    + {ebits, mbits} must be 8-bit integer.
+    + ebias (exponent bias) is calculated with forward input Tensor.
+    + FlexFpObserver.calc_qparams() returns scale=NaN, and zero_point, where
+      zero_point[31:16]=ebias, [15: 8]=ebits, [ 7: 0]=mbits
+    """
+
+    def __init__(self, fpfmt, dtype=torch.int32):
+        super(FlexFpDynBiasObserver,self).__init__(dtype=dtype,
+                                                   fpfmt=(fpfmt[0],fpfmt[1],0))
+
+    def forward(self, x_orig):
+        x = x_orig.detach()
+        a = torch.max(abs(x)).item()
+        if a != 0.0 and math.isfinite(a):
+            ## CAUTION: This code assumes dtype==IEEE754 float32 ##
+            e = (struct.unpack('I', struct.pack('f', a))[0] & 0x7f800000)>>23
+            if self.ebits > 0:
+                self.ebias = e - 127 - 2**(self.ebits-1)
+            else:
+                self.ebias = e - 127
+        # Below code runs too SLOW #
+        #    e = torch.log2(a).ceil().int().item()
+        #    self.ebias = e- 2**(self.ebits-1)
+        else:
+            self.ebias = 0
+        return x_orig
 
 # Restrict activations to be in the range (0,127)
 default_observer = MinMaxObserver.with_args(reduce_range=True)

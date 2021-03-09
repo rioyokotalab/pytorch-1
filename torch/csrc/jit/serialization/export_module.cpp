@@ -286,6 +286,11 @@ class ScriptModuleSerializer {
     for (auto& item : file_streams_) {
       writer_.setMinVersion(item.value().minVersion());
     }
+
+    // Acquires and sets minimum (dynamic) version
+    for (auto& item : file_streams_) {
+      writer_.setMinVersion(item.value().minVersion());
+    }
   }
 
  private:

@@ -4386,7 +4386,7 @@
   dispatch:
     QuantizedCPU, QuantizedCUDA: qscheme_quant
 
-- func: fake_quantize_per_tensor_affine(Tensor self, float scale, int zero_point, int quant_min, int quant_max) -> Tensor
+- func: fake_quantize_per_tensor_affine(Tensor self, float scale, int zero_point, int quant_min, int quant_max, bool train) -> Tensor
   use_c10_dispatcher: full
   variants: function
   dispatch:
@@ -4406,7 +4406,7 @@
   use_c10_dispatcher: full
   variants: function
 
-- func: fake_quantize_per_channel_affine(Tensor self, Tensor scale, Tensor zero_point, int axis, int quant_min, int quant_max) -> Tensor
+- func: fake_quantize_per_channel_affine(Tensor self, Tensor scale, Tensor zero_point, int axis, int quant_min, int quant_max, bool train) -> Tensor
   use_c10_dispatcher: full
   variants: function
   dispatch:

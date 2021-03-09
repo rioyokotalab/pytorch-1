@@ -1,4 +1,5 @@
-#include <torch/csrc/jit/serialization/python_print.h>
+#include <algorithm>
+
 #include <ATen/core/qualified_name.h>
 #include <c10/util/Exception.h>
 #include <c10/util/StringUtil.h>
@@ -9,6 +10,7 @@
 #include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/ir/ir_views.h>
 #include <torch/csrc/jit/resource_guard.h>
+#include <torch/csrc/jit/serialization/python_print.h>
 
 #include <algorithm>
 

@@ -41,7 +41,7 @@ class FakeQuantize(Module):
                            provides a method to calculate scale and zero-point.
 
     """
-    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, **observer_kwargs):
+    def __init__(self, observer=MovingAverageMinMaxObserver, quant_min=0, quant_max=255, grad_observer=None, **observer_kwargs):
         super(FakeQuantize, self).__init__()
         assert quant_min <= quant_max, \
             'quant_min must be less than or equal to quant_max'
@@ -52,6 +52,23 @@ class FakeQuantize(Module):
         # bool tensors.
         self.register_buffer('fake_quant_enabled', torch.tensor([1], dtype=torch.uint8))
         self.register_buffer('observer_enabled', torch.tensor([1], dtype=torch.uint8))
+
+        grad_fpfmt_is_None = 'grad_fpfmt' in observer_kwargs \
+                             and observer_kwargs['grad_fpfmt'] == None
+        grad_fpfmt = observer_kwargs.pop('grad_fpfmt', None)
+        if grad_observer or grad_fpfmt:
+            grad_obs_kwargs = observer_kwargs.copy()
+            if grad_fpfmt_is_None: # specified: grad_fpfmt=None
+                grad_obs_kwargs.pop('fpfmt', None)
+            if grad_fpfmt:
+                grad_obs_kwargs['fpfmt'] = grad_fpfmt
+            if grad_observer:
+                self.grad_quant = grad_observer(**grad_obs_kwargs)
+            else:
+                self.grad_quant = observer(**grad_obs_kwargs)
+            self.grad_quant_min = torch.iinfo(self.grad_quant.dtype).min
+            self.grad_quant_max = torch.iinfo(self.grad_quant.dtype).max
+            self.register_backward_hook(FakeQuantize.backward_hook)
         self.activation_post_process = observer(**observer_kwargs)
         assert torch.iinfo(self.activation_post_process.dtype).min <= quant_min, 'quant_min out of bound'
         assert quant_max <= torch.iinfo(self.activation_post_process.dtype).max, 'quant_max out of bound'
@@ -86,6 +103,12 @@ class FakeQuantize(Module):
 
     def forward(self, X):
         if self.observer_enabled[0] == 1:
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == X.device):
+                if abs(self.dbg_level) == 1:
+                    print(X.device, self.fullname, 'X', torch.min(X).item(), torch.max(X).item())
+                elif abs(self.dbg_level) == 2:
+                    print(X.device, self.fullname, 'X', X.cpu())
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
             _scale, _zero_point = _scale.to(self.scale.device), _zero_point.to(self.zero_point.device)
@@ -97,12 +120,52 @@ class FakeQuantize(Module):
         if self.fake_quant_enabled[0] == 1:
             if self.qscheme == torch.per_channel_symmetric or self.qscheme == torch.per_channel_affine:
                 X = torch.fake_quantize_per_channel_affine(X, self.scale, self.zero_point,
-                                                           self.ch_axis, self.quant_min, self.quant_max)
+                                                           self.activation_post_process.ch_axis, self.quant_min, self.quant_max, self.training)
             else:
                 X = torch.fake_quantize_per_tensor_affine(X, float(self.scale),
                                                           int(self.zero_point), self.quant_min,
-                                                          self.quant_max)
+                                                          self.quant_max, self.training)
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == X.device):
+                if self.dbg_level == -1:
+                    print(X.device, self.fullname, 'Y', torch.min(X).item(), torch.max(X).item())
+                elif self.dbg_level == -2:
+                    print(X.device, self.fullname, 'Y', X.cpu())
         return X
+
+    @staticmethod
+    @torch.jit.export
+    def backward_hook(self, dX, dY):
+        assert not self.fake_quant_enabled or len(dY)==1, \
+            'FakeQuantize with more than one inputs: {}'.format(len(dY))
+        if self.observer_enabled:
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == dY[0].device):
+                if abs(self.dbg_level) == 1:
+                    print(dY[0].device, self.fullname, 'dY', torch.min(dY[0]).item(), torch.max(dY[0]).item())
+                elif abs(self.dbg_level) == 2:
+                    print(dY[0].device, self.fullname, 'dY', dY[0].cpu())
+            self.grad_quant(dY[0])
+            _scale, _zero_point = self.grad_quant.calculate_qparams()
+            scale = _scale.to(self.scale.device)
+            zero_point = _zero_point.to(self.zero_point.device, torch.int64)
+        if self.fake_quant_enabled:
+            if self.grad_quant.qscheme == torch.per_channel_symmetric \
+               or self.grad_quant.qscheme == torch.per_channel_affine:
+                dx = torch.fake_quantize_per_channel_affine(dY[0],
+                                scale, zero_point,
+                                self.grad_quant.ch_axis, self.grad_quant_min, self.grad_quant_max, self.training)
+            else:
+                dx = torch.fake_quantize_per_tensor_affine(dY[0],
+                                float(scale), int(zero_point),
+                                self.grad_quant_min, self.grad_quant_max, self.training)
+            if hasattr(self, 'dbg_level') \
+               and (not hasattr(self, 'dbg_device') or self.dbg_device == dx.device):
+                if self.dbg_level == -1:
+                    print(dx.device, self.fullname, 'dX', torch.min(dx).item(), torch.max(dx).item())
+                elif self.dbg_level == -2:
+                    print(dx.device, self.fullname, 'dX', dx.cpu())
+            return (dx,)
 
     with_args = classmethod(_with_args)
 
@@ -131,7 +194,8 @@ class FakeQuantize(Module):
             key = prefix + name
             if key in state_dict:
                 val = state_dict[key]
-                setattr(self, name, val)
+                device = getattr(self, name).device
+                setattr(self, name, val.to(device))
             elif strict:
                 missing_keys.append(key)
         super(FakeQuantize, self)._load_from_state_dict(state_dict, prefix, local_metadata, strict,
@@ -181,3 +245,42 @@ def disable_observer(mod):
 def enable_observer(mod):
     if type(mod) == FakeQuantize or _is_fake_quant_script_module(mod):
         mod.enable_observer()
+
+def debug_fake_quant(module, dbg_level=0, device=None):
+    '''Set QAT debug level
+    Call this func from the script or debugger like:
+      torch.quantizatin.debug_fake_quant(model, 1, torch.device('cuda',0))
+    dgb_level means:
+     0: nop
+     1: print min/max of Tensors before quantized.
+    -1: print min/max of Tensors before & after quantized.
+     2: print contents of Tensors before quantized.
+    -2: print contents of Tensors before & after quantized.
+    If device is given, print Tensors only on the specific device.
+    '''
+    def set_fullname(mod, path_name=''):
+        '''Set hierarchical names (fullnames) to submodules.'''
+        for m in mod.named_children():
+            fullname = path_name + '/' + m[0]
+            m[1].fullname = fullname
+            set_fullname(m[1], path_name=fullname) #recursive call
+
+    # Set fullname to all submodules
+    if dbg_level and not hasattr(module, 'fullname'):
+        set_fullname(module)
+    # print() will print all contents of Tensors
+    if abs(dbg_level) == 2:
+        torch.set_printoptions(profile='full')
+    else:
+        torch.set_printoptions(profile='default')
+
+    # Set debug level to all FakeQuantize instances
+    for m in module.modules():
+        if type(m) == FakeQuantize:
+            m.dbg_level = dbg_level
+            if dbg_level:
+                m.enable_observer()
+            else:
+                m.disable_observer()
+            if device:
+                m.dbg_device = device

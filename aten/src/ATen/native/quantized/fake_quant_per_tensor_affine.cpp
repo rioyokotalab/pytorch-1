@@ -31,19 +31,22 @@ Tensor fake_quantize_per_tensor_affine(
     double scale,
     int64_t zero_point,
     int64_t quant_min,
-    int64_t quant_max) {
+    int64_t quant_max,
+    bool train) {
   TORCH_CHECK(self.scalar_type() == ScalarType::Float);
-  TORCH_CHECK(
-      quant_min <= quant_max,
-      "`quant_min` should be less than or \
-        equal to `quant_max`.");
-  TORCH_CHECK(
-      zero_point >= quant_min && zero_point <= quant_max,
-      "`zero_point` must be between `quant_min` and `quant_max`.");
+  if (! std::isnan(scale)) {// scale==NaN means FlexFp by Fujitsu
+    TORCH_CHECK(
+        quant_min <= quant_max,
+        "`quant_min` should be less than or \
+          equal to `quant_max`.");
+    TORCH_CHECK(
+        zero_point >= quant_min && zero_point <= quant_max,
+        "`zero_point` must be between `quant_min` and `quant_max`.");
+  }
 
   auto Y = at::empty_like(self, self.options(), MemoryFormat::Preserve);
   fake_quant_tensor_stub(
-      self.device().type(), Y, self, scale, zero_point, quant_min, quant_max);
+      self.device().type(), Y, self, scale, zero_point, quant_min, quant_max, train);
   return Y;
 }
 
@@ -115,7 +118,7 @@ Tensor _fake_quantize_learnable_per_tensor_affine(
   float scale_val = scale[0].item<float>();
   int64_t zero_point_val = native::_get_zero_point_from_tensor(zero_point, quant_min, quant_max, true);
   return native::fake_quantize_per_tensor_affine(
-    self, scale_val, zero_point_val, quant_min, quant_max);
+    self, scale_val, zero_point_val, quant_min, quant_max, false/*train:added by Fujitsu*/);
 }
 
 std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_backward(
