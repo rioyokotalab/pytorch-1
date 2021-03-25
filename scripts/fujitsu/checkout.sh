@@ -26,14 +26,14 @@ tar zxf jpegsrc.v9d.tar.gz
 # Download Pillow
 git clone https://github.com/python-pillow/Pillow.git
 cd Pillow
-git checkout 6.2.1 -b 6.2.1
+git checkout 7.2.0 -b 7.2.0
 sed -i "s;JPEG_ROOT = None;JPEG_ROOT = \"${PREFIX}/.local/lib\";" setup.py
 cd ../
 
 # Download torchvision
-git clone https://github.com/pytorch/vision.git
+git clone https://github.com/fujitsu/vision.git
 cd vision
-git checkout v0.5.0 -b v0.5.0
+git checkout -b fujitsu_v0.8.1_for_a64fx origin/fujitsu_v0.8.1_for_a64fx
 cd ../
 
 # Download horovod
@@ -46,7 +46,7 @@ cd ../
 # Download oneDNN
 git clone https://github.com/fujitsu/oneDNN.git
 cd oneDNN
-git checkout -b v2.0.0_translator_aarch64 refs/tags/v2.0.0_translator_aarch64
+git checkout -b v2.1.0L01_aarch64 refs/tags/v2.1.0L01_aarch64
 git submodule sync
 git submodule update --init --recursive
 cd ../

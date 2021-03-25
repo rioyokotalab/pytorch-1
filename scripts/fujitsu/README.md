@@ -177,13 +177,44 @@
  $ cd ..
 ```
 
+## Build for Mask RCNN
+
+```
+ $ cd mask_r_cnn_build_pack/
+```
+
+### Environment Setting
+ Modify each batch files to suit your environment.
+
+* submit_build.sh
+* detectron2/submit_mask_r_cnn.sh
+
+### Download
+
+```
+ $ ./checkout.sh
+ $ ./dataset.sh
+```
+
+### Build [Estimated time:1.5h]
+
+```
+ $ pjsub submit_build.sh
+```
+
+### Check the environment
+
+```
+ $ cd detectron2
+ $ pjsub submit_mask_r_cnn.sh
+```
+
+```
+ $ cd ..
+```
+
+
 ## Execute gemm with half-gemm automatically.
-
-### Use fujitsu_v1.7.0_for_a64fx_hgemm branch.
-
-```
- $ git checkout -b fujitsu_v1.7.0_for_a64fx_hgemm origin/fujitsu_v1.7.0_for_a64fx_hgemm
-```
 
 ### Enable function with api in python script (default:Disable)
 
@@ -194,5 +225,5 @@
 
 ## Copyright
 
+Copyright RIKEN, Japan 2021
 Copyright FUJITSU LIMITED 2021
-

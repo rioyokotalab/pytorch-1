@@ -1,3 +1,10 @@
+This repository provides Pytorch tuned for A64FX. <br>
+The modifications to this branch are copyrighted by RIKEN and FUJITSU.
+
+Please See the [wiki](https://github.com/fujitsu/pytorch/wiki/PyTorch-DNNL_aarch64-build-manual-for-FUJITSU-Software-Compiler-Package-(PyTorch-v1.7.0)) for details.
+
+--------------------------------------------------------------------------------
+
 ![PyTorch Logo](https://github.com/pytorch/pytorch/blob/master/docs/source/_static/img/pytorch-logo-dark.png)
 
 --------------------------------------------------------------------------------
