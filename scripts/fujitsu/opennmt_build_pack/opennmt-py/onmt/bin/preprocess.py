@@ -197,15 +197,15 @@ def build_save_dataset(corpus_type, fields, src_reader, tgt_reader,
     shard_iter = shard_iterator(srcs, tgts, ids, aligns, existing_shards,
                                 existing_fields, corpus_type, opt)
 
-    with Pool(opt.num_threads) as p:
-        dataset_params = (corpus_type, fields, src_reader, tgt_reader,
-                          align_reader, opt, existing_fields,
-                          src_vocab, tgt_vocab)
-        func = partial(process_one_shard, dataset_params)
-        for sub_counter in p.imap(func, shard_iter):
-            if sub_counter is not None:
-                for key, value in sub_counter.items():
-                    counters[key].update(value)
+    dataset_params = (corpus_type, fields, src_reader, tgt_reader,
+                      align_reader, opt, existing_fields,
+                      src_vocab, tgt_vocab)
+    func = partial(process_one_shard, dataset_params)
+    for p in shard_iter:
+        sub_counter = func(p)
+        if sub_counter is not None:
+            for key, value in sub_counter.items():
+                counters[key].update(value)
 
     if corpus_type == "train":
         vocab_path = opt.save_data + '.vocab.pt'
