@@ -1,0 +1,45 @@
+diff --git a/submit_mask_r_cnn_fx700.sh b/submit_mask_r_cnn_fx700.sh
+new file mode 100644
+index 0000000..fda20fa
+--- /dev/null
++++ b/submit_mask_r_cnn_fx700.sh
+@@ -0,0 +1,39 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=00:10:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++. ../../env.src # pytorch/scripts/fujitsu/env.src
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export LD_PRELOAD=${PREFIX}/.local/lib/libtcmalloc_minimal.so
++export MASK_RCNN_PATH=${PREFIX}/mask_r_cnn_build_pack
++export DETECTRON2_DATASETS=${MASK_RCNN_PATH}/dataset
++export DETECTRON2_WEIGHTS=${MASK_RCNN_PATH}/weights
++export MKLDNN_INPUT="--mkldnn-input"
++export PROFILE_OPS=""
++export NUM_WORKER=0
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++mpirun -x BATCH_SIZE=4 --map-by slot:PE=24 -np 2 ./fj-misc/run_mask-r-cnn_multi_impl.sh

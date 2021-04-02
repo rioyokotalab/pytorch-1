@@ -10,6 +10,7 @@ git clone https://github.com/huggingface/transformers.git
 cd transformers/
 git checkout -b v3.4.0 refs/tags/v3.4.0
 patch -p1  < ${UPLOAD_PATH}/transformers_v340.diff
+patch -p1  < ${UPLOAD_PATH}/transformers_v340_fx700.diff
 
 # move download path
 rm -fr ${DOWNLOAD_PATH}

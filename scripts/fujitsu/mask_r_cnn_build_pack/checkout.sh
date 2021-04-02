@@ -29,3 +29,4 @@ cd ${MASK_RCNN_PATH}
 git clone https://github.com/facebookresearch/detectron2.git --depth 1 -b v0.2.1
 cd detectron2
 patch -p1 < ${UPLOAD_PATH}/detectron2_021.patch
+patch -p1 < ${UPLOAD_PATH}/detectron2_021_fx700.patch

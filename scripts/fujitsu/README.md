@@ -61,6 +61,11 @@
 ### Build binary files for A64FX.
  Run build-script on compute node.
 
+for FX700
+```
+ $ bash submit_build.sh
+```
+for FX1000
 ```
  $ pjsub submit_build.sh
 ```
@@ -68,12 +73,21 @@
 ### Check the environment
  Run the sample programs
 
+for FX700
+```
+ $ bash submit_train.sh
+ $ bash submit_train_multi.sh
+ $ bash submit_val.sh
+ $ bash submit_val_multi.sh
+```
+for FX1000
 ```
  $ pjsub submit_train.sh
  $ pjsub submit_train_multi.sh
  $ pjsub submit_val.sh
  $ pjsub submit_val_multi.sh
 ```
+
        Example of output(submit_train_multi.sh.xxx.out)
         ～
         Model: resnet50
@@ -106,18 +120,29 @@
 ### Download
 
 ```
- $ ./dataset.sh 
- $ ./checkout.sh 
+ $ ./dataset.sh
+ $ ./checkout.sh
 ```
 
 ### Build [Estimated time:1.5h]
 
+for FX700
+```
+ $ bash submit_build.sh
+```
+for FX1000
 ```
  $ pjsub submit_build.sh
 ```
 
 ### Preprocessing for dataset [Estimated time:1h]
 
+for FX700
+```
+ $ cd opennmt-py
+ $ bash submit_prepare.sh
+```
+for FX1000
 ```
  $ cd opennmt-py
  $ pjsub submit_prepare.sh
@@ -125,12 +150,17 @@
 
 ### Check the environment
 
+for FX700
+```
+ $ bash submit_opennmt_fx700.sh
+```
+for FX1000
 ```
  $ pjsub submit_opennmt.sh
 ```
 
 ```
- $ cd ..
+ $ cd ../..
 ```
 
 ## Build for BERT
@@ -155,39 +185,49 @@
  $ ./checkout.sh
 
  $ cd tranformers
+ $ chmod +x prepare.sh
  $ ./prepare.sh
  $ cd ..
 ```
 
 ### Build [Estimated time:1.5h]
 
+for FX700
+```
+ $ bash submit_build.sh
+```
+for FX1000
 ```
  $ pjsub submit_build.sh
 ```
 
 ### Check the environment
 
+for FX700
 ```
  $ cd transformers
+ $ chmod +x fj-misc/run_glue_multi_impl.sh
+ $ chmod +x fj-misc/run_language_modeling_multi_impl.sh
+ $ bash submit_bert_lm_fx700.sh    # BERT Pre-Training
+ $ bash submit_bert_mrpc_fx700.sh  # BERT FIne-Tuning(MRPC)
+```
+for FX1000
+```
+ $ cd transformers
+ $ chmod +x fj-misc/run_glue_multi_impl.sh
+ $ chmod +x fj-misc/run_language_modeling_multi_impl.sh
  $ pjsub submit_bert_lm.sh    # BERT Pre-Training
  $ pjsub submit_bert_mrpc.sh  # BERT FIne-Tuning(MRPC)
 ```
 
 ```
- $ cd ..
+ $ cd ../..
 ```
-
 ## Build for Mask RCNN
 
 ```
  $ cd mask_r_cnn_build_pack/
 ```
-
-### Environment Setting
- Modify each batch files to suit your environment.
-
-* submit_build.sh
-* detectron2/submit_mask_r_cnn.sh
 
 ### Download
 
@@ -196,23 +236,39 @@
  $ ./dataset.sh
 ```
 
+### Environment Setting
+ Modify each batch files to suit your environment.
+
+* submit_build.sh
+* detectron2/submit_mask_r_cnn.sh
+
 ### Build [Estimated time:1.5h]
 
+for FX700
+```
+ $ bash submit_build.sh
+```
+for FX1000
 ```
  $ pjsub submit_build.sh
 ```
 
 ### Check the environment
 
+for FX700
+```
+ $ cd detectron2
+ $ bash submit_mask_r_cnn_fx700.sh
+```
+for FX1000
 ```
  $ cd detectron2
  $ pjsub submit_mask_r_cnn.sh
 ```
 
 ```
- $ cd ..
+ $ cd ../..
 ```
-
 
 ## Execute gemm with half-gemm automatically.
 
@@ -225,5 +281,6 @@
 
 ## Copyright
 
-Copyright RIKEN, Japan 2021
+Copyright RIKEN, Japan 2021<br>
 Copyright FUJITSU LIMITED 2021
+

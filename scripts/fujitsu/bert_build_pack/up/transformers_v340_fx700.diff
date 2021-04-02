@@ -1,0 +1,83 @@
+diff --git a/submit_bert_lm_fx700.sh b/submit_bert_lm_fx700.sh
+new file mode 100644
+index 000000000..896bd28e4
+--- /dev/null
++++ b/submit_bert_lm_fx700.sh
+@@ -0,0 +1,35 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=01:00:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export NUM_WORKER=${NUM_WORKER:=0}
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++export OMP_PROC_BIND=FALSE
++mpirun -x BATCH_SIZE=2 --map-by slot:PE=24 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
++mpirun -x BATCH_SIZE=4 --map-by slot:PE=24 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
++mpirun -x BATCH_SIZE=8 --map-by slot:PE=24 -np 2 ./fj-misc/run_language_modeling_multi_impl.sh
+diff --git a/submit_bert_mrpc_fx700.sh b/submit_bert_mrpc_fx700.sh
+new file mode 100644
+index 000000000..a9b75bc61
+--- /dev/null
++++ b/submit_bert_mrpc_fx700.sh
+@@ -0,0 +1,36 @@
++#!/bin/bash
++#PJM -L "rscunit=rscunit_ft01,rscgrp=ai-default"
++#PJM -L "elapse=01:00:00"
++#PJM -L "node=1:noncont"
++#PJM --mpi "max-proc-per-node=2"
++#PJM -j
++#PJM -S
++
++set -ex
++
++# Resource Size
++ulimit -s 8192
++
++# Library
++source fj-misc/$(arch).multi.conf
++
++# Virtual env
++source ${PYTORCH_INSTALL_PATH}/${VENV_NAME}/bin/activate
++
++# Env
++export TASK_NAME=${TASK_NAME:="MRPC"}
++export NUM_WORKER=${NUM_WORKER:=0}
++
++# Show Info
++echo $(date) " ## Print Env"
++env | grep -e ^PATH= -e ^LD_LIBRARY_PATH= -e ^LD_PRELOAD= | sed "s/:/\n  /g" | sed "s/=/\n  /g"
++python -c "import torch; print(torch.__version__)"
++python -c "import torch; print(torch.__config__.show())"
++
++#######################
++# Run
++#######################
++export OMP_PROC_BIND=FALSE
++mpirun -x BATCH_SIZE=16 --map-by slot:PE=24 -np 2 ./fj-misc/run_glue_multi_impl.sh
++mpirun -x BATCH_SIZE=32 --map-by slot:PE=24 -np 2 ./fj-misc/run_glue_multi_impl.sh
++mpirun -x BATCH_SIZE=64 --map-by slot:PE=24 -np 2 ./fj-misc/run_glue_multi_impl.sh
