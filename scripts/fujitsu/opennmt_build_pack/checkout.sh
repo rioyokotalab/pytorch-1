@@ -13,7 +13,7 @@ cd ${DOWNLOAD_PATH}
 # Download boost
 BOOST_VERSION="1.74.0"
 BOOST_TAR_VERSION="1_74_0"
-wget https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${BOOST_TAR_VERSION}.tar.gz
+wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${BOOST_TAR_VERSION}.tar.gz
 tar zxvf boost_${BOOST_TAR_VERSION}.tar.gz && rm boost_${BOOST_TAR_VERSION}.tar.gz
 
 # Download rust

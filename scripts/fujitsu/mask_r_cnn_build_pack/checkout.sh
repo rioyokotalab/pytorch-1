@@ -18,6 +18,7 @@ tar zxvf freetype-2.6.1.tar.gz && rm freetype-2.6.1.tar.gz
 git clone https://github.com/matplotlib/matplotlib.git --depth 1 -b v3.3.4
 cd matplotlib
 sed 's/\#system_freetype = False/system_freetype = True/g' setup.cfg.template > setup.cfg
+sed -i 's/\#enable_lto = True/enable_lto = False/g' setup.cfg
 cd ..
 
 # Download pycocotools
